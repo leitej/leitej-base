@@ -1,0 +1,20 @@
+
+
+Version Rules
+
+unit -> number of releases
+	0. base concept
+	n. add, update and major tunings of features to the base concept
+--dot--
+decimal -> state point
+	.0 phantom concept
+	.1 concept
+	.2 concept draft
+	.3 implementing
+	.4 testing unit
+	.5 tuning
+	.6 packing for other application develop
+	.7 add complementing features (maintaining the concept of this unit)
+	.8 alpha (develop test)
+	.9 beta (real user test)
+
