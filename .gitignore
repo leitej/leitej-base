@@ -23,6 +23,8 @@ hs_err_pid*
 
 #eclipse
 !dist/*
+.metadata/
+.recommenders/
 notes/
 bin/
 jar/

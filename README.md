@@ -4,7 +4,7 @@ This is the base of leitej framework, is written to run in Pure Java enviroment,
 
 ## Distribution
 
-You can find the compiled code and dependencies in [dist](./dist/). And the API can be consulted [here](https://leitej.github.io/base).
+You can find the compiled code and dependencies in [dist](./dist/). And the API can be consulted [here](https://leitej.github.io/leitej-base).
 
 ### Prerequisites
 
