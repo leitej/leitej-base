@@ -69,7 +69,7 @@ public class XSecurityManager extends SecurityManager {
 
 	/**
 	 * Ends the appliance of this class measures, returning to the anterior ones.
-	 * 
+	 *
 	 * @throws SecurityException if the security manager
 	 *                           <code>checkPermission</code> method doesn't allow
 	 *                           it to be replaced

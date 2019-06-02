@@ -18,9 +18,6 @@ package leitej;
 
 import java.math.BigInteger;
 
-import leitej.log.LevelEnum;
-import leitej.util.stream.FileUtil;
-
 /**
  * Constants
  *
@@ -69,9 +66,5 @@ public final class Constant {
 			+ DEFAULT_FILE_SEPARATOR;
 	public static final int FRACTION_INPUT_STREAM_REFRESH_WAIT_IO = 2000; // 2 seconds
 	public static final int IO_BUFFER_SIZE = 2 * KILO; // 2 KB
-
-	public static final String DEFAULT_LOG_PROPERTIES_FILE_NAME = FileUtil.propertieRelativePath4FileName("logger");
-	public static final LevelEnum DEFAULT_LOG_LEVEL = LevelEnum.WARN;
-	public static final String DEFAULT_LOG_SIMPLE_DATE_FORMAT = "yyMMdd.HHmm.ssSSS";
 
 }

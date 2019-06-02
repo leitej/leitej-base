@@ -863,8 +863,8 @@ public final class PoolAgnosticThread {
 	/**
 	 * Adds work to the queue of the pool.
 	 *
-	 * @param xThreadData a {@link leitej.thread.XThreadDataItf XThreadDataItf}
-	 *                    object specifying the work to be done.
+	 * @param xThreadData a {@link leitej.thread.XThreadData XThreadData} object
+	 *                    specifying the work to be done.
 	 * @throws PoolAgnosticThreadLtException if the pool has already closed.
 	 * @throws SeppukuLtRtException          exit(420) if encounters the control
 	 *                                       thread of the pool not alive

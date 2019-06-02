@@ -96,7 +96,7 @@ public final class XmlomOutputStream extends OutputStream {
 	/**
 	 * Puts the objects in list to be written when flush the stream.
 	 *
-	 * @param objs objects to write
+	 * @param xmlom objects to write
 	 */
 	public <I extends XmlObjectModelling> void write(final I xmlom) {
 		this.out.add(xmlom);
@@ -105,7 +105,7 @@ public final class XmlomOutputStream extends OutputStream {
 	/**
 	 * Puts the objects in list to be written when flush the stream.
 	 *
-	 * @param objs objects to write
+	 * @param xmlom objects to write
 	 */
 	public <I extends XmlObjectModelling> void write(final I[] xmlom) {
 		this.out.add(xmlom);

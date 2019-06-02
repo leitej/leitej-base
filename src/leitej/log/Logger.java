@@ -28,6 +28,7 @@ import leitej.util.data.Invoke;
 import leitej.util.data.InvokeItf;
 import leitej.util.machine.ShutdownHookUtil;
 import leitej.util.machine.VMMonitor;
+import leitej.util.stream.FileUtil;
 
 /**
  * <p>
@@ -57,10 +58,16 @@ import leitej.util.machine.VMMonitor;
 public final class Logger {
 
 	private static volatile boolean CLOSED = false;
+
+	static LevelEnum DEFAULT_LOG_LEVEL = LevelEnum.WARN;
+	static final String DEFAULT_LOG_PROPERTIES_FILE_NAME = FileUtil.propertieRelativePath4FileName("logger");
+	static final String DEFAULT_LOG_SIMPLE_DATE_FORMAT = "yyMMdd.HHmm.ssSSS";
+
 	private static final String METHOD_CLOSE = "close";
 	private static final InvokeItf CLOSE_AT_JVM_SHUTDOWN;
 	private static final Cache<String, Logger> ISTANCES = new CacheWeak<>();
 	private static final Logger MY_LOG = new Logger(Logger.class.getCanonicalName());
+
 	static {
 		MY_LOG.info("osArch: #0", VMMonitor.osArch());
 		MY_LOG.info("osName: #0", VMMonitor.osName());
@@ -137,7 +144,6 @@ public final class Logger {
 	 * ShutdownHookUtil.addToLast(InvokeItf)}.
 	 */
 	private Logger(final String signClass) {
-		super();
 		this.appenderMng = new AppenderManager(signClass);
 		this.trace("lt.NewInstance");
 	}
@@ -241,6 +247,8 @@ public final class Logger {
 	private void append(final LevelEnum level, final String msg, final Object... args) {
 		if (!CLOSED) {
 			this.appenderMng.print(level, Thread.currentThread().getName(), msg, args);
+		} else {
+			System.err.println(level + " - " + Thread.currentThread().getName() + " - Fail print: " + msg);
 		}
 	}
 

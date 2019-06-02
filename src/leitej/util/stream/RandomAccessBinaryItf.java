@@ -41,8 +41,8 @@ public interface RandomAccessBinaryItf extends Closeable {
 	 * {@link InputStream#read(byte[], int, int)} method of
 	 * <code>InputStream</code>.
 	 *
-	 * @param fileOff the first byte of the file to be read
-	 * @param buff    the buffer into which the data is read
+	 * @param offset the first byte of the file to be read
+	 * @param buff   the buffer into which the data is read
 	 * @return the maximum number of bytes read
 	 * @throws NullPointerException If <code>buff</code> is <code>null</code>
 	 * @throws IOException          If the first byte cannot be read for any reason
@@ -61,10 +61,10 @@ public interface RandomAccessBinaryItf extends Closeable {
 	 * {@link InputStream#read(byte[], int, int)} method of
 	 * <code>InputStream</code>.
 	 *
-	 * @param fileOff the first byte of the file to be read
-	 * @param buff    the buffer into which the data is read
-	 * @param off     the start offset in array b at which the data is written
-	 * @param len     the maximum number of bytes read
+	 * @param offset the first byte of the file to be read
+	 * @param buff   the buffer into which the data is read
+	 * @param off    the start offset in array b at which the data is written
+	 * @param len    the maximum number of bytes read
 	 * @return the total number of bytes read into the buffer, or -1 if there is no
 	 *         more data because the end of the file has been reached
 	 * @throws IllegalArgumentLtRtException If <code>off</code> is negative,
@@ -92,8 +92,8 @@ public interface RandomAccessBinaryItf extends Closeable {
 	 * Writes <code>buff.length</code> bytes from the specified byte array to this
 	 * file at <code>fileOff</code> position.
 	 *
-	 * @param fileOff the first byte of the file to be written
-	 * @param buff    the data
+	 * @param offset the first byte of the file to be written
+	 * @param buff   the data
 	 * @throws IOException If an I/O error occurs
 	 */
 	public void write(long offset, byte[] buff) throws IllegalArgumentLtRtException, IOException;
@@ -102,10 +102,10 @@ public interface RandomAccessBinaryItf extends Closeable {
 	 * Writes <code>len</code> bytes from the specified byte array to this file at
 	 * <code>fileOff</code> position.
 	 *
-	 * @param fileOff the first byte of the file to be written
-	 * @param buff    the data
-	 * @param off     the start offset in the data
-	 * @param len     the number of bytes to write
+	 * @param offset the first byte of the file to be written
+	 * @param buff   the data
+	 * @param off    the start offset in the data
+	 * @param len    the number of bytes to write
 	 * @throws IOException If an I/O error occurs
 	 */
 	public void write(long offset, byte[] buff, int off, int len) throws IllegalArgumentLtRtException, IOException;

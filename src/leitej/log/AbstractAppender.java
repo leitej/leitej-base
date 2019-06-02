@@ -20,7 +20,6 @@ import java.lang.reflect.Array;
 import java.util.Date;
 import java.util.Map;
 
-import leitej.Constant;
 import leitej.locale.message.Messages;
 import leitej.util.DateUtil;
 import leitej.util.StringUtil;
@@ -55,68 +54,44 @@ abstract class AbstractAppender {
 	private final String sdFormat;
 	private final LevelEnum defaultLevel;
 	private final Map<String, LevelEnum> packageLogLevel;
-	private final LevelEnum maxLogLevel;
 
 	AbstractAppender(final Config lp) {
-		this.sdFormat = (lp.getDateFormat() != null) ? lp.getDateFormat() : Constant.DEFAULT_LOG_SIMPLE_DATE_FORMAT;
-		this.defaultLevel = (lp.getLogLevel() != null) ? lp.getLogLevel() : Constant.DEFAULT_LOG_LEVEL;
+		this.sdFormat = (lp.getDateFormat() != null) ? lp.getDateFormat() : Logger.DEFAULT_LOG_SIMPLE_DATE_FORMAT;
+		this.defaultLevel = (lp.getLogLevel() != null) ? lp.getLogLevel() : Logger.DEFAULT_LOG_LEVEL;
 		this.packageLogLevel = (lp.getPackageLogLevel() != null) ? lp.getPackageLogLevel() : null;
-		this.maxLogLevel = maxLogLevel();
 	}
 
-	private final LevelEnum maxLogLevel() {
-		LevelEnum result = this.defaultLevel;
+	final LevelEnum getMaxLogLevel(final String signClass) {
+		final LevelEnum result;
 		if (this.packageLogLevel != null) {
-			for (final LevelEnum level : this.packageLogLevel.values()) {
-				if (level.ordinal() > result.ordinal()) {
-					result = level;
+			LevelEnum level = this.packageLogLevel.get(signClass);
+			if (level == null) {
+				final String[] signs = getHierarchicalSignLog(signClass);
+				int i = 0;
+				i++;
+				for (; i < signs.length && level == null; i++) {
+					level = this.packageLogLevel.get(signs[i]);
 				}
+				i -= 2;
+				if (level == null) {
+					level = this.defaultLevel;
+				}
+				for (; i > 0; i--) {
+					this.packageLogLevel.put(signs[i], level);
+				}
+				this.packageLogLevel.put(signClass, level);
 			}
+			result = level;
+		} else {
+			result = this.defaultLevel;
 		}
 		return result;
 	}
 
-	final LevelEnum getMaxLogLevel(final String signClass) {
-		;
-		;
-		;
-		;
-		return this.maxLogLevel;
-	}
-
 	final void print(final LevelEnum level, final String threadName, final String signLog, final Date date,
 			final String msg, final Object... args) {
-		if (canAppend(level, signLog)) {
-			outPrint(true, DateUtil.format(date, this.sdFormat));
-			printLog(level, threadName, signLog, msg, args);
-		}
-	}
-
-	private boolean canAppend(final LevelEnum logLevel, final String signLog) {
-		LevelEnum level = this.packageLogLevel.get(signLog);
-		if (level == null) {
-			final String logSignClean = signLog.split("\\(")[0];
-			level = this.packageLogLevel.get(logSignClean);
-			if (level == null) {
-				final String[] signs = getHierarchicalSignLog(logSignClean);
-				int i = 0;
-				if (this.packageLogLevel != null) {
-					i++;
-					for (; i < signs.length && level == null; i++) {
-						level = this.packageLogLevel.get(signs[i]);
-					}
-					i -= 2;
-				}
-				if (level == null) {
-					level = this.defaultLevel;
-				}
-				for (; i >= 0; i--) {
-					this.packageLogLevel.put(signs[i], level);
-				}
-			}
-			this.packageLogLevel.put(signLog, level);
-		}
-		return !(level.ordinal() < logLevel.ordinal());
+		outPrint(true, DateUtil.format(date, this.sdFormat));
+		printLog(level, threadName, signLog, msg, args);
 	}
 
 	private void printLog(final LevelEnum level, final String threadName, final String signLog, final String plainLog,

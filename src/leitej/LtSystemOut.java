@@ -17,7 +17,6 @@
 package leitej;
 
 import leitej.locale.message.Messages;
-import leitej.log.LevelEnum;
 import leitej.util.DateUtil;
 
 /**
@@ -30,7 +29,6 @@ import leitej.util.DateUtil;
 public final class LtSystemOut {
 
 	private static final Messages MESSAGES = Messages.getInstance();
-	private static final String LEVEL_DEBUG_NAME = LevelEnum.DEBUG.toString();
 
 	static {
 		debug(LtSystemOut.class.getCanonicalName() + " is Active");
@@ -47,9 +45,8 @@ public final class LtSystemOut {
 	 */
 	public static final void debug(final String msg, final Object... args) {
 		if (Constant.DEBUG_ACTIVE) {
-			System.out.println("DEBUG_TO_SYS_OUT " + DateUtil.nowTime() + " " + LEVEL_DEBUG_NAME + " ["
-					+ Thread.currentThread().getName() + "] " + (new Throwable()).getStackTrace()[1].toString() + " - "
-					+ MESSAGES.get(msg, args));
+			System.out.println("DEBUG_TO_SYS_OUT " + DateUtil.nowTime() + " [" + Thread.currentThread().getName() + "] "
+					+ (new Throwable()).getStackTrace()[1].toString() + " - " + MESSAGES.get(msg, args));
 		}
 	}
 

@@ -125,7 +125,7 @@ public final class XmlomInputStream extends InputStream {
 	/**
 	 * Reads an object of type <code>clazz</code> from the stream.
 	 *
-	 * @param clazz type of object to be ridden
+	 * @param interfaceClass type of object to be ridden
 	 * @return the ridden object
 	 * @throws IOException           If an I/O error occurs
 	 * @throws XmlInvalidLtException If is reading a corrupted XML
@@ -158,7 +158,7 @@ public final class XmlomInputStream extends InputStream {
 	/**
 	 * Reads all the objects till the end of stream.
 	 *
-	 * @param clazz type of object to be ridden
+	 * @param interfaceClass type of object to be ridden
 	 * @return all the ridden objects
 	 * @throws IOException           If an I/O error occurs
 	 * @throws XmlInvalidLtException If is reading a corrupted XML
