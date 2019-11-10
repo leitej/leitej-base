@@ -1,5 +1,3 @@
-
-
 Version Rules
 
 unit -> number of releases

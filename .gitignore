@@ -29,8 +29,16 @@ notes/
 bin/
 jar/
 meta-inf/
+classes/
 lib/
+data/
 src-test/
+src/leitej/crypto/
+src/leitej/gui/
+src/leitej/ltm/
+src/leitej/net/
+src/leitej/sound/
+src/leitej/vi/
 .settings/
 .classpath
 .project
