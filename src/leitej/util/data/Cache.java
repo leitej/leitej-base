@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Julio Leite
+ * Copyright Julio Leite
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * Useful interface to defines expected interaction with a cache object.
  *
- * @author julio
+ * @author Julio Leite
  *
  */
 public abstract interface Cache<K, V> extends Serializable {
