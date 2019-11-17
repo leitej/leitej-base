@@ -1,15 +1,15 @@
 /*******************************************************************************
  * Copyright Julio Leite
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as 
+ * it under the terms of the GNU General Public License version 3 as
  * published by the Free Software Foundation.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -18,8 +18,8 @@ package leitej.locale.message;
 
 /**
  * Hard-coded translation.
- * 
- * @author  Julio Leite
+ *
+ * @author Julio Leite
  */
 final class MessagesEng implements MessagesItf {
 
@@ -132,6 +132,105 @@ final class MessagesEng implements MessagesItf {
 	"#DB",
 		"lt.MngDriverName					=Driver Name: #0",
 		"lt.MngClosed						=Closed",
+	"#NET",
+		"lt.CSLEndStream					=Unexpected end of stream",
+		"lt.CSLWrongVersion				=Endpoint with diferent version",
+		"lt.CSLInvalidMineChain			=Endpoint held my chain invalid",
+		"lt.CSLEndpointCertificateInvalid	=Endpoint certificate is invalid",
+		"lt.CSLInvalidSignedCertification	=Certificate is invalid (#0)",
+		"lt.CommStart						=Start server at #0",
+		"lt.CommAlreadyClosed				=Already closed",
+		"lt.CSLDTPClosing					=Closing DTP server",
+		"lt.CSLCharsetCodeNotDefined		=Charset code '#0' not defined",
+		"lt.CSLCharsetNameNotDefined		=Charset name '#0' not defined",
+		"lt.CSLCharsetNotImplemented		=Charset not yet implemented",
+		"lt.CSLSignRequestFile				=use the '#0' file to get your signed certificate",
+		"lt.CSLKeystoreCreate				=Creating keystore: #0",
+		"lt.CSLKeystoreLoad				=Loading keystore: #0",
+		"lt.CSLKeyGenerate					=Generating new key: #0",
+		"lt.CSLKeyContingencyUpgrade		=Upgrading contingency key",
+		"lt.CSLSignRequest					=Signing request: #0",
+		"lt.CSLSendId						=Sending my end-certificate",
+		"lt.CSLSendIdChain					=Sending my chain certificate",
+		"lt.CSLReceiveRemoteId				=Receiving remote end-certificate",
+		"lt.CSLReceiveRemoteIdChain		=Receiving remote chain certificate",
+		"lt.DTPWrongCall					=This method only can be called by abstract class AbstractHandler",
+		"lt.DTPNotConnected				=Not connected",
+		"lt.FTPStart						=Start FTP server at #0",
+		"lt.FTPAlreadyClosed				=Already closed",
+		"lt.FTPClosing						=Closing FTP server",
+		"lt.FTPWrongCall					=This method only can be called by abstract class AbstractHandler",
+		"lt.FTPCode_110			=110 Restart marker reply",
+		"lt.FTPCode_120			=120 Service ready in #0 minutes",
+		"lt.FTPCode_125			=125 Data connection already open; transfer starting",
+		"lt.FTPCode_150			=150 File status okay; about to open data connection",
+		"lt.FTPCode_200			=200 Command okay",
+		"lt.FTPCode_202			=202 Command not implemented, superfluous at this site",
+		"lt.FTPCode_211			=211 System status, or system help reply",
+		"lt.FTPCode_212			=212 Directory status",
+		"lt.FTPCode_213			=213 File status",
+		"lt.FTPCode_214			=214 Help message",
+		"lt.FTPCode_215			=215 NAME system type",
+		"lt.FTPCode_220			=220 Service ready for new user",
+		"lt.FTPCode_221			=221 Service closing control connection. Logged out if appropriate",
+		"lt.FTPCode_225			=225 Data connection open; no transfer in progress",
+		"lt.FTPCode_226			=226 Closing data connection. Requested file action successful (for example, file transfer or file abort)",
+		"lt.FTPCode_227			=227 Entering Passive Mode (#0)",	//Entering Passive Mode (h1,h2,h3,h4,p1,p2)
+		"lt.FTPCode_230			=230 User logged in, proceed",
+		"lt.FTPCode_250			=250 Requested file action okay, completed",
+		"lt.FTPCode_257			=257 Pathname created",
+		"lt.FTPCode_331			=331 User name okay, need password",
+		"lt.FTPCode_332			=332 Need account for login",
+		"lt.FTPCode_350			=350 Requested file action pending further information",
+		"lt.FTPCode_421			=421 Service not available, closing control connection. This may be a reply to any command if the service knows it must shut down",
+		"lt.FTPCode_425			=425 Can't open data connection",
+		"lt.FTPCode_426			=426 Connection closed; transfer aborted",
+		"lt.FTPCode_450			=450 Requested file action not taken. File unavailable (e.g., file busy)",
+		"lt.FTPCode_451			=451 Requested action aborted: local error in processing",
+		"lt.FTPCode_452			=452 Requested action not taken. Insufficient storage space in system",
+		"lt.FTPCode_500			=500 Syntax error, command unrecognized. This may include errors such as command line too long",
+		"lt.FTPCode_500_nps		=500 Can't establish data connection: no PORT specified",
+		"lt.FTPCode_501			=501 Syntax error in parameters or arguments",
+		"lt.FTPCode_502			=502 Command not implemented",
+		"lt.FTPCode_503			=503 Bad sequence of commands",
+		"lt.FTPCode_503_luf		=503 Login with USER first",
+		"lt.FTPCode_504			=504 Command not implemented for that parameter",
+		"lt.FTPCode_530			=530 Not logged in",
+		"lt.FTPCode_532			=532 Need account for storing files",
+		"lt.FTPCode_550			=550 Requested action not taken. File unavailable (e.g., file not found, no access)",
+		"lt.FTPCode_550_ned		=550 Nonexistent directory",
+		"lt.FTPCode_550_ind		=550 Is not a directory",
+		"lt.FTPCode_550_nef		=550 Nonexistent file",
+		"lt.FTPCode_550_cndf		=550 Could not delete file",
+		"lt.FTPCode_550_cnrd		=550 Could not remove directory",
+		"lt.FTPCode_550_fe			=550 File exists",
+		"lt.FTPCode_550_dcnc		=550 Directory could not be created",
+		"lt.FTPCode_550_npf		=550 Not a plain file",
+		"lt.FTPCode_550_fel		=550 File exists in that location",
+		"lt.FTPCode_550_cwf		=550 Can't write to file",
+		"lt.FTPCode_551			=551 Requested action aborted: page type unknown",
+		"lt.FTPCode_552			=552 Requested file action aborted. Exceeded storage allocation (for current directory or dataset)",
+		"lt.FTPCode_553			=553 Requested action not taken. File name not allowed",
+	"#GUI",
+		"lt.GUIEventInvokeArgMethodNull	=Argument 'method' can not be null",
+		"lt.GUIEventMethodWrongArgs		=Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called",
+	"#CRYPTO",
+		"lt.CryptoUnrestrictedWarn0			=You can find the unrestricted policy files on the same page as the JCE/JDK downloads are found.",
+		"lt.CryptoUnrestrictedWarn1			=Normally it will be a discrete link at the bottom of the download page entitled something like \"Unlimited Strength Jurisdiction Policy Files.\"",
+		"lt.CryptoUnrestrictedWarn2			=The download is a ZIP file, and providing it is legal for you to do so;",
+		"lt.CryptoUnrestrictedWarn3			=You should download the ZIP file and install the two JAR files it contains according to the instructions in the README file contained in the ZIP file.",
+		"lt.CryptoStreamWrongKeySize			=Key without #0bits",
+		"lt.CryptoStreamWrongHMACKeySize		=HMacKey without #0bits",
+		"lt.CryptoStreamWrongBlockSize			=Unexpected cipher block size",
+		"lt.CryptoStreamWrongHMACLength		=Unexpected hmac length",
+		"lt.CryptoStreamTamperedData			=Data has been tampered",
+		"lt.CryptoStreamWrongAlgorithm			=Unexpected return from cipher.dofinal for a stream",
+		"lt.CryptoSignatureWrongSize			=The result signature has a wrong size(#0)!?",
+		"lt.CryptoMessageTampered				=Message was tampered with, or key was incorrect",
+		"lt.CryptoCertInvalidType				=Invalid type: #0",
+		"lt.CryptoCertInvalidChainLength		=The chain length is #0 and expected to be #1",
+		"lt.CryptoCertNotCAWrongChainPosition	=The chain can not have an end-entity (not CA) at #0 position",
+		"lt.CryptoCertCAtoHighChainPosition	=Certificate at index #0 in the chain can only have #1 links bellow",
 	"#LTM",
 		"lt.LtmErase						=Erased All Long Term Memory"
 	};
