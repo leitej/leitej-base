@@ -125,13 +125,35 @@ public final class HexaUtil {
 	 */
 	public static byte[] toByte(final CharSequence data, final int off, final int len)
 			throws IllegalArgumentLtRtException, IndexOutOfBoundsException {
-		if ((off | len | (data.length() - (len + off)) | (off + len)) < 0) {
+		final byte[] result = new byte[len / 2];
+		toByte(result, data, off, len);
+		return result;
+	}
+
+	/**
+	 * Converts CharSequence representation of data in hex to data in bytes.
+	 *
+	 * @param destination output of conversion (caller have to ensure capacity, half
+	 *                    of the length of the data to be converted)
+	 * @param data        the data
+	 * @param off         the start offset in the data
+	 * @param len         the number of characters to convert
+	 * @return number of bytes written on destination
+	 * @throws IllegalArgumentLtRtException if data are not in hex or the len is not
+	 *                                      even
+	 * @throws IndexOutOfBoundsException    if <code>off</code> and <code>len</code>
+	 *                                      represents an invalid position or
+	 *                                      interval in the <code>data</code>
+	 *                                      sequence
+	 */
+	public static int toByte(final byte[] destination, final CharSequence data, final int off, final int len)
+			throws IllegalArgumentLtRtException, IndexOutOfBoundsException {
+		if ((off | len | (data.length() - (len + off)) | (off + len)) < 0 | destination.length < (len / 2)) {
 			throw new IndexOutOfBoundsException();
 		}
 		if (MathUtil.isOdd(len)) {
 			throw new IllegalArgumentLtRtException("lt.HexaInvalid");
 		}
-		final byte[] result = new byte[len / 2];
 		int tmp1;
 		int tmp2;
 		int r = 0;
@@ -156,9 +178,9 @@ public final class HexaUtil {
 			if (tmp2 < 0) {
 				throw new IllegalArgumentLtRtException("lt.HexaInvalid");
 			}
-			result[r++] = (byte) ((byte) tmp1 << 4 | tmp2);
+			destination[r++] = (byte) ((byte) tmp1 << 4 | tmp2);
 		}
-		return result;
+		return r;
 	}
 
 }

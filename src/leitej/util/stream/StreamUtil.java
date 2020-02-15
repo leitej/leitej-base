@@ -19,10 +19,14 @@ package leitej.util.stream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import leitej.Constant;
+import leitej.exception.IllegalArgumentLtRtException;
+import leitej.util.HexaUtil;
 
 /**
  *
@@ -40,10 +44,14 @@ public final class StreamUtil {
 	private StreamUtil() {
 	}
 
-	public static long pipe(final InputStream in, final OutputStream out) throws IOException {
-		return pipe(in, out, false);
-	}
-
+	/**
+	 *
+	 * @param in
+	 * @param out
+	 * @param doFlush
+	 * @return
+	 * @throws IOException If some other I/O error occurs
+	 */
 	public static long pipe(final InputStream in, final OutputStream out, final boolean doFlush) throws IOException {
 		long result;
 		if (doFlush) {
@@ -60,7 +68,7 @@ public final class StreamUtil {
 	 * @param out
 	 * @param flushInterval if greater then zero, activate the call of the flush
 	 * @return
-	 * @throws IOException
+	 * @throws IOException If some other I/O error occurs
 	 */
 	public static long pipe(final InputStream in, final OutputStream out, final int flushInterval) throws IOException {
 		final byte[] buffer = new byte[BUFFER_SIZE];
@@ -73,11 +81,178 @@ public final class StreamUtil {
 			result += numRead;
 			if (doFlush) {
 				flushCount += numRead;
-				if (flushInterval < flushCount || in.available() == 0) {
+				if (flushInterval < flushCount) {
 					flushCount = 0;
 					out.flush();
 				}
 			}
+		}
+		if (doFlush) {
+			out.flush();
+		}
+		return result;
+	}
+
+	/**
+	 *
+	 * @param in
+	 * @param out
+	 * @param doFlush
+	 * @return
+	 * @throws IOException If some other I/O error occurs
+	 */
+	public static long pipeReadable(final Reader in, final Writer out, final boolean doFlush) throws IOException {
+		long result;
+		if (doFlush) {
+			result = pipeReadable(in, out, FLUSH_INTERVAL);
+		} else {
+			result = pipeReadable(in, out, 0);
+		}
+		return result;
+	}
+
+	/**
+	 *
+	 * @param in
+	 * @param out
+	 * @param flushInterval if greater then zero, activate the call of the flush
+	 * @return
+	 * @throws IOException If some other I/O error occurs
+	 */
+	public static long pipeReadable(final Reader in, final Writer out, final int flushInterval) throws IOException {
+		final char[] cBuffer = new char[BUFFER_SIZE];
+		long result = 0;
+		int numRead;
+		int flushCount = 0;
+		final boolean doFlush = flushInterval > 0;
+		while ((numRead = in.read(cBuffer)) >= 0) {
+			out.write(cBuffer, 0, numRead);
+			result += numRead;
+			if (doFlush) {
+				flushCount += numRead;
+				if (flushInterval < flushCount) {
+					flushCount = 0;
+					out.flush();
+				}
+			}
+		}
+		if (doFlush) {
+			out.flush();
+		}
+		return result;
+	}
+
+	/**
+	 *
+	 * @param in
+	 * @param out
+	 * @param doFlush
+	 * @return
+	 * @throws IOException If some other I/O error occurs
+	 */
+	public static long pipeToHex(final InputStream in, final Writer out, final boolean doFlush) throws IOException {
+		long result;
+		if (doFlush) {
+			result = pipeToHex(in, out, FLUSH_INTERVAL);
+		} else {
+			result = pipeToHex(in, out, 0);
+		}
+		return result;
+	}
+
+	/**
+	 *
+	 * @param in
+	 * @param out
+	 * @param flushInterval if greater then zero, activate the call of the flush
+	 * @return
+	 * @throws IOException If some other I/O error occurs
+	 */
+	public static long pipeToHex(final InputStream in, final Writer out, final int flushInterval) throws IOException {
+		final byte[] buffer = new byte[BUFFER_SIZE];
+		final StringBuilder sb = new StringBuilder();
+		long result = 0;
+		int numRead;
+		int flushCount = 0;
+		final boolean doFlush = flushInterval > 0;
+		while ((numRead = in.read(buffer)) >= 0) {
+			sb.setLength(0);
+			HexaUtil.toHex(sb, buffer, 0, numRead);
+			out.append(sb);
+			result += numRead;
+			if (doFlush) {
+				flushCount += numRead;
+				if (flushInterval < flushCount) {
+					flushCount = 0;
+					out.flush();
+				}
+			}
+		}
+		if (doFlush) {
+			out.flush();
+		}
+		return result;
+	}
+
+	/**
+	 *
+	 * @param in
+	 * @param out
+	 * @param doFlush
+	 * @return
+	 * @throws IOException If some other I/O error occurs
+	 */
+	public static long pipeFromHex(final Reader in, final OutputStream out, final boolean doFlush) throws IOException {
+		long result;
+		if (doFlush) {
+			result = pipeFromHex(in, out, FLUSH_INTERVAL);
+		} else {
+			result = pipeFromHex(in, out, 0);
+		}
+		return result;
+	}
+
+	/**
+	 *
+	 * @param in
+	 * @param out
+	 * @param flushInterval if greater then zero, activate the call of the flush
+	 * @return
+	 * @throws IOException If some other I/O error occurs
+	 */
+	public static long pipeFromHex(final Reader in, final OutputStream out, final int flushInterval)
+			throws IOException {
+		final char[] cBuffer = new char[BUFFER_SIZE];
+		final byte[] buffer = new byte[(BUFFER_SIZE / 2) + 1];
+		final StringBuilder sb = new StringBuilder();
+		long result = 0;
+		int numRead;
+		int numWrite;
+		int flushCount = 0;
+		final boolean doFlush = flushInterval > 0;
+		int odd = 0;
+		while ((numRead = in.read(cBuffer)) >= 0) {
+			sb.append(cBuffer, 0, numRead);
+			odd = ((numRead & 1) + odd) & 1;
+			numWrite = HexaUtil.toByte(buffer, sb, 0, sb.length() - odd);
+			out.write(buffer, 0, numWrite);
+			result += numRead;
+			if (numRead != 0) {
+				sb.setLength(0);
+				if (odd != 0) {
+					sb.append(cBuffer[numRead - 1]);
+				}
+			}
+			if (doFlush) {
+				flushCount += numWrite;
+				if (flushInterval < flushCount) {
+					flushCount = 0;
+					out.flush();
+				}
+			}
+		}
+		if (odd != 0) {
+			throw new IllegalArgumentLtRtException("buffered_reader has an invalid hex value");
 		}
 		if (doFlush) {
 			out.flush();
