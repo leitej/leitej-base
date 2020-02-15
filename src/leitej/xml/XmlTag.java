@@ -29,11 +29,7 @@ final class XmlTag {
 
 	private final StringBuilder tag;
 	private boolean isInvalid;
-	private Boolean isMetaData;
-	private Boolean isComment;
-	private Boolean isOpen;
-	private Boolean isClose;
-	private Boolean isOpenClose;
+	private XmlTagType type;
 	private CharSequence name;
 	private CharSequence comment;
 	private final Map<String, Object> attribMap;
@@ -50,13 +46,9 @@ final class XmlTag {
 	/**
 	 * Initiates the state of this instance to make a new tag.
 	 */
-	final void init() {
+	void init() {
 		this.isInvalid = true;
-		this.isMetaData = null;
-		this.isComment = null;
-		this.isOpen = null;
-		this.isClose = null;
-		this.isOpenClose = null;
+		this.type = null;
 		this.name = null;
 		this.comment = null;
 		this.attribMap.clear();
@@ -64,103 +56,42 @@ final class XmlTag {
 	}
 
 	/**
-	 * Appends the string representation of a subarray of the <code>char</code>
-	 * array argument to this tag.
+	 * Appends the string representation of the {@code char} argument to this
+	 * sequence.
 	 * <p>
-	 * Characters of the <code>char</code> array <code>str</code>, starting at index
-	 * <code>offset</code>, are appended, in order, to the contents of this
-	 * sequence. The length of this sequence increases by the value of
-	 * <code>len</code>.
+	 * The argument is appended to the contents of this sequence. The length of this
+	 * sequence increases by {@code 1}.
+	 * <p>
+	 * The overall effect is exactly as if the argument were converted to a string
+	 * by the method {@link String#valueOf(char)}, and the character in that string
+	 * were then {@link #append(String) appended} to this character sequence.
 	 *
-	 * @param str    the characters to be appended.
-	 * @param offset the index of the first <code>char</code> to append.
-	 * @param len    the number of <code>char</code>s to append.
+	 * @param c a {@code char}.
 	 */
-	final void append(final char[] str, final int offset, final int len) {
-		this.tag.append(str, offset, len);
+	void append(final char c) {
+		this.tag.append(c);
 	}
 
 	/**
-	 * @throws XmlInvalidLtException If is not a valid tag
+	 * Loads and validates the appended tag data.
+	 *
+	 * @return false if is an invalid tag
 	 */
-	private final void validatesTag() throws XmlInvalidLtException {
-		XmlConsumerTools.validatesTag(this.tag);
-		this.isInvalid = false;
+	boolean load() {
+		this.isInvalid = !XmlConsumerTools.validatesTag(this.tag);
+		return !this.isInvalid;
 	}
 
 	/**
+	 * Obtain the type of this tag.
 	 *
-	 * @return true if is a metadata tag
-	 * @throws XmlInvalidLtException If is not a valid tag
+	 * @return tag type or null if fail to recognize it
 	 */
-	final boolean isMetaData() throws XmlInvalidLtException {
-		if (this.isInvalid) {
-			validatesTag();
+	XmlTagType getXmlTagType() {
+		if (this.type == null && this.tag.length() > 0) {
+			this.type = XmlConsumerTools.parseXmlTagType(this.tag);
 		}
-		if (this.isMetaData == null) {
-			this.isMetaData = Boolean.valueOf(XmlConsumerTools.isTagMetaData(this.tag));
-		}
-		return this.isMetaData.booleanValue();
-	}
-
-	/**
-	 *
-	 * @return true if is a comment tag
-	 * @throws XmlInvalidLtException If is not a valid tag
-	 */
-	final boolean isComment() throws XmlInvalidLtException {
-		if (this.isInvalid) {
-			validatesTag();
-		}
-		if (this.isComment == null) {
-			this.isComment = Boolean.valueOf(XmlConsumerTools.isTagComment(this.tag));
-		}
-		return this.isComment.booleanValue();
-	}
-
-	/**
-	 *
-	 * @return true if is an open tag
-	 * @throws XmlInvalidLtException If is not a valid tag
-	 */
-	final boolean isOpen() throws XmlInvalidLtException {
-		if (this.isInvalid) {
-			validatesTag();
-		}
-		if (this.isOpen == null) {
-			this.isOpen = Boolean.valueOf(XmlConsumerTools.isElementTagOpen(this.tag));
-		}
-		return this.isOpen.booleanValue();
-	}
-
-	/**
-	 *
-	 * @return true if is a close tag
-	 * @throws XmlInvalidLtException If is not a valid tag
-	 */
-	final boolean isClose() throws XmlInvalidLtException {
-		if (this.isInvalid) {
-			validatesTag();
-		}
-		if (this.isClose == null) {
-			this.isClose = Boolean.valueOf(XmlConsumerTools.isElementTagClose(this.tag));
-		}
-		return this.isClose.booleanValue();
-	}
-
-	/**
-	 *
-	 * @return true if is an open_close tag
-	 * @throws XmlInvalidLtException If is not a valid tag
-	 */
-	final boolean isOpenClose() throws XmlInvalidLtException {
-		if (this.isInvalid) {
-			validatesTag();
-		}
-		if (this.isOpenClose == null) {
-			this.isOpenClose = Boolean.valueOf(XmlConsumerTools.isElementTagOpenClose(this.tag));
-		}
-		return this.isOpenClose.booleanValue();
+		return this.type;
 	}
 
 	/**
@@ -170,11 +101,12 @@ final class XmlTag {
 	 * @throws XmlInvalidLtException If is not a valid tag or is an invalid name
 	 *                               element
 	 */
-	final CharSequence getName() throws XmlInvalidLtException {
+	CharSequence getName() throws XmlInvalidLtException {
 		if (this.isInvalid) {
-			validatesTag();
+			throw new XmlInvalidLtException("Invalid xml tag: #0", this.tag);
 		}
-		if (this.name == null) {
+		if (this.name == null && (getXmlTagType().equals(XmlTagType.OPEN) || getXmlTagType().equals(XmlTagType.CLOSE)
+				|| getXmlTagType().equals(XmlTagType.OPEN_CLOSE))) {
 			this.name = XmlConsumerTools.getElementName(this.tag);
 		}
 		return this.name;
@@ -186,9 +118,11 @@ final class XmlTag {
 	 * @param dest to write the comment
 	 * @throws XmlInvalidLtException If is not a valid tag
 	 */
-	final void getComment(final StringBuilder dest) throws XmlInvalidLtException {
-		// the next line has the validation - if(isInvalid) validatesTag();
-		if (isComment()) {
+	void getComment(final StringBuilder dest) throws XmlInvalidLtException {
+		if (this.isInvalid) {
+			throw new XmlInvalidLtException("Invalid xml tag: #0", this.tag);
+		}
+		if (XmlTagType.COMMENT.equals(getXmlTagType())) {
 			if (this.comment == null) {
 				this.comment = XmlConsumerTools.getElementComment(this.tag);
 			}
@@ -204,25 +138,25 @@ final class XmlTag {
 	 * @return false if does not exists
 	 * @throws XmlInvalidLtException If is an invalid tag
 	 */
-	final boolean getElementAttributeValue(final StringBuilder dest, final String attributeNameToGet)
+	boolean getElementAttributeValue(final StringBuilder dest, final String attributeNameToGet)
 			throws XmlInvalidLtException {
 		if (this.isInvalid) {
-			validatesTag();
+			throw new XmlInvalidLtException("Invalid xml tag: #0", this.tag);
 		}
-		Object value = this.attribMap.get(attributeNameToGet);
-		if (value == null) {
-			value = XmlConsumerTools.getElementAttributeValue(this.tag, attributeNameToGet);
+		boolean result = false;
+		if (getXmlTagType().equals(XmlTagType.OPEN) || getXmlTagType().equals(XmlTagType.OPEN_CLOSE)) {
+			Object value = this.attribMap.get(attributeNameToGet);
 			if (value == null) {
-				value = Boolean.FALSE;
+				value = XmlConsumerTools.getElementAttributeValue(this.tag, attributeNameToGet);
+				if (value == null) {
+					value = Boolean.FALSE;
+				}
+				this.attribMap.put(attributeNameToGet, value);
 			}
-			this.attribMap.put(attributeNameToGet, value);
-		}
-		boolean result;
-		if (CharSequence.class.isInstance(value)) {
-			XmlTools.decod(dest, CharSequence.class.cast(value));
-			result = true;
-		} else {
-			result = false;
+			if (value != null && CharSequence.class.isInstance(value)) {
+				XmlTools.decod(dest, CharSequence.class.cast(value));
+				result = true;
+			}
 		}
 		return result;
 	}

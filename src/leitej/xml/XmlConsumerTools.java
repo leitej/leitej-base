@@ -37,45 +37,59 @@ final class XmlConsumerTools {
 	 * at the right position)
 	 *
 	 * @param tag to be verified
-	 * @throws XmlInvalidLtException If is not a valid tag
+	 * @return true if is checked OK
 	 */
-	static final void validatesTag(final CharSequence tag) throws XmlInvalidLtException {
-		if (!(tag != null && tag.length() > 3 && XmlTools.KEY_LESS_THAN == tag.charAt(0)
-				&& XmlTools.KEY_GREATER_THAN == tag.charAt(tag.length() - 1))) {
-			throw new XmlInvalidLtException("lt.XmlInvalidTag", tag);
-		}
+	static final boolean validatesTag(final CharSequence tag) {
+		return (tag != null && tag.length() > 3 && XmlTools.KEY_LESS_THAN == tag.charAt(0)
+				&& (XmlTools.KEY_GREATER_THAN == tag.charAt(tag.length() - 1)) || tag.equals(XmlTools.CDATA_WRAP[0])
+				|| tag.equals(XmlTools.HDATA_WRAP[0]));
 	}
 
 	/**
+	 *
 	 * Validates if is a meta-data tag. (Only checks the initial symbol)
 	 *
-	 * @param tag the meta-data tag to be verified
-	 * @return boolean validation
-	 */
-	static final boolean isTagMetaData(final CharSequence tag) {
-		return XmlTools.META_DATA_CHARACTER_INIT == tag.charAt(1);
-	}
-
-	/**
 	 * Validates if is a comment tag. (Only checks the initial symbol)
 	 *
-	 * @param tag the comment tag to be verified
-	 * @return boolean validation
-	 */
-	static final boolean isTagComment(final CharSequence tag) {
-		return XmlTools.COMMENT_CHARACTER_INIT_FIRST == tag.charAt(1)
-				&& XmlTools.COMMENT_CHARACTER_INIT_SECOND_THIRD == tag.charAt(2)
-				&& XmlTools.COMMENT_CHARACTER_INIT_SECOND_THIRD == tag.charAt(3);
-	}
-
-	/**
 	 * Validates if is a close tag. (Only checks the initial symbol)
 	 *
-	 * @param tag the close tag to be verified
-	 * @return boolean validation
+	 * Validates if is an open_close tag. (Only checks the final symbol and if is a
+	 * open tag at same time)
+	 *
+	 * Validates if is a CDATA tag. (expects tag.equals(XmlTools.CDATA_WRAP[0]))
+	 *
+	 * Validates if is a HDATA tag. (expects tag.equals(XmlTools.HDATA_WRAP[0]))
+	 *
+	 * @param tag the meta-data tag to be verified
+	 * @return null if is not defined
 	 */
-	static final boolean isElementTagClose(final CharSequence tag) {
-		return XmlTools.END_TAG_CHARACTER == tag.charAt(1);
+	static XmlTagType parseXmlTagType(final CharSequence tag) {
+		final XmlTagType result;
+		if (XmlTools.META_DATA_CHARACTER_INIT == tag.charAt(1)) {
+			result = XmlTagType.META_DATA;
+		} else if (XmlTools.COMMENT_CHARACTER_INIT_FIRST == tag.charAt(1)) {
+			if (XmlTools.COMMENT_CHARACTER_INIT_SECOND_THIRD == tag.charAt(2)
+					&& XmlTools.COMMENT_CHARACTER_INIT_SECOND_THIRD == tag.charAt(3)) {
+				result = XmlTagType.COMMENT;
+			} else if (tag.equals(XmlTools.CDATA_WRAP[0])) {
+				result = XmlTagType.CDATA;
+			} else if (tag.equals(XmlTools.HDATA_WRAP[0])) {
+				result = XmlTagType.HDATA;
+			} else {
+				result = null;
+			}
+		} else if (XmlTools.END_TAG_CHARACTER == tag.charAt(1)) {
+			result = XmlTagType.CLOSE;
+		} else if (isElementTagOpen(tag)) {
+			if (XmlTools.END_TAG_CHARACTER == tag.charAt(tag.length() - 2)) {
+				result = XmlTagType.OPEN_CLOSE;
+			} else {
+				result = XmlTagType.OPEN;
+			}
+		} else {
+			result = null;
+		}
+		return result;
 	}
 
 	/**
@@ -84,7 +98,7 @@ final class XmlConsumerTools {
 	 * @param tag the open tag to be verified
 	 * @return boolean validation
 	 */
-	static final boolean isElementTagOpen(final CharSequence tag) {
+	private static final boolean isElementTagOpen(final CharSequence tag) {
 		Boolean result = null;
 		for (int i = 1; i < tag.length() - 1 && result == null; i++) {
 			if (Character.isLetter(tag.charAt(i))) {
@@ -98,17 +112,6 @@ final class XmlConsumerTools {
 	}
 
 	/**
-	 * Validates if is an open_close tag. (Only checks the final symbol and if is a
-	 * open tag at same time)
-	 *
-	 * @param tag to be verified
-	 * @return boolean validation
-	 */
-	static final boolean isElementTagOpenClose(final CharSequence tag) {
-		return isElementTagOpen(tag) && XmlTools.END_TAG_CHARACTER == tag.charAt(tag.length() - 2);
-	}
-
-	/**
 	 * Get the name of the element of <code>tag</code>.
 	 *
 	 * @param tag
@@ -116,7 +119,7 @@ final class XmlConsumerTools {
 	 * @throws XmlInvalidLtException If is an invalid name element
 	 */
 	static final CharSequence getElementName(final CharSequence tag) throws XmlInvalidLtException {
-		int pos = ((isElementTagClose(tag)) ? 2 : 1);
+		int pos = ((XmlTools.END_TAG_CHARACTER == tag.charAt(1)) ? 2 : 1);
 		while (Character.isWhitespace(tag.charAt(pos))) {
 			pos++;
 		}
@@ -155,7 +158,7 @@ final class XmlConsumerTools {
 		CharSequence result = null;
 		if (!StringUtil.isNullOrEmpty(attributeName)) {
 			// find end position of name
-			int endNameTagPos = ((isElementTagClose(tag)) ? 2 : 1);
+			int endNameTagPos = ((XmlTools.END_TAG_CHARACTER == tag.charAt(1)) ? 2 : 1);
 			while (Character.isWhitespace(tag.charAt(endNameTagPos))) {
 				endNameTagPos++;
 			}

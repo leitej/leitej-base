@@ -27,35 +27,46 @@ import leitej.util.stream.FileUtil;
 final class XmlTools {
 
 	static final String KEY_XML_ELEMENT_NAME = "xml";
-	static final char 
-		KEY_LESS_THAN = '<',
-		KEY_GREATER_THAN = '>',
-		KEY_AMPERSAND = '&',
-		KEY_SEMICOLON = ';',
-		KEY_APOSTROPHE = '\'',
-		KEY_QUOTATION_MARK = '\"';
-	static final String 
-		KEY_LESS_THAN_ENTITY_REFERENCE = KEY_AMPERSAND + "lt" + KEY_SEMICOLON,
-		KEY_GREATER_THAN_ENTITY_REFERENCE = KEY_AMPERSAND + "gt" + KEY_SEMICOLON,
-		KEY_AMPERSAND_ENTITY_REFERENCE = KEY_AMPERSAND + "amp" + KEY_SEMICOLON,
-		KEY_APOSTROPHE_ENTITY_REFERENCE = KEY_AMPERSAND + "apos" + KEY_SEMICOLON,
-		KEY_QUOTATION_MARK_ENTITY_REFERENCE = KEY_AMPERSAND + "quot" + KEY_SEMICOLON;
+	static final String[] CDATA_WRAP = { "<![CDATA[", "]]>" };
+	static final String[] HDATA_WRAP = { "<![HDATA[", "]]>" };
+
+	static final char ATTRIB_EQUAL = '=';
+	static final char END_TAG_CHARACTER = '/';
+	static final char SPACE_CHARACTER = ' ';
+	static final char IDENT_CHARACTER = '\t';
+	static final char META_DATA_CHARACTER_INIT = '?';
+	static final char META_DATA_CHARACTER_END = '?';
+	static final char COMMENT_CHARACTER_INIT_FIRST = '!';
+	static final char COMMENT_CHARACTER_INIT_SECOND_THIRD = '-';
+	static final char COMMENT_CHARACTER_END_FIRST_SECOND = '-';
+	static final char SEMICOLON_CHARACTER = ';';
+	private static final char DATA_INIT_FIRST = CDATA_WRAP[0].charAt(0);
+	static final char DATA_INIT_LAST = CDATA_WRAP[0].charAt(CDATA_WRAP[0].length() - 1);
+	static final char DATA_END_FIRST = CDATA_WRAP[1].charAt(0);
+
+	static final char KEY_LESS_THAN = '<';
+	static final char KEY_GREATER_THAN = '>';
+	static final char KEY_AMPERSAND = '&';
+	static final char KEY_APOSTROPHE = '\'';
+	static final char KEY_QUOTATION_MARK = '\"';
+
+	static final String KEY_LESS_THAN_ENTITY_REFERENCE = KEY_AMPERSAND + "lt" + SEMICOLON_CHARACTER;
+	static final String KEY_GREATER_THAN_ENTITY_REFERENCE = KEY_AMPERSAND + "gt" + SEMICOLON_CHARACTER;
+	static final String KEY_AMPERSAND_ENTITY_REFERENCE = KEY_AMPERSAND + "amp" + SEMICOLON_CHARACTER;
+	static final String KEY_APOSTROPHE_ENTITY_REFERENCE = KEY_AMPERSAND + "apos" + SEMICOLON_CHARACTER;
+	static final String KEY_QUOTATION_MARK_ENTITY_REFERENCE = KEY_AMPERSAND + "quot" + SEMICOLON_CHARACTER;
+
 	static final String LINE_SEPARATOR = FileUtil.LINE_SEPARATOR;
-	static final char 
-		ATTRIB_EQUAL = '=',
-		END_TAG_CHARACTER = '/',
-		SPACE_CHARACTER = ' ',
-		IDENT_CHARACTER = '\t',
-		META_DATA_CHARACTER_INIT = '?',
-		META_DATA_CHARACTER_END = '?',
-		COMMENT_CHARACTER_INIT_FIRST = '!',
-		COMMENT_CHARACTER_INIT_SECOND_THIRD = '-',
-		COMMENT_CHARACTER_END_FIRST_SECOND = '-';
-	private static final Object[] reservedKey = {KEY_LESS_THAN, KEY_LESS_THAN_ENTITY_REFERENCE,
-												 KEY_GREATER_THAN, KEY_GREATER_THAN_ENTITY_REFERENCE,
-												 KEY_AMPERSAND, KEY_AMPERSAND_ENTITY_REFERENCE,
-												 KEY_APOSTROPHE, KEY_APOSTROPHE_ENTITY_REFERENCE,
-												 KEY_QUOTATION_MARK, KEY_QUOTATION_MARK_ENTITY_REFERENCE};
+
+	private static final Object[] RESERVED_KEY_MAP = { KEY_LESS_THAN, KEY_LESS_THAN_ENTITY_REFERENCE, KEY_GREATER_THAN,
+			KEY_GREATER_THAN_ENTITY_REFERENCE, KEY_AMPERSAND, KEY_AMPERSAND_ENTITY_REFERENCE, KEY_APOSTROPHE,
+			KEY_APOSTROPHE_ENTITY_REFERENCE, KEY_QUOTATION_MARK, KEY_QUOTATION_MARK_ENTITY_REFERENCE };
+
+	private static final String RESERVED_KEYS = "" + KEY_LESS_THAN + KEY_GREATER_THAN + KEY_AMPERSAND + KEY_APOSTROPHE
+			+ KEY_QUOTATION_MARK;
+	private static final String[] RESERVED_ENTITIES_REFERENCE = { KEY_LESS_THAN_ENTITY_REFERENCE,
+			KEY_GREATER_THAN_ENTITY_REFERENCE, KEY_AMPERSAND_ENTITY_REFERENCE, KEY_APOSTROPHE_ENTITY_REFERENCE,
+			KEY_QUOTATION_MARK_ENTITY_REFERENCE };
 
 	private XmlTools() {
 	}
@@ -64,22 +75,66 @@ final class XmlTools {
 	 * Encodes value of element with the rules of XML.
 	 *
 	 * @param value to be encoded
+	 * @throws XmlInvalidLtException If value has an invalid CDATA
 	 */
-	static void encod(final StringBuilder dest, final CharSequence value) {
+	static void encod(final StringBuilder dest, final CharSequence value) throws XmlInvalidLtException {
 		if (value != null) {
+			char ci;
+			int isCData = 0;
+			int reservePos;
 			for (int i = 0; i < value.length(); i++) {
-				dest.append(convertReservedKey(value.charAt(i)));
+				ci = value.charAt(i);
+				if (isCData > 0) {
+					if (DATA_INIT_FIRST == ci && containsAt(value, i, CDATA_WRAP[0])) {
+						dest.append(CDATA_WRAP[0]);
+						isCData++;
+						i += (CDATA_WRAP[0].length() - 1);
+					} else if (DATA_END_FIRST == ci && containsAt(value, i, CDATA_WRAP[1])) {
+						dest.append(CDATA_WRAP[1]);
+						isCData--;
+						i += (CDATA_WRAP[1].length() - 1);
+					} else {
+						dest.append(ci);
+					}
+				} else {
+					if (DATA_INIT_FIRST == ci && containsAt(value, i, CDATA_WRAP[0])) {
+						dest.append(CDATA_WRAP[0]);
+						isCData++;
+						i += (CDATA_WRAP[0].length() - 1);
+					} else {
+						reservePos = RESERVED_KEYS.indexOf(ci);
+						if (reservePos == -1) {
+							dest.append(ci);
+						} else {
+							dest.append(RESERVED_ENTITIES_REFERENCE[reservePos]);
+						}
+					}
+				}
+			}
+			if (isCData != 0) {
+				throw new XmlInvalidLtException("invalid CDATA value");
 			}
 		}
 	}
 
-	private static Object convertReservedKey(final char c) {
-		for (int i = 0; i < reservedKey.length; i = i + 2) {
-			if (((Character) reservedKey[i]) == c) {
-				return reservedKey[i + 1];
-			}
+	/**
+	 * Check if the subsequence starts at <code>off + 1</code> and ends at
+	 * <code>off + object.length() - 1</code> from <code>charSequence</code> is
+	 * equals to <code>object</code>.
+	 *
+	 * @param charSequence
+	 * @param off          initial position (less one) of charSequence to compare
+	 * @param object       to compare (except the first character)
+	 * @return true if object is equals to the subsequence
+	 */
+	private static boolean containsAt(final CharSequence charSequence, final int off, final CharSequence object) {
+		final boolean result;
+		int j = 1;
+		while (j < object.length() && object.charAt(j) == charSequence.charAt(off + j)) {
+			j++;
 		}
-		return c;
+		result = CDATA_WRAP[0].length() == j;
+		return result;
 	}
 
 	/**
@@ -98,7 +153,7 @@ final class XmlTools {
 				c = value.charAt(i);
 				if (initRef != -1) {
 					endRef++;
-					if (c == KEY_SEMICOLON || i + 1 == value.length()) {
+					if (c == SEMICOLON_CHARACTER || i + 1 == value.length()) {
 						c = convertEntityReference(value.subSequence(initRef, endRef));
 						if (c != -1) {
 							dest.append(c);
@@ -128,9 +183,9 @@ final class XmlTools {
 	}
 
 	private static char convertEntityReference(final CharSequence eReference) {
-		for (int i = 1; i < reservedKey.length; i = i + 2) {
-			if (String.class.cast(reservedKey[i]).contentEquals(eReference)) {
-				return Character.class.cast(reservedKey[i - 1]);
+		for (int i = 1; i < RESERVED_KEY_MAP.length; i = i + 2) {
+			if (String.class.cast(RESERVED_KEY_MAP[i]).contentEquals(eReference)) {
+				return Character.class.cast(RESERVED_KEY_MAP[i - 1]);
 			}
 		}
 		return (char) -1;
@@ -141,7 +196,7 @@ final class XmlTools {
 	 *
 	 * <p>
 	 * <blockquote>
-	 * 
+	 *
 	 * <pre>
 	 * XML elements must follow these naming rules:
 	 *	Names can contain letters, numbers, and other characters
@@ -150,7 +205,7 @@ final class XmlTools {
 	 *	Names cannot contain spaces
 	 * Any name can be used, no words are reserved.
 	 * </pre>
-	 * 
+	 *
 	 * </blockquote>
 	 * <p>
 	 *

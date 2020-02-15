@@ -16,6 +16,7 @@
 
 package leitej.xml;
 
+import leitej.exception.ImplementationLtRtException;
 import leitej.exception.XmlInvalidLtException;
 
 /**
@@ -45,9 +46,13 @@ final class XmlProducerTools {
 		dest.append(XmlTools.KEY_LESS_THAN);
 		dest.append(XmlTools.META_DATA_CHARACTER_INIT);
 		dest.append(XmlTools.KEY_XML_ELEMENT_NAME);
-		genAttribute(dest, this.NAME_VERSION, this.VERSION);
-		if (encoding != null && encoding.length() > 0) {
-			genAttribute(dest, this.NAME_ENCODING, encoding);
+		try {
+			genAttribute(dest, this.NAME_VERSION, this.VERSION);
+			if (encoding != null && encoding.length() > 0) {
+				genAttribute(dest, this.NAME_ENCODING, encoding);
+			}
+		} catch (final XmlInvalidLtException e) {
+			throw new ImplementationLtRtException("unexpected CDATA in the version or encoding. exception: #0", e);
 		}
 		dest.append(XmlTools.META_DATA_CHARACTER_END);
 		dest.append(XmlTools.KEY_GREATER_THAN);
@@ -59,8 +64,10 @@ final class XmlProducerTools {
 	 * @param name  Attribute name
 	 * @param value Attribute value
 	 * @return Attribute well formatted to be inserted on a open tag
+	 * @throws XmlInvalidLtException If value has an invalid CDATA
 	 */
-	void genAttribute(final StringBuilder dest, final CharSequence name, final CharSequence value) {
+	void genAttribute(final StringBuilder dest, final CharSequence name, final CharSequence value)
+			throws XmlInvalidLtException {
 		dest.append(XmlTools.SPACE_CHARACTER);
 		dest.append(name);
 		dest.append(XmlTools.ATTRIB_EQUAL);
@@ -139,8 +146,10 @@ final class XmlProducerTools {
 	 *
 	 * @param indent  Number of tabs to indent this tag
 	 * @param comment the comment
+	 * @throws XmlInvalidLtException If comment has an invalid CDATA
 	 */
-	void genCommentTag(final StringBuilder dest, final Integer indent, final CharSequence comment) {
+	void genCommentTag(final StringBuilder dest, final Integer indent, final CharSequence comment)
+			throws XmlInvalidLtException {
 		for (int i = 0; i < indent.intValue(); i++) {
 			dest.append(XmlTools.IDENT_CHARACTER);
 		}
@@ -154,7 +163,13 @@ final class XmlProducerTools {
 		dest.append(XmlTools.KEY_GREATER_THAN);
 	}
 
-	void encod(final StringBuilder dest, final CharSequence value) {
+	/**
+	 *
+	 * @param dest
+	 * @param value
+	 * @throws XmlInvalidLtException If value has an invalid CDATA
+	 */
+	void encod(final StringBuilder dest, final CharSequence value) throws XmlInvalidLtException {
 		XmlTools.encod(dest, value);
 	}
 

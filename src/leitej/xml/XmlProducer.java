@@ -18,10 +18,12 @@ package leitej.xml;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.Stack;
 
 import leitej.exception.XmlInvalidLtException;
+import leitej.util.stream.StreamUtil;
 
 /**
  * XML Producer
@@ -33,31 +35,43 @@ public final class XmlProducer {
 
 	private final XmlProducerTools xmlProdTools = new XmlProducerTools();
 	private final Stack<String> tagTrack = new Stack<>();
-	private BufferedWriter out = null;
+	private BufferedWriter outWriter = null;
 	private final boolean hReadable;
-	private final StringBuilder encoding = new StringBuilder();
+	private final String encoding;
 	private final StringBuilder sbTmp = new StringBuilder();
 	private boolean endRootElement = false;
 
 	/**
 	 * Creates a new instance of XMLProducer. With a minified XML configured.
 	 *
-	 * @param osr the underlying output stream to be written
+	 * @param osw the underlying output stream to be written
 	 */
-	public XmlProducer(final OutputStreamWriter osr) {
-		this(osr, true);
+	public XmlProducer(final OutputStreamWriter osw) {
+		this(osw, true);
 	}
 
 	/**
 	 * Creates a new instance of XMLProducer.
 	 *
-	 * @param osr      the underlying output stream to be written
+	 * @param osw      the underlying output stream to be written
 	 * @param minified when false produces a human readable XML, other wise outputs
 	 *                 a clean strait line
 	 */
-	public XmlProducer(final OutputStreamWriter osr, final boolean minified) {
-		this.encoding.append(osr.getEncoding());
-		this.out = new BufferedWriter(osr);
+	public XmlProducer(final OutputStreamWriter osw, final boolean minified) {
+		this(osw, minified, false);
+	}
+
+	/**
+	 * Creates a new instance of XMLProducer.
+	 *
+	 * @param osw           the underlying output stream to be written
+	 * @param minified      when false produces a human readable XML, other wise
+	 *                      outputs a clean strait line
+	 * @param encodingWrite set to write encoding on print metadata
+	 */
+	public XmlProducer(final OutputStreamWriter osw, final boolean minified, final boolean encodingWrite) {
+		this.encoding = ((encodingWrite) ? osw.getEncoding() : null);
+		this.outWriter = new BufferedWriter(osw);
 		this.hReadable = !minified;
 	}
 
@@ -67,10 +81,10 @@ public final class XmlProducer {
 	 * @throws IOException If an I/O error occurs
 	 */
 	public synchronized void close() throws IOException {
-		if (this.out != null) {
-			this.out.flush();
-			this.out.close();
-			this.out = null;
+		if (this.outWriter != null) {
+			this.outWriter.flush();
+			this.outWriter.close();
+			this.outWriter = null;
 		}
 	}
 
@@ -80,8 +94,8 @@ public final class XmlProducer {
 	 * @throws IOException If an I/O error occurs
 	 */
 	public synchronized void flush() throws IOException {
-		if (this.out != null) {
-			this.out.flush();
+		if (this.outWriter != null) {
+			this.outWriter.flush();
 		}
 	}
 
@@ -96,12 +110,24 @@ public final class XmlProducer {
 		if (this.endRootElement) {
 			throw new XmlInvalidLtException("lt.XmlInvalidElementAfterRootEnd");
 		}
-		this.out.append(txt);
+		this.outWriter.append(txt);
+	}
+
+	/**
+	 * @param elementBinValue
+	 * @param binLength
+	 * @throws IOException
+	 */
+	private void write(final InputStream elementBinValue) throws IOException {
+		this.outWriter.append(XmlTools.HDATA_WRAP[0]);
+		StreamUtil.pipeToHex(elementBinValue, this.outWriter, true);
+		this.outWriter.append(XmlTools.HDATA_WRAP[1]);
+		this.outWriter.flush();
 	}
 
 	private void println() throws IOException {
 		if (this.hReadable) {
-			this.out.write(XmlTools.LINE_SEPARATOR);
+			this.outWriter.write(XmlTools.LINE_SEPARATOR);
 		}
 	}
 
@@ -211,6 +237,27 @@ public final class XmlProducer {
 	}
 
 	/**
+	 * Writes a element. The value is binary, direct piped to output.
+	 *
+	 * @param elementName     element name
+	 * @param elementBinValue the element value in binary mode
+	 * @param generatedAttrs  the attributes already formated
+	 * @throws IOException           If an I/O error occurs
+	 * @throws XmlInvalidLtException If is writing a corrupted XML
+	 */
+	public synchronized void printElement(final CharSequence elementName, final InputStream elementBinValue,
+			final CharSequence generatedAttrs) throws IOException, XmlInvalidLtException {
+		if (elementBinValue != null) {
+			printTagOpen(elementName, generatedAttrs, false);
+			write(elementBinValue);
+			printTagClose(elementName, false);
+		} else {
+			printTagOpenClose(elementName, generatedAttrs);
+		}
+		println();
+	}
+
+	/**
 	 * Writes a comment. The comment is encoded with the rules of XML.
 	 *
 	 * @param comment the comment
@@ -233,8 +280,10 @@ public final class XmlProducer {
 	 * @param name  attribute name
 	 * @param value attribute value
 	 * @return attribute well formatted to be inserted on a open tag
+	 * @throws XmlInvalidLtException If is writing a corrupted XML
 	 */
-	public synchronized void genAttribute(final StringBuilder dest, final CharSequence name, final CharSequence value) {
+	public synchronized void genAttribute(final StringBuilder dest, final CharSequence name, final CharSequence value)
+			throws XmlInvalidLtException {
 		this.xmlProdTools.genAttribute(dest, name, value);
 	}
 
