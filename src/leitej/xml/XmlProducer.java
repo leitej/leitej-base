@@ -20,6 +20,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.Stack;
 
 import leitej.exception.XmlInvalidLtException;
@@ -58,7 +59,7 @@ public final class XmlProducer {
 	 *                 a clean strait line
 	 */
 	public XmlProducer(final OutputStreamWriter osw, final boolean minified) {
-		this(osw, minified, false);
+		this(osw, minified, true);
 	}
 
 	/**
@@ -70,7 +71,7 @@ public final class XmlProducer {
 	 * @param encodingWrite set to write encoding on print metadata
 	 */
 	public XmlProducer(final OutputStreamWriter osw, final boolean minified, final boolean encodingWrite) {
-		this.encoding = ((encodingWrite) ? osw.getEncoding() : null);
+		this.encoding = ((encodingWrite) ? Charset.forName(osw.getEncoding()).name() : null);
 		this.outWriter = new BufferedWriter(osw);
 		this.hReadable = !minified;
 	}

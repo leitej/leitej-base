@@ -104,7 +104,7 @@ public final class XmlConsumer {
 									}
 								}
 							}
-							if (c == -1) {
+							if (c == EOF_CHAR) {
 								throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
 							}
 						}
@@ -133,7 +133,7 @@ public final class XmlConsumer {
 									}
 								}
 							}
-							if (c == -1) {
+							if (c == EOF_CHAR) {
 								throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
 							}
 						}
@@ -161,7 +161,7 @@ public final class XmlConsumer {
 									}
 								}
 							}
-							if (c == -1) {
+							if (c == EOF_CHAR) {
 								throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
 							}
 						}

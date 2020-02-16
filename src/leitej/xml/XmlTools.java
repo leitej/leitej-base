@@ -130,7 +130,8 @@ final class XmlTools {
 	private static boolean containsAt(final CharSequence charSequence, final int off, final CharSequence object) {
 		final boolean result;
 		int j = 1;
-		while (j < object.length() && object.charAt(j) == charSequence.charAt(off + j)) {
+		while (j < object.length() && j < (charSequence.length() - off)
+				&& object.charAt(j) == charSequence.charAt(off + j)) {
 			j++;
 		}
 		result = CDATA_WRAP[0].length() == j;
