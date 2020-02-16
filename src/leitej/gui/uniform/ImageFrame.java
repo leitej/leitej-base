@@ -35,7 +35,7 @@ import leitej.gui.uniform.model.MetaData;
 import leitej.gui.uniform.model.Point;
 import leitej.gui.util.ImageFormatEnum;
 import leitej.gui.util.ImageUtil;
-import leitej.xml.om.XmlomIOStream;
+import leitej.util.data.XmlomUtil;
 
 /**
  *
@@ -73,29 +73,29 @@ public class ImageFrame extends UniformFrame {
 		super(null, closeOperation, gc);
 		this.set(getFrame(title, iconImage));
 		this.middleImageFormat = middleImageFormat;
-		this.imageUpdate = XmlomIOStream.newXmlObjectModelling(ElementUpdate.class);
+		this.imageUpdate = XmlomUtil.newXmlObjectModelling(ElementUpdate.class);
 		this.imageUpdate.setId(OUTPUT_ID);
-		final ImageUpdate tmp = XmlomIOStream.newXmlObjectModelling(ImageUpdate.class);
+		final ImageUpdate tmp = XmlomUtil.newXmlObjectModelling(ImageUpdate.class);
 		this.imageUpdate.setImageUpdate(tmp);
-		final Point imagePosition = XmlomIOStream.newXmlObjectModelling(Point.class);
+		final Point imagePosition = XmlomUtil.newXmlObjectModelling(Point.class);
 		tmp.setDataPosition(imagePosition);
 	}
 
 	protected Frame getFrame(final String title, final byte[] iconImage) {
-		final Frame frame = XmlomIOStream.newXmlObjectModelling(Frame.class);
-		final MetaData metaData = XmlomIOStream.newXmlObjectModelling(MetaData.class);
+		final Frame frame = XmlomUtil.newXmlObjectModelling(Frame.class);
+		final MetaData metaData = XmlomUtil.newXmlObjectModelling(MetaData.class);
 		metaData.setTitle(title);
 		metaData.setIconImage(iconImage);
 		frame.setMetaData(metaData);
-		final Data data = XmlomIOStream.newXmlObjectModelling(Data.class);
-		final Layout layout = XmlomIOStream.newXmlObjectModelling(Layout.class);
+		final Data data = XmlomUtil.newXmlObjectModelling(Data.class);
+		final Layout layout = XmlomUtil.newXmlObjectModelling(Layout.class);
 		layout.setType(LayoutEnum.BORDER);
 		final List<Element> elementList = new ArrayList<>();
-		final Element element = XmlomIOStream.newXmlObjectModelling(Element.class);
+		final Element element = XmlomUtil.newXmlObjectModelling(Element.class);
 		element.setId(OUTPUT_ID);
 
-		final Image image = XmlomIOStream.newXmlObjectModelling(Image.class);
-		final Point dimension = XmlomIOStream.newXmlObjectModelling(Point.class);
+		final Image image = XmlomUtil.newXmlObjectModelling(Image.class);
+		final Point dimension = XmlomUtil.newXmlObjectModelling(Point.class);
 		dimension.setX(640);
 		dimension.setY(480);
 		image.setDimension(dimension);

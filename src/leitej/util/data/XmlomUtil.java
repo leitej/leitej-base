@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package leitej.xml.om;
+package leitej.util.data;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +30,9 @@ import leitej.Constant;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.XmlInvalidLtException;
 import leitej.util.stream.FileUtil;
+import leitej.xml.om.XmlObjectModelling;
+import leitej.xml.om.XmlomInputStream;
+import leitej.xml.om.XmlomOutputStream;
 
 /**
  * An useful class to help in XML Object Modelling stream.
@@ -38,12 +41,12 @@ import leitej.util.stream.FileUtil;
  * @see leitej.xml.om.XmlomOutputStream
  * @see leitej.xml.om.XmlomInputStream
  */
-public final class XmlomIOStream {
+public final class XmlomUtil {
 
 	/**
 	 * Creates a new instance of XMLOMUtil.
 	 */
-	private XmlomIOStream() {
+	private XmlomUtil() {
 	}
 
 	public static <I extends XmlObjectModelling> I newXmlObjectModelling(final Class<I> interfaceClass) {

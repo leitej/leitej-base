@@ -39,6 +39,7 @@ import leitej.exception.XmlomSecurityLtException;
 import leitej.util.AgnosticUtil;
 import leitej.util.HexaUtil;
 import leitej.util.StringUtil;
+import leitej.util.data.XmlomUtil;
 import leitej.xml.XmlConsumer;
 import leitej.xml.XmlTagType;
 
@@ -215,7 +216,7 @@ final class Parser {
 				}
 				if (!XmlObjectModelling.class.isInstance(tmp)) {
 					if (BYTE_ARRAY_CLASS.isInstance(tmp)) {
-						final XmlObjectModelling xom = XmlomIOStream.newXmlObjectModelling(XmlObjectModelling.class);
+						final XmlObjectModelling xom = XmlomUtil.newXmlObjectModelling(XmlObjectModelling.class);
 						DATA_PROXY.getInvocationHandler(xom).setByteArray((byte[]) tmp);
 						obj = (I) xom;
 					} else {

@@ -38,7 +38,7 @@ import leitej.gui.uniform.model.TextAreaUpdate;
 import leitej.gui.uniform.model.Value;
 import leitej.gui.util.StyleUtil;
 import leitej.util.ColorEnum;
-import leitej.xml.om.XmlomIOStream;
+import leitej.util.data.XmlomUtil;
 
 /**
  *
@@ -54,9 +54,9 @@ public final class InputOutputFrame extends OutputFrame {
 			final CloseOperationEnum closeOperation, final GraphicsConfiguration gc)
 			throws GuiLtException, InterruptedException {
 		super(title, iconImage, fontSize, closeOperation, gc);
-		this.textAreaUpdate = XmlomIOStream.newXmlObjectModelling(ElementUpdate.class);
+		this.textAreaUpdate = XmlomUtil.newXmlObjectModelling(ElementUpdate.class);
 		this.textAreaUpdate.setId(INPUT_TEXT_ID);
-		final TextAreaUpdate tmp = XmlomIOStream.newXmlObjectModelling(TextAreaUpdate.class);
+		final TextAreaUpdate tmp = XmlomUtil.newXmlObjectModelling(TextAreaUpdate.class);
 		tmp.setText("");
 		this.textAreaUpdate.setTextAreaUpdate(tmp);
 	}
@@ -66,21 +66,21 @@ public final class InputOutputFrame extends OutputFrame {
 		final Frame frame = super.getFrame(title, iconImage, fontSize);
 
 		Action[] actions = new Action[1];
-		actions[0] = XmlomIOStream.newXmlObjectModelling(Action.class);
+		actions[0] = XmlomUtil.newXmlObjectModelling(Action.class);
 		actions[0].setAction(ActionEnum.FOCUS_FORWARD);
 		actions[0].setArguments(new String[] { INPUT_TEXT_ID });
 		frame.getData().getLayout().getElements().get(0).setActions(actions);
 
-		final Element element = XmlomIOStream.newXmlObjectModelling(Element.class);
+		final Element element = XmlomUtil.newXmlObjectModelling(Element.class);
 		element.setId(INPUT_TEXT_ID);
 
-		final Style style = XmlomIOStream.newXmlObjectModelling(Style.class);
-		final Font font = XmlomIOStream.newXmlObjectModelling(Font.class);
+		final Style style = XmlomUtil.newXmlObjectModelling(Style.class);
+		final Font font = XmlomUtil.newXmlObjectModelling(Font.class);
 		font.setName(FontNameEnum.MONOSPACED);
 		font.setStyle(FontStyleEnum.PLAIN);
 		font.setSize(fontSize);
 		style.setFont(font);
-		final Background background = XmlomIOStream.newXmlObjectModelling(Background.class);
+		final Background background = XmlomUtil.newXmlObjectModelling(Background.class);
 		background.setTransparent(false);
 		background.setColor(StyleUtil.newColor(ColorEnum.DIM_GRAY));
 		style.setBackground(background);
@@ -88,8 +88,8 @@ public final class InputOutputFrame extends OutputFrame {
 
 		element.setStyle(style);
 
-		final TextArea textarea = XmlomIOStream.newXmlObjectModelling(TextArea.class);
-		final Area area = XmlomIOStream.newXmlObjectModelling(Area.class);
+		final TextArea textarea = XmlomUtil.newXmlObjectModelling(TextArea.class);
+		final Area area = XmlomUtil.newXmlObjectModelling(Area.class);
 		area.setRows(1);
 		area.setColumns(120);
 		textarea.setArea(area);
@@ -103,9 +103,9 @@ public final class InputOutputFrame extends OutputFrame {
 		element.setTextArea(textarea);
 
 		actions = new Action[2];
-		actions[0] = XmlomIOStream.newXmlObjectModelling(Action.class);
+		actions[0] = XmlomUtil.newXmlObjectModelling(Action.class);
 		actions[0].setAction(ActionEnum.SUBMIT);
-		actions[1] = XmlomIOStream.newXmlObjectModelling(Action.class);
+		actions[1] = XmlomUtil.newXmlObjectModelling(Action.class);
 		actions[1].setAction(ActionEnum.INPUT);
 
 		element.setActions(actions);

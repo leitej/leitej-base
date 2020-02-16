@@ -28,7 +28,7 @@ import leitej.gui.uniform.model.Element;
 import leitej.gui.uniform.model.Frame;
 import leitej.gui.uniform.model.Value;
 import leitej.gui.util.ImageFormatEnum;
-import leitej.xml.om.XmlomIOStream;
+import leitej.util.data.XmlomUtil;
 
 /**
  *
@@ -66,9 +66,9 @@ public class InteractiveImageFrame extends ImageFrame {
 		final Frame frame = super.getFrame(title, iconImage);
 		final Element element = frame.getData().getLayout().getElements().get(0);
 		final Action[] actions = new Action[2];
-		actions[0] = XmlomIOStream.newXmlObjectModelling(Action.class);
+		actions[0] = XmlomUtil.newXmlObjectModelling(Action.class);
 		actions[0].setAction(ActionEnum.SUBMIT);
-		actions[1] = XmlomIOStream.newXmlObjectModelling(Action.class);
+		actions[1] = XmlomUtil.newXmlObjectModelling(Action.class);
 		actions[1].setAction(ActionEnum.INPUT);
 		element.setActions(actions);
 		return frame;

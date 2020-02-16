@@ -29,8 +29,8 @@ import java.util.Map;
 import leitej.exception.LtException;
 import leitej.locale.message.Messages;
 import leitej.util.DateUtil;
+import leitej.util.data.XmlomUtil;
 import leitej.util.stream.FileUtil;
-import leitej.xml.om.XmlomIOStream;
 
 /**
  * AppenderManager
@@ -76,7 +76,7 @@ final class AppenderManager {
 	private static Config[] readPropertiesFile() {
 		Config[] result = null;
 		try {
-			result = XmlomIOStream.getObjectsFromFileUTF8(Config.class, Logger.DEFAULT_LOG_PROPERTIES_FILE_NAME)
+			result = XmlomUtil.getObjectsFromFileUTF8(Config.class, Logger.DEFAULT_LOG_PROPERTIES_FILE_NAME)
 					.toArray((Config[]) Array.newInstance(Config.class, 1));
 		} catch (final FileNotFoundException e) {
 			result = defaultProperties();
@@ -89,8 +89,8 @@ final class AppenderManager {
 
 	private static Config[] defaultProperties() {
 		final Config[] result = (Config[]) Array.newInstance(Config.class, 1);
-		final Config pl = XmlomIOStream.newXmlObjectModelling(Config.class);
-		final ConfigFile plf = XmlomIOStream.newXmlObjectModelling(ConfigFile.class);
+		final Config pl = XmlomUtil.newXmlObjectModelling(Config.class);
+		final ConfigFile plf = XmlomUtil.newXmlObjectModelling(ConfigFile.class);
 		plf.setFileName("app.log");
 		plf.setAppendFile(Boolean.FALSE);
 		pl.setFile(plf);
@@ -104,7 +104,7 @@ final class AppenderManager {
 		if (!FileUtil.exists(Logger.DEFAULT_LOG_PROPERTIES_FILE_NAME)) {
 			// Create the config file with default properties created above
 			try {
-				XmlomIOStream.sendToFileUTF8(Logger.DEFAULT_LOG_PROPERTIES_FILE_NAME, result);
+				XmlomUtil.sendToFileUTF8(Logger.DEFAULT_LOG_PROPERTIES_FILE_NAME, result);
 			} catch (final IOException e) {
 				e.printStackTrace();
 			}

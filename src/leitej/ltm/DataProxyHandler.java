@@ -39,7 +39,7 @@ import leitej.ltm.exception.LtmLtRtException;
 import leitej.util.DateUtil;
 import leitej.util.ThreadLock;
 import leitej.util.data.AbstractDataProxyHandler;
-import leitej.xml.om.XmlomIOStream;
+import leitej.util.data.XmlomUtil;
 
 /**
  *
@@ -533,7 +533,7 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 
 	private Data get() {
 		synchronized (this.data) {
-			final Data result = XmlomIOStream.newXmlObjectModelling(Data.class);
+			final Data result = XmlomUtil.newXmlObjectModelling(Data.class);
 			if (!isNew()) {
 				result.setId((Long) this.data.get(LtmObjectModelling.ID_DATA_NAME));
 			}
@@ -545,9 +545,9 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 				if (!ec.isLink() && !ec.isId() && !ec.isStream()) {
 					tmp = this.data.get(ec.getJavaName());
 					if (tmp != null) {
-						tmpField = XmlomIOStream.newXmlObjectModelling(Field.class);
+						tmpField = XmlomUtil.newXmlObjectModelling(Field.class);
 						tmpField.setName(ec.getJavaName());
-						tmpValue = XmlomIOStream.newXmlObjectModelling(Value.class);
+						tmpValue = XmlomUtil.newXmlObjectModelling(Value.class);
 						if (!ec.isArray()) {
 							if (Boolean.class.isAssignableFrom(ec.getReturnType())) {
 								tmpValue.setBooleanValue((Boolean) tmp);

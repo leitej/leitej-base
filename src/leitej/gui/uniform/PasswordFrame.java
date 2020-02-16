@@ -49,8 +49,8 @@ import leitej.gui.uniform.model.Value;
 import leitej.gui.util.GraphicsUtil;
 import leitej.gui.util.StyleUtil;
 import leitej.util.ColorEnum;
+import leitej.util.data.XmlomUtil;
 import leitej.util.machine.ConsoleUtil;
-import leitej.xml.om.XmlomIOStream;
 
 /**
  *
@@ -91,52 +91,52 @@ public final class PasswordFrame extends UniformFrame {
 	}
 
 	protected Frame getFrame(final String title, final String prompt) {
-		final Frame frame = XmlomIOStream.newXmlObjectModelling(Frame.class);
-		final MetaData metaData = XmlomIOStream.newXmlObjectModelling(MetaData.class);
+		final Frame frame = XmlomUtil.newXmlObjectModelling(Frame.class);
+		final MetaData metaData = XmlomUtil.newXmlObjectModelling(MetaData.class);
 		metaData.setTitle(title);
 		frame.setMetaData(metaData);
-		final Data data = XmlomIOStream.newXmlObjectModelling(Data.class);
-		final Layout layout = XmlomIOStream.newXmlObjectModelling(Layout.class);
+		final Data data = XmlomUtil.newXmlObjectModelling(Data.class);
+		final Layout layout = XmlomUtil.newXmlObjectModelling(Layout.class);
 		layout.setType(LayoutEnum.BORDER);
 		final List<Element> elementList = new ArrayList<>();
 
-		final Element element = XmlomIOStream.newXmlObjectModelling(Element.class);
+		final Element element = XmlomUtil.newXmlObjectModelling(Element.class);
 		element.setId(PASSWORD_FIELD_ID);
-		final Style style = XmlomIOStream.newXmlObjectModelling(Style.class);
-		final Border border = XmlomIOStream.newXmlObjectModelling(Border.class);
+		final Style style = XmlomUtil.newXmlObjectModelling(Style.class);
+		final Border border = XmlomUtil.newXmlObjectModelling(Border.class);
 		border.setType(BorderTypeEnum.LINE);
-		final BorderThickness thickness = XmlomIOStream.newXmlObjectModelling(BorderThickness.class);
+		final BorderThickness thickness = XmlomUtil.newXmlObjectModelling(BorderThickness.class);
 		thickness.setAll(2);
 		border.setThickness(thickness);
 		border.setColor(StyleUtil.newColor(ColorEnum.ORANGE));
 		if (prompt != null) {
-			final BorderTitle borderTitle = XmlomIOStream.newXmlObjectModelling(BorderTitle.class);
+			final BorderTitle borderTitle = XmlomUtil.newXmlObjectModelling(BorderTitle.class);
 			borderTitle.setTitle(prompt);
 			borderTitle.setPosition(BorderTitlePositionEnum.TOP);
 			borderTitle.setColor(StyleUtil.newColor(ColorEnum.LIGHT_GRAY));
 			border.setTitle(borderTitle);
 		}
 		style.setBorder(border);
-		final Font font = XmlomIOStream.newXmlObjectModelling(Font.class);
+		final Font font = XmlomUtil.newXmlObjectModelling(Font.class);
 		font.setName(FontNameEnum.MONOSPACED);
 		font.setStyle(FontStyleEnum.PLAIN);
 		font.setSize(12);
 		style.setFont(font);
-		final Background background = XmlomIOStream.newXmlObjectModelling(Background.class);
+		final Background background = XmlomUtil.newXmlObjectModelling(Background.class);
 		background.setTransparent(false);
 		background.setColor(StyleUtil.newColor(ColorEnum.DIM_GRAY));
 		style.setBackground(background);
 		style.setForegroundColor(StyleUtil.newColor(ColorEnum.LIGHT_GRAY));
 		element.setStyle(style);
-		final PasswordField passwordField = XmlomIOStream.newXmlObjectModelling(PasswordField.class);
+		final PasswordField passwordField = XmlomUtil.newXmlObjectModelling(PasswordField.class);
 		passwordField.setColumns(25);
 		element.setBorderLayoutConstraints(BorderLayoutConstraintsEnum.CENTER);
 		element.setPasswordField(passwordField);
 
 		final Action[] actions = new Action[2];
-		actions[0] = XmlomIOStream.newXmlObjectModelling(Action.class);
+		actions[0] = XmlomUtil.newXmlObjectModelling(Action.class);
 		actions[0].setAction(ActionEnum.SUBMIT);
-		actions[1] = XmlomIOStream.newXmlObjectModelling(Action.class);
+		actions[1] = XmlomUtil.newXmlObjectModelling(Action.class);
 		actions[1].setAction(ActionEnum.INPUT);
 
 		element.setActions(actions);
