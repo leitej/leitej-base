@@ -253,7 +253,7 @@ final class Producer {
 					printMethods((I) obj);
 					this.producer.printTagClose(localElementName);
 				} else {
-					this.producer.printElement(localElementName, null, this.sbTmpAttb);
+					this.producer.printTagOpenClose(localElementName, this.sbTmpAttb);
 				}
 			}
 		}
@@ -357,7 +357,8 @@ final class Producer {
 		this.producer.printTagClose(this.sbTmpElmName);
 	}
 
-	private StringBuilder genAttribute(final StringBuilder dest, final Class<?> typeClass) {
+	private StringBuilder genAttribute(final StringBuilder dest, final Class<?> typeClass)
+			throws XmlInvalidLtException {
 		this.sbTmpAttbSub1.setLength(0);
 		this.sbTmpAttbSub1.append(ATTRIBUTE_CLASS_NAME);
 		this.sbTmpAttbSub2.setLength(0);
@@ -366,7 +367,8 @@ final class Producer {
 		return dest;
 	}
 
-	private StringBuilder genAttribute(final StringBuilder dest, final Class<?> typeClass, final Integer id) {
+	private StringBuilder genAttribute(final StringBuilder dest, final Class<?> typeClass, final Integer id)
+			throws XmlInvalidLtException {
 		this.sbTmpAttbSub1.setLength(0);
 		this.sbTmpAttbSub1.append(ATTRIBUTE_CLASS_NAME);
 		this.sbTmpAttbSub2.setLength(0);

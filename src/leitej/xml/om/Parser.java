@@ -40,6 +40,7 @@ import leitej.util.AgnosticUtil;
 import leitej.util.HexaUtil;
 import leitej.util.StringUtil;
 import leitej.xml.XmlConsumer;
+import leitej.xml.XmlTagType;
 
 /**
  * XML - Object Modeling - Parser
@@ -102,8 +103,9 @@ final class Parser {
 	 * @throws IOException           If an I/O error occurs
 	 */
 	private void readMetaData() throws XmlInvalidLtException, IOException {
-		while (this.consumer.isNextTagMetaData()) {
-			this.consumer.consumeTag();
+		while (!this.consumer.isEnded() && (this.consumer.peekNextTagType() == null
+				|| XmlTagType.META_DATA.equals(this.consumer.peekNextTagType()))) {
+			this.consumer.nextElement();
 		}
 	}
 
@@ -114,8 +116,9 @@ final class Parser {
 	 * @throws IOException             If an I/O error occurs
 	 */
 	private void readRootElementOpen() throws XmlomInvalidLtException, XmlInvalidLtException, IOException {
-		this.consumer.consumeTag();
-		if (!this.consumer.isTagOpen()) {
+		this.consumer.nextElement();
+		if (!XmlTagType.OPEN.equals(this.consumer.getTagType())
+				&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType())) {
 			throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntaxRootInit", this.consumer);
 		}
 		LtSystemOut.debug("#0", this.consumer);
@@ -127,7 +130,8 @@ final class Parser {
 	 * @throws XmlInvalidLtException   If is not a valid tag
 	 */
 	private void readRootElementClose() throws XmlomInvalidLtException, XmlInvalidLtException {
-		if (!this.consumer.isTagClose()) {
+		if (!XmlTagType.CLOSE.equals(this.consumer.getTagType())
+				&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType())) {
 			throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntaxRootEnd", this.consumer);
 		}
 		LtSystemOut.debug("#0", this.consumer);
@@ -189,22 +193,22 @@ final class Parser {
 	private <I extends XmlObjectModelling> I readObject()
 			throws XmlomSecurityLtException, XmlomInvalidLtException, XmlInvalidLtException, IOException {
 		I obj = null;
-		if (!this.consumer.isAlreadyConsumedEndTagElementRoot()) {
+		if (!this.consumer.isEnded()) {
 			List<String> comments = null;
 			// while is comment read to array - to set on the next object read
-			while (this.consumer.isNextTagComment()) {
+			while (XmlTagType.COMMENT.equals(this.consumer.peekNextTagType())) {
 				if (comments == null) {
 					comments = new ArrayList<>();
 				}
-				this.consumer.consumeTag();
+				this.consumer.nextElement();
 				this.sbTmpComment.setLength(0);
 				this.consumer.getComment(this.sbTmpComment);
 				comments.add(this.sbTmpComment.toString());
 			}
 			Object tmp = null;
 			// read the next object
-			if (this.consumer.isNextTagOpen() && !this.consumer.isNextTagOpenClose()) {
-				this.consumer.consumeTag();
+			if (XmlTagType.OPEN.equals(this.consumer.peekNextTagType())) {
+				this.consumer.nextElement();
 				tmp = readObjectAux(comments);
 				if (tmp == null) {
 					throw new ImplementationLtRtException();
@@ -220,14 +224,14 @@ final class Parser {
 				} else {
 					obj = (I) tmp;
 				}
-				this.consumer.consumeTag();// close tag
+				this.consumer.nextElement();// close tag
 			} else {
 				// there is no next object
 				if (comments != null) {
 					throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentSyntax", comments);
 				}
-				this.consumer.consumeTag();
-				if (this.consumer.isAlreadyConsumedEndTagElementRoot()) {
+				this.consumer.nextElement();
+				if (this.consumer.isEnded()) {
 					// already ended
 					readRootElementClose();
 					this.done = true;
@@ -270,7 +274,7 @@ final class Parser {
 			throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidAttribClass", this.consumer);
 		}
 		// parse object
-		if (!this.consumer.isTagOpenClose()) {
+		if (!XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType())) {
 			if (LeafElement.has(dataClass)) {
 				if (comments != null) {
 					throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentLeaf");
@@ -289,7 +293,7 @@ final class Parser {
 				if (id != null) {
 					this.trackLoopObjects.put(id, object);
 				}
-				if (!this.consumer.isNextTagClose()) {
+				if (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
 					readObjectData((I) object);
 				}
 				((I) object).setComments(comments);
@@ -443,31 +447,32 @@ final class Parser {
 		String dataName;
 		boolean isElementTagOpenClose;
 		List<String> comments;
-		while (!this.consumer.isNextTagClose()) {
+		while (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
 			comments = null;
 			// while is comment read to array - to set on the next object read
-			while (this.consumer.isNextTagComment()) {
+			while (XmlTagType.COMMENT.equals(this.consumer.peekNextTagType())) {
 				if (comments == null) {
 					comments = new ArrayList<>();
 				}
-				this.consumer.consumeTag();
+				this.consumer.nextElement();
 				this.sbTmpComment.setLength(0);
 				this.consumer.getComment(this.sbTmpComment);
 				comments.add(this.sbTmpComment.toString());
 			}
-			if (!this.consumer.isNextTagOpen()) {
-				this.consumer.consumeTag();
+			if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
+					&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
+				this.consumer.nextElement();
 				throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
 			}
-			this.consumer.consumeTag();
-			isElementTagOpenClose = this.consumer.isTagOpenClose();
+			this.consumer.nextElement();
+			isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
 			dataName = this.consumer.getElementName().toString();
 			if (!dph.existsDataName(dataName)) {
 				throw new XmlomInvalidLtException("lt.XmlOmInvalidData", dataName, dph.getInterface().getName());
 			}
 			dphData.put(dataName, readObjectAux(comments));
 			if (!isElementTagOpenClose) {
-				this.consumer.consumeTag();// close element
+				this.consumer.nextElement();// close element
 			}
 		}
 	}
@@ -480,16 +485,17 @@ final class Parser {
 			// ARRAY
 			final Class<?> componentType = dataClass.getComponentType();
 			final ArrayList<Object> arrayList = new ArrayList<>();
-			while (!this.consumer.isNextTagClose()) {
-				if (!this.consumer.isNextTagOpen()) {
-					this.consumer.consumeTag();
+			while (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
+				if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
+						&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
+					this.consumer.nextElement();
 					throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
 				}
-				this.consumer.consumeTag();
-				isElementTagOpenClose = this.consumer.isTagOpenClose();
+				this.consumer.nextElement();
+				isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
 				arrayList.add(readObjectAux(null));
 				if (!isElementTagOpenClose) {
-					this.consumer.consumeTag();// close element
+					this.consumer.nextElement();// close element
 				}
 			}
 			object = Array.newInstance(componentType, arrayList.size());
@@ -503,32 +509,34 @@ final class Parser {
 		} else if (List.class.equals(dataClass)) {
 			// LIST
 			final List<Object> list = new ArrayList<>();
-			while (!this.consumer.isNextTagClose()) {
-				if (!this.consumer.isNextTagOpen()) {
-					this.consumer.consumeTag();
+			while (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
+				if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
+						&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
+					this.consumer.nextElement();
 					throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
 				}
-				this.consumer.consumeTag();
-				isElementTagOpenClose = this.consumer.isTagOpenClose();
+				this.consumer.nextElement();
+				isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
 				list.add(readObjectAux(null));
 				if (!isElementTagOpenClose) {
-					this.consumer.consumeTag();// close element
+					this.consumer.nextElement();// close element
 				}
 			}
 			object = list;
 		} else if (Set.class.equals(dataClass)) {
 			// SET
 			final Set<Object> set = new HashSet<>();
-			while (!this.consumer.isNextTagClose()) {
-				if (!this.consumer.isNextTagOpen()) {
-					this.consumer.consumeTag();
+			while (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
+				if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
+						&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
+					this.consumer.nextElement();
 					throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
 				}
-				this.consumer.consumeTag();
-				isElementTagOpenClose = this.consumer.isTagOpenClose();
+				this.consumer.nextElement();
+				isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
 				set.add(readObjectAux(null));
 				if (!isElementTagOpenClose) {
-					this.consumer.consumeTag();// close element
+					this.consumer.nextElement();// close element
 				}
 			}
 			object = set;
@@ -537,23 +545,25 @@ final class Parser {
 			final Map<Object, Object> map = new HashMap<>();
 			Object key = null;
 			Object value = null;
-			while (!this.consumer.isNextTagClose()) {
-				if (!this.consumer.isNextTagOpen()) {
-					this.consumer.consumeTag();
+			while (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
+				if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
+						&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
+					this.consumer.nextElement();
 					throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
 				}
-				if (this.consumer.isNextTagOpenClose()) {
-					this.consumer.consumeTag();
+				if (XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
+					this.consumer.nextElement();
 					throw new XmlomInvalidLtException("lt.XmlOmInvalidMapElementNull", this.consumer);
 				}
-				this.consumer.consumeTag();// open element 'element' (only to structure)
-				while (!this.consumer.isNextTagClose()) {
-					if (!this.consumer.isNextTagOpen()) {
-						this.consumer.consumeTag();
+				this.consumer.nextElement();// open element 'element' (only to structure)
+				while (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
+					if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
+							&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
+						this.consumer.nextElement();
 						throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
 					}
-					this.consumer.consumeTag();
-					isElementTagOpenClose = this.consumer.isTagOpenClose();
+					this.consumer.nextElement();
+					isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
 					this.sbTmpElmName.setLength(0);
 					this.sbTmpElmName.append(this.consumer.getElementName());
 					if (StringUtil.isEquals(Producer.ELEMENT_NAME_MAP_KEY, this.sbTmpElmName)) {
@@ -564,10 +574,10 @@ final class Parser {
 						new IOException(new XmlomInvalidLtException("lt.XmlOmIgnoredTag", this.consumer));
 					}
 					if (!isElementTagOpenClose) {
-						this.consumer.consumeTag();// close element
+						this.consumer.nextElement();// close element
 					}
 				}
-				this.consumer.consumeTag();// close element 'element' (only to structure)
+				this.consumer.nextElement();// close element 'element' (only to structure)
 				map.put(key, value);
 			}
 			object = map;
