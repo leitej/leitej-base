@@ -16,10 +16,6 @@
 
 package leitej.xml.om;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * LeafElement
  *
@@ -35,37 +31,30 @@ final class LeafElement {
 	 *
 	 * Exceptions: String, Date, [B
 	 */
-	private static final List<Class<?>> LEAF_CLASS = Collections.synchronizedList(new ArrayList<Class<?>>(20));
-	static {
-//		implements XmlomDataItf,
-//		LEAF_CLASS.add(Enum.class);
-		LEAF_CLASS.add(byte[].class);
-		LEAF_CLASS.add(byte.class);
-		LEAF_CLASS.add(short.class);
-		LEAF_CLASS.add(int.class);
-		LEAF_CLASS.add(long.class);
-		LEAF_CLASS.add(float.class);
-		LEAF_CLASS.add(double.class);
-		LEAF_CLASS.add(boolean.class);
-		LEAF_CLASS.add(char.class);
-		LEAF_CLASS.add(java.lang.Byte.class);
-		LEAF_CLASS.add(java.lang.Short.class);
-		LEAF_CLASS.add(java.lang.Integer.class);
-		LEAF_CLASS.add(java.lang.Long.class);
-		LEAF_CLASS.add(java.lang.Float.class);
-		LEAF_CLASS.add(java.lang.Double.class);
-		LEAF_CLASS.add(java.lang.Boolean.class);
-		LEAF_CLASS.add(java.lang.Character.class);
-		LEAF_CLASS.add(java.lang.String.class);
-		LEAF_CLASS.add(java.util.Date.class);
-	}
+	private static final Class<?>[] LEAF_CLASS = new Class<?>[] {
+//		Enum.class,
+		byte[].class,
+		byte.class,
+		short.class,
+		int.class,
+		long.class,
+		float.class,
+		double.class,
+		boolean.class,
+		char.class,
+		java.lang.Byte.class,
+		java.lang.Short.class,
+		java.lang.Integer.class,
+		java.lang.Long.class,
+		java.lang.Float.class,
+		java.lang.Double.class,
+		java.lang.Boolean.class,
+		java.lang.Character.class,
+		java.lang.String.class,
+		java.util.Date.class
+	};
 
 	private LeafElement() {
-	}
-
-	private static void registry(final Class<?> leafClazz) {
-		LEAF_CLASS.add(leafClazz);
-		TypeVsClassname.registry(leafClazz);
 	}
 
 	static boolean has(final Class<?> clazz) {
@@ -75,12 +64,12 @@ final class LeafElement {
 		if (clazz.isEnum()) {
 			return true;
 		}
-		final boolean result = LEAF_CLASS.contains(clazz);
-		if (!result && XmlomDataItf.class.isAssignableFrom(clazz)) {
-			registry(clazz);
-			return true;
+		for (int i = 0; i < LEAF_CLASS.length; i++) {
+			if (LEAF_CLASS[i].equals(clazz)) {
+				return true;
+			}
 		}
-		return result;
+		return false;
 	}
 
 }

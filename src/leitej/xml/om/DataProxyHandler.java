@@ -38,7 +38,6 @@ final class DataProxyHandler extends AbstractDataProxyHandler<XmlObjectModelling
 	private static final String METHOD_NAME_RELEASE = "release";
 	private static final DataProxy DATA_PROXY = DataProxy.getInstance();
 
-	private byte[] byteArray;
 	private final Map<String, Object> data;
 	private volatile boolean releasing;
 
@@ -130,7 +129,6 @@ final class DataProxyHandler extends AbstractDataProxyHandler<XmlObjectModelling
 				}
 			}
 			synchronized (this.data) {
-				this.byteArray = null;
 				this.data.clear();
 				Pool.offerXmlObjectModelling(getDataInterfaceClass(), (I) proxy);
 				this.releasing = false;
@@ -170,14 +168,6 @@ final class DataProxyHandler extends AbstractDataProxyHandler<XmlObjectModelling
 
 	boolean existsDataName(final String dataName) {
 		return existsData(dataName);
-	}
-
-	byte[] getByteArray() {
-		return this.byteArray;
-	}
-
-	void setByteArray(final byte[] byteArray) {
-		this.byteArray = byteArray;
 	}
 
 }

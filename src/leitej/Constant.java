@@ -59,7 +59,7 @@ public final class Constant {
 	public static final String DEFAULT_PROPERTIES_FILE_DIR = "meta-inf" + DEFAULT_FILE_SEPARATOR;
 	public static final String DEFAULT_DATA_FILE_DIR = "data" + DEFAULT_FILE_SEPARATOR;
 
-	public static final String DEFAULT_PROPERTIES_XML_FILE_EXT = ".prop.lt.xml";
+	public static final String DEFAULT_PROPERTIES_XML_FILE_EXT = ".xml";
 	public final static String DEFAULT_BACKUP_EXTENSION = ".bkp";
 
 	public static final String BIG_BINARY_TEMPORARY_DIRECTORY = DEFAULT_DATA_FILE_DIR + "bigBinary"

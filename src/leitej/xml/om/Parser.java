@@ -39,7 +39,6 @@ import leitej.exception.XmlomSecurityLtException;
 import leitej.util.AgnosticUtil;
 import leitej.util.HexaUtil;
 import leitej.util.StringUtil;
-import leitej.util.data.XmlomUtil;
 import leitej.xml.XmlConsumer;
 import leitej.xml.XmlTagType;
 
@@ -55,47 +54,25 @@ final class Parser {
 
 	private static final Class<?> BYTE_ARRAY_CLASS = Array.newInstance(byte.class, 0).getClass();
 
-	private XmlConsumer consumer;
-	private Map<Integer, Object> trackLoopObjects;
-	private final StringBuilder sbTmpComment;
-	private final StringBuilder sbTmpVal;
-	private final StringBuilder sbTmpElmName;
-	private final StringBuilder sbTmpAttb;
-	private boolean init;
-	private boolean done;
+	private XmlConsumer consumer = null;
+	private Map<Integer, Object> trackLoopObjects = new HashMap<>();
+	private final StringBuilder sbTmpComment = new StringBuilder();
+	private final StringBuilder sbTmpVal = new StringBuilder();
+	private final StringBuilder sbTmpElmName = new StringBuilder();
+	private final StringBuilder sbTmpAttb = new StringBuilder();
 
 	/**
 	 *
 	 * @param isr
-	 * @param trustClass
-	 */
-	Parser(final InputStreamReader isr) {
-		LtSystemOut.debug("lt.NewInstance");
-		this.consumer = new XmlConsumer(isr);
-		this.trackLoopObjects = new HashMap<>();
-		this.sbTmpComment = new StringBuilder();
-		this.sbTmpVal = new StringBuilder();
-		this.sbTmpElmName = new StringBuilder();
-		this.sbTmpAttb = new StringBuilder();
-		this.init = false;
-		this.done = false;
-	}
-
-	/**
-	 *
 	 * @throws XmlomInvalidLtException If do not find the root xmlom element
 	 * @throws XmlInvalidLtException   If encounter an invalid syntax
 	 * @throws IOException             If an I/O error occurs
 	 */
-	private void init() throws XmlomInvalidLtException, XmlInvalidLtException, IOException {
-		if (!this.init) {
-			try {
-				readMetaData();
-				readRootElementOpen();
-			} finally {
-				this.init = true;
-			}
-		}
+	Parser(final InputStreamReader isr) throws XmlomInvalidLtException, XmlInvalidLtException, IOException {
+		this.consumer = new XmlConsumer(isr);
+		LtSystemOut.debug("lt.NewInstance");
+		readMetaData();
+		readRootElementOpen();
 	}
 
 	/**
@@ -154,17 +131,12 @@ final class Parser {
 			XmlInvalidLtException, IOException {
 		TrustClassname.registry(interfaceClass);
 		I result = null;
-		if (!this.done) {
-			init();
-			try {
-				result = interfaceClass.cast(readObject());
-			} catch (final ClassCastException e) {
-				throw new IOException(e);
-			}
-			if (result != null) {
-				this.trackLoopObjects.clear();
+		if (this.consumer != null) {
+			result = readObject(interfaceClass);
+			if (result == null) {
+				close();
 			} else {
-				this.trackLoopObjects = null;
+				this.trackLoopObjects.clear();
 			}
 		}
 		return result;
@@ -176,7 +148,7 @@ final class Parser {
 	 */
 	synchronized void close() throws IOException {
 		if (this.consumer != null) {
-			this.done = true;
+			this.trackLoopObjects = null;
 			this.consumer.close();
 			this.consumer = null;
 		}
@@ -190,8 +162,7 @@ final class Parser {
 	 * @throws XmlInvalidLtException
 	 * @throws IOException              If an I/O error occurs
 	 */
-	@SuppressWarnings("unchecked")
-	private <I extends XmlObjectModelling> I readObject()
+	private <I extends XmlObjectModelling> I readObject(final Class<I> interfaceClass)
 			throws XmlomSecurityLtException, XmlomInvalidLtException, XmlInvalidLtException, IOException {
 		I obj = null;
 		if (!this.consumer.isEnded()) {
@@ -206,24 +177,19 @@ final class Parser {
 				this.consumer.getComment(this.sbTmpComment);
 				comments.add(this.sbTmpComment.toString());
 			}
-			Object tmp = null;
+			Object tmpObj = null;
 			// read the next object
-			if (XmlTagType.OPEN.equals(this.consumer.peekNextTagType())) {
+			if (XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
+					|| XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
 				this.consumer.nextElement();
-				tmp = readObjectAux(comments);
-				if (tmp == null) {
+				tmpObj = readObjectAux(comments);
+				if (tmpObj == null) {
 					throw new ImplementationLtRtException();
 				}
-				if (!XmlObjectModelling.class.isInstance(tmp)) {
-					if (BYTE_ARRAY_CLASS.isInstance(tmp)) {
-						final XmlObjectModelling xom = XmlomUtil.newXmlObjectModelling(XmlObjectModelling.class);
-						DATA_PROXY.getInvocationHandler(xom).setByteArray((byte[]) tmp);
-						obj = (I) xom;
-					} else {
-						throw new XmlomInvalidLtException(tmp.getClass().getName());
-					}
-				} else {
-					obj = (I) tmp;
+				try {
+					obj = interfaceClass.cast(tmpObj);
+				} catch (final ClassCastException e) {
+					throw new XmlomInvalidLtException(e);
 				}
 				this.consumer.nextElement();// close tag
 			} else {
@@ -235,7 +201,7 @@ final class Parser {
 				if (this.consumer.isEnded()) {
 					// already ended
 					readRootElementClose();
-					this.done = true;
+					close();
 				} else {
 					// invalid xmlom
 					throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
@@ -295,9 +261,9 @@ final class Parser {
 					this.trackLoopObjects.put(id, object);
 				}
 				if (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
-					readObjectData((I) object);
+					readObjectData(XmlObjectModelling.class.cast(object));
 				}
-				((I) object).setComments(comments);
+				XmlObjectModelling.class.cast(object).setComments(comments);
 			}
 		} else {
 			final Integer id = getElementAttributeId();
@@ -420,18 +386,12 @@ final class Parser {
 			}
 			result = valueSb.charAt(0);
 		} else {
+			// Enum
 			try {
 				final Method method = AgnosticUtil.getMethod(classValue, Constant.VALUEOF_METHOD_NAME, String.class);
 				result = AgnosticUtil.invoke(classValue, method, valueSb.toString());
-			} catch (final SecurityException e) {
-				throw new XmlomInvalidLtException(e);
-			} catch (final NoSuchMethodException e) {
-				throw new XmlomInvalidLtException(e);
-			} catch (final IllegalArgumentException e) {
-				throw new XmlomInvalidLtException(e);
-			} catch (final IllegalArgumentLtRtException e) {
-				throw new XmlomInvalidLtException(e);
-			} catch (final IllegalAccessException e) {
+			} catch (final SecurityException | NoSuchMethodException | IllegalArgumentException
+					| IllegalArgumentLtRtException | IllegalAccessException e) {
 				throw new XmlomInvalidLtException(e);
 			} catch (final InvocationTargetException e) {
 				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidInvokeValueOf", Constant.VALUEOF_METHOD_NAME,

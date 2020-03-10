@@ -49,9 +49,11 @@ final class Producer {
 
 	private static final String ROOT_ELEMENT_NAME = Object.class.getSimpleName();
 	private static final Class<XmlObjectModelling> ROOT_ELEMENT_CLASS = XmlObjectModelling.class;
-	static final String ELEMENT_NAME_ARRAYCLASS = "el", ELEMENT_NAME_MAP_KEY = "key", ELEMENT_NAME_MAP_VALUE = "value",
-			ATTRIBUTE_ID = "id", ATTRIBUTE_CLASS_NAME = "type";
-//			ATTRIBUTE_CLASS_FACE_NAME = "face";
+	static final String ELEMENT_NAME_ARRAYCLASS = "el";
+	static final String ELEMENT_NAME_MAP_KEY = "key";
+	static final String ELEMENT_NAME_MAP_VALUE = "value";
+	static final String ATTRIBUTE_ID = "id";
+	static final String ATTRIBUTE_CLASS_NAME = "type";
 
 	private static final Class<?> BYTE_ARRAY_CLASS = Array.newInstance(byte.class, 0).getClass();
 
@@ -64,8 +66,6 @@ final class Producer {
 	private final StringBuilder sbTmpElmName = new StringBuilder();
 	private final StringBuilder sbTmpAttbSub1 = new StringBuilder();
 	private final StringBuilder sbTmpAttbSub2 = new StringBuilder();
-	private boolean init = false;
-	private boolean done = false;
 
 	/**
 	 * Creates a new instance of Producer.
@@ -73,14 +73,18 @@ final class Producer {
 	 * @param osr      the underlying output stream to be written
 	 * @param minified when false produces a human readable XML, other wise outputs
 	 *                 a clean strait line
+	 * @throws IOException           If an I/O error occurs
+	 * @throws XmlInvalidLtException If is writing a corrupted XML
 	 */
-	Producer(final OutputStreamWriter osr, final boolean minified) {
+	Producer(final OutputStreamWriter osr, final boolean minified) throws XmlInvalidLtException, IOException {
 		this.producer = new XmlProducer(osr, minified);
 		LtSystemOut.debug("lt.NewInstance");
+		printMetaData();
+		printRootElementTagOpen();
 	}
 
 	synchronized <I extends XmlObjectModelling> void add(final I obj) {
-		if (this.done) {
+		if (this.objectSet == null) {
 			throw new IllegalStateLtRtException("lt.XmlOmProducerAlreadyDone");
 		}
 		if (obj != null) {
@@ -89,7 +93,7 @@ final class Producer {
 	}
 
 	synchronized <I extends XmlObjectModelling> void add(final I[] objs) {
-		if (this.done) {
+		if (this.objectSet == null) {
 			throw new IllegalStateLtRtException("lt.XmlOmProducerAlreadyDone");
 		}
 		if (objs != null) {
@@ -99,47 +103,28 @@ final class Producer {
 		}
 	}
 
-	private void init() throws XmlInvalidLtException, IOException {
-		if (!this.init) {
-			try {
-				printMetaData();
-				printRootElementTagOpen();
-			} finally {
-				this.init = true;
-			}
-		}
-	}
-
 	synchronized void flush() throws XmlInvalidLtException, IOException {
-		if (this.done) {
+		if (this.objectSet == null) {
 			throw new IllegalStateLtRtException("lt.XmlOmProducerAlreadyDone");
 		}
-		init();
 		printObjectSet();
 		this.producer.flush();
 		this.trackLoopObjects.clear();
 		this.objectCount = 0;
 	}
 
-	synchronized void doFinal() throws XmlInvalidLtException, IOException {
-		if (!this.done) {
+	synchronized void close() throws IOException, XmlInvalidLtException {
+		if (this.producer != null) {
 			flush();
 			try {
 				printRootElementTagClose();
 				this.producer.flush();
+				this.producer.close();
 			} finally {
-				this.done = true;
 				this.objectSet = null;
 				this.trackLoopObjects = null;
+				this.producer = null;
 			}
-		}
-	}
-
-	synchronized void close() throws IOException, XmlInvalidLtException {
-		if (this.producer != null) {
-			doFinal();
-			this.producer.close();
-			this.producer = null;
 		}
 	}
 
@@ -168,14 +153,8 @@ final class Producer {
 				}
 				typeClass = DATA_PROXY.getInvocationHandler((I) o).getInterface();
 				this.sbTmpElmName.setLength(0);
-				if (XmlObjectModelling.class.equals(typeClass)) {
-					this.sbTmpElmName.append("xom");
-					printObject(null, DATA_PROXY.getInvocationHandler((I) o).getByteArray(), BYTE_ARRAY_CLASS,
-							this.sbTmpElmName);
-				} else {
-					this.sbTmpElmName.append(typeClass.getSimpleName());
-					printObject(null, o, typeClass, this.sbTmpElmName);
-				}
+				this.sbTmpElmName.append(typeClass.getSimpleName());
+				printObject(null, o, typeClass, this.sbTmpElmName);
 			}
 		}
 	}

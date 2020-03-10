@@ -20,21 +20,20 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 import leitej.exception.XmlInvalidLtException;
 
 /**
- * XML Object Modelling Output Stream<br/>
+ * XML Object Modelling Writer<br/>
  * <br/>
- * The stream do not allow send two references from the same object without
- * flush the stream.
+ * The stream writer do not allow send two references from the same object
+ * without flush the stream.
  *
  * @author Julio Leite
- * @see leitej.xml.om.XmlomInputStream
+ * @see leitej.xml.om.XmlomReader
  */
-public final class XmlomOutputStream extends OutputStream {
-
-	private static final DataProxy DATA_PROXY = DataProxy.getInstance();
+public final class XmlomWriter {
 
 	public static <I extends XmlObjectModelling> I newXmlObjectModelling(final Class<I> interfaceClass) {
 		return Pool.poolXmlObjectModelling(interfaceClass);
@@ -45,52 +44,32 @@ public final class XmlomOutputStream extends OutputStream {
 	/**
 	 * Creates a new instance of XmlomOutputStream.
 	 *
-	 * @param out         an OutputStream
-	 * @param charsetName the name of a supported {@link java.nio.charset.Charset
-	 *                    charset}
+	 * @param out     an OutputStream
+	 * @param charset
 	 * @throws UnsupportedEncodingException If the named encoding is not supported
+	 * @throws IOException                  If an I/O error occurs
 	 */
-	public XmlomOutputStream(final OutputStream out, final String charsetName) throws UnsupportedEncodingException {
-		this(out, charsetName, true);
+	public XmlomWriter(final OutputStream out, final Charset charset) throws UnsupportedEncodingException, IOException {
+		this(out, charset, true);
 	}
 
 	/**
 	 * Creates a new instance of XmlomOutputStream.
 	 *
-	 * @param out         an OutputStream
-	 * @param charsetName the name of a supported {@link java.nio.charset.Charset
-	 *                    charset}
-	 * @param minified    when false produces a human readable XML, other wise
-	 *                    outputs a clean strait line
+	 * @param out      an OutputStream
+	 * @param charset
+	 * @param minified when false produces a human readable XML, other wise outputs
+	 *                 a clean strait line
 	 * @throws UnsupportedEncodingException If the named encoding is not supported
+	 * @throws IOException                  If an I/O error occurs
 	 */
-	public XmlomOutputStream(final OutputStream out, final String charsetName, final boolean minified)
-			throws UnsupportedEncodingException {
-		this.out = new Producer(new OutputStreamWriter(out, charsetName), minified);
-	}
-
-	@Override
-	public void write(final int b) throws IOException {
-		final XmlObjectModelling tmp = newXmlObjectModelling(XmlObjectModelling.class);
-		DATA_PROXY.getInvocationHandler(tmp).setByteArray(new byte[] { (byte) (b & 0xff) });
-		this.write(tmp);
-	}
-
-	@Override
-	public void write(final byte b[]) throws IOException {
-		write(b, 0, b.length);
-	}
-
-	@Override
-	public void write(final byte b[], final int off, final int len) throws IOException {
-		if ((off | len | (b.length - (len + off)) | (off + len)) < 0) {
-			throw new IndexOutOfBoundsException();
+	public XmlomWriter(final OutputStream out, final Charset charset, final boolean minified)
+			throws UnsupportedEncodingException, IOException {
+		try {
+			this.out = new Producer(new OutputStreamWriter(out, charset), minified);
+		} catch (final XmlInvalidLtException e) {
+			throw new IOException(e);
 		}
-		final XmlObjectModelling tmp = newXmlObjectModelling(XmlObjectModelling.class);
-		final byte bDest[] = new byte[len];
-		System.arraycopy(b, off, bDest, 0, len);
-		DATA_PROXY.getInvocationHandler(tmp).setByteArray(bDest);
-		this.write(tmp);
 	}
 
 	/**
@@ -111,7 +90,12 @@ public final class XmlomOutputStream extends OutputStream {
 		this.out.add(xmlom);
 	}
 
-	@Override
+	/**
+	 * Flushes this writer stream and forces any buffered output xmlom objects to be
+	 * written out.
+	 *
+	 * @exception IOException if an I/O error occurs.
+	 */
 	public void flush() throws IOException {
 		try {
 			this.out.flush();
@@ -121,20 +105,12 @@ public final class XmlomOutputStream extends OutputStream {
 	}
 
 	/**
-	 * Finalizes the XML.<br/>
-	 * This is the last method to be called that writes to the stream.
+	 * Closes this output stream and releases any system resources associated with
+	 * this stream. A closed writer cannot perform output operations and cannot be
+	 * reopened.
 	 *
-	 * @throws IOException If an I/O error occurs
+	 * @exception IOException if an I/O error occurs.
 	 */
-	public void doFinal() throws IOException {
-		try {
-			this.out.doFinal();
-		} catch (final XmlInvalidLtException e) {
-			throw new IOException(e);
-		}
-	}
-
-	@Override
 	public void close() throws IOException {
 		try {
 			this.out.close();

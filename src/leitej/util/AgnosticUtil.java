@@ -84,8 +84,8 @@ public final class AgnosticUtil implements Serializable {
 	private static final AgnosticUtil INSTANCE = new AgnosticUtil();
 
 	private final ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+	private final Map<CharSequence, Class<?>> classCache = new HashMap<>();
 
-	private final Map<String, Class<?>> classCache = new HashMap<>();
 	private final Map<Class<?>, Method[][]> methodsGetSet = new HashMap<>();
 	private final Map<Class<?>, Method[][]> declaredMethodsGetSet = new HashMap<>();
 
@@ -93,6 +93,24 @@ public final class AgnosticUtil implements Serializable {
 	private final StringBuilder sbTmp2 = new StringBuilder();
 
 	private AgnosticUtil() {
+		this.classCache.put(PRIMITIVE_BYTE_CLASS_NAME, PRIMITIVE_BYTE_CLASS);
+		this.classCache.put(PRIMITIVE_SHORT_CLASS_NAME, PRIMITIVE_SHORT_CLASS);
+		this.classCache.put(PRIMITIVE_INT_CLASS_NAME, PRIMITIVE_INT_CLASS);
+		this.classCache.put(PRIMITIVE_LONG_CLASS_NAME, PRIMITIVE_LONG_CLASS);
+		this.classCache.put(PRIMITIVE_FLOAT_CLASS_NAME, PRIMITIVE_FLOAT_CLASS);
+		this.classCache.put(PRIMITIVE_DOUBLE_CLASS_NAME, PRIMITIVE_DOUBLE_CLASS);
+		this.classCache.put(PRIMITIVE_BOOLEAN_CLASS_NAME, PRIMITIVE_BOOLEAN_CLASS);
+		this.classCache.put(PRIMITIVE_CHAR_CLASS_NAME, PRIMITIVE_CHAR_CLASS);
+		this.classCache.put(VOID_CLASS_NAME, VOID_CLASS);
+		this.classCache.put(PRIMITIVE_BYTE_ARRAY_CLASS_KEY, Array.newInstance(PRIMITIVE_BYTE_CLASS, 0).getClass());
+		this.classCache.put(PRIMITIVE_SHORT_ARRAY_CLASS_KEY, Array.newInstance(PRIMITIVE_SHORT_CLASS, 0).getClass());
+		this.classCache.put(PRIMITIVE_INT_ARRAY_CLASS_KEY, Array.newInstance(PRIMITIVE_INT_CLASS, 0).getClass());
+		this.classCache.put(PRIMITIVE_LONG_ARRAY_CLASS_KEY, Array.newInstance(PRIMITIVE_LONG_CLASS, 0).getClass());
+		this.classCache.put(PRIMITIVE_FLOAT_ARRAY_CLASS_KEY, Array.newInstance(PRIMITIVE_FLOAT_CLASS, 0).getClass());
+		this.classCache.put(PRIMITIVE_DOUBLE_ARRAY_CLASS_KEY, Array.newInstance(PRIMITIVE_DOUBLE_CLASS, 0).getClass());
+		this.classCache.put(PRIMITIVE_BOOLEAN_ARRAY_CLASS_KEY,
+				Array.newInstance(PRIMITIVE_BOOLEAN_CLASS, 0).getClass());
+		this.classCache.put(PRIMITIVE_CHAR_ARRAY_CLASS_KEY, Array.newInstance(PRIMITIVE_CHAR_CLASS, 0).getClass());
 	}
 
 	/**
@@ -196,7 +214,7 @@ public final class AgnosticUtil implements Serializable {
 	 * @param className Class name to be verified
 	 * @return boolean
 	 */
-	public static boolean isArray(final String className) {
+	public static boolean isArray(final CharSequence className) {
 		return className != null && className.length() > 1 && ARRAY_CLASS_KEY.charAt(0) == className.charAt(0);
 	}
 
@@ -207,76 +225,36 @@ public final class AgnosticUtil implements Serializable {
 	 * @return class represented by name
 	 * @throws ClassNotFoundException if the class was not found
 	 */
-	public static Class<?> getClass(final String className) throws ClassNotFoundException {
+	public static Class<?> getClass(final CharSequence className) throws ClassNotFoundException {
 		Class<?> result = null;
 		// cache verify
-		synchronized (INSTANCE.classCache) {
-			result = INSTANCE.classCache.get(className);
-			if (result == null) {
-				try {
-					// find object class
-					result = INSTANCE.systemClassLoader.loadClass(className);
-				} catch (final ClassNotFoundException e) {
-					if (className != null) {
-						// find primitive class
-						if (className.equals(PRIMITIVE_BYTE_CLASS_NAME)) {
-							result = PRIMITIVE_BYTE_CLASS;
-						} else if (className.equals(PRIMITIVE_SHORT_CLASS_NAME)) {
-							result = PRIMITIVE_SHORT_CLASS;
-						} else if (className.equals(PRIMITIVE_INT_CLASS_NAME)) {
-							result = PRIMITIVE_INT_CLASS;
-						} else if (className.equals(PRIMITIVE_LONG_CLASS_NAME)) {
-							result = PRIMITIVE_LONG_CLASS;
-						} else if (className.equals(PRIMITIVE_FLOAT_CLASS_NAME)) {
-							result = PRIMITIVE_FLOAT_CLASS;
-						} else if (className.equals(PRIMITIVE_DOUBLE_CLASS_NAME)) {
-							result = PRIMITIVE_DOUBLE_CLASS;
-						} else if (className.equals(PRIMITIVE_BOOLEAN_CLASS_NAME)) {
-							result = PRIMITIVE_BOOLEAN_CLASS;
-						} else if (className.equals(PRIMITIVE_CHAR_CLASS_NAME)) {
-							result = PRIMITIVE_CHAR_CLASS;
-						} else if (className.equals(VOID_CLASS_NAME)) {
-							result = VOID_CLASS;
-						} else if (result == null) {
-							// find array
-							if (isArray(className)) {
-								if (ARRAY_CLASS_KEY.equals(className.substring(1, 2))) {
-									result = Array.newInstance(getClass(className.substring(1, className.length())), 0)
-											.getClass();
-								} else {
-									if (className.equals(PRIMITIVE_BYTE_ARRAY_CLASS_KEY)) {
-										result = Array.newInstance(PRIMITIVE_BYTE_CLASS, 0).getClass();
-									} else if (className.equals(PRIMITIVE_SHORT_ARRAY_CLASS_KEY)) {
-										result = Array.newInstance(PRIMITIVE_SHORT_CLASS, 0).getClass();
-									} else if (className.equals(PRIMITIVE_INT_ARRAY_CLASS_KEY)) {
-										result = Array.newInstance(PRIMITIVE_INT_CLASS, 0).getClass();
-									} else if (className.equals(PRIMITIVE_LONG_ARRAY_CLASS_KEY)) {
-										result = Array.newInstance(PRIMITIVE_LONG_CLASS, 0).getClass();
-									} else if (className.equals(PRIMITIVE_FLOAT_ARRAY_CLASS_KEY)) {
-										result = Array.newInstance(PRIMITIVE_FLOAT_CLASS, 0).getClass();
-									} else if (className.equals(PRIMITIVE_DOUBLE_ARRAY_CLASS_KEY)) {
-										result = Array.newInstance(PRIMITIVE_DOUBLE_CLASS, 0).getClass();
-									} else if (className.equals(PRIMITIVE_BOOLEAN_ARRAY_CLASS_KEY)) {
-										result = Array.newInstance(PRIMITIVE_BOOLEAN_CLASS, 0).getClass();
-									} else if (className.equals(PRIMITIVE_CHAR_ARRAY_CLASS_KEY)) {
-										result = Array.newInstance(PRIMITIVE_CHAR_CLASS, 0).getClass();
-									} else if (className.length() > 3
-											&& OBJECT_ARRAY_CLASS_KEY_END.equals(
-													className.substring(className.length() - 1, className.length()))
-											&& OBJECT_ARRAY_CLASS_KEY.equals(className.substring(0, 2))) {
-										result = Array.newInstance(
-												getClass(className.substring(2, className.length() - 1)), 0).getClass();
-									}
-								}
+		if (className != null) {
+			synchronized (INSTANCE.classCache) {
+				result = INSTANCE.classCache.get(className);
+				if (result == null) {
+					// find array
+					if (isArray(className)) {
+						if (ARRAY_CLASS_KEY.charAt(0) == className.charAt(1)) {
+							// multiple dimensions
+							result = Array.newInstance(getClass(className.subSequence(1, className.length())), 0)
+									.getClass();
+						} else {
+							if (className.length() > 3
+									&& OBJECT_ARRAY_CLASS_KEY_END.charAt(0) == className.charAt(className.length() - 1)
+									&& OBJECT_ARRAY_CLASS_KEY.charAt(1) == className.charAt(1)) {
+								result = Array
+										.newInstance(getClass(className.subSequence(2, className.length() - 1)), 0)
+										.getClass();
 							}
 						}
 					}
+					// find object class
 					if (result == null) {
-						throw e;
+						result = INSTANCE.systemClassLoader.loadClass(className.toString());
 					}
+					// add result to cache
+					INSTANCE.classCache.put(className.toString(), result);
 				}
-				// add result to cache
-				INSTANCE.classCache.put(className, result);
 			}
 		}
 		return result;
@@ -326,7 +304,9 @@ public final class AgnosticUtil implements Serializable {
 			final Type[] parameterizedTypes = ParameterizedType.class.cast(type).getActualTypeArguments();
 			result = new Class<?>[parameterizedTypes.length];
 			for (int i = 0; i < result.length; i++) {
+				System.out.println(parameterizedTypes[i]);
 				result[i] = getClass(parameterizedTypes[i]);
+				System.out.println(result[i]);
 			}
 		}
 		return result;

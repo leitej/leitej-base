@@ -46,7 +46,7 @@ final class ArrayElement {
 			return true;
 		}
 		for (final Class<?> c : ARRAY_CLASS) {
-			if (c.equals(clazz)) {
+			if (c.isAssignableFrom(clazz)) {
 				return true;
 			}
 		}

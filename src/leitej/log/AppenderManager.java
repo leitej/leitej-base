@@ -76,7 +76,7 @@ final class AppenderManager {
 	private static Config[] readPropertiesFile() {
 		Config[] result = null;
 		try {
-			result = XmlomUtil.getObjectsFromFileUTF8(Config.class, Logger.DEFAULT_LOG_PROPERTIES_FILE_NAME)
+			result = XmlomUtil.getObjectsFromFile(Config.class, Logger.DEFAULT_LOG_PROPERTIES_FILE_NAME)
 					.toArray((Config[]) Array.newInstance(Config.class, 1));
 		} catch (final FileNotFoundException e) {
 			result = defaultProperties();
@@ -104,7 +104,7 @@ final class AppenderManager {
 		if (!FileUtil.exists(Logger.DEFAULT_LOG_PROPERTIES_FILE_NAME)) {
 			// Create the config file with default properties created above
 			try {
-				XmlomUtil.sendToFileUTF8(Logger.DEFAULT_LOG_PROPERTIES_FILE_NAME, result);
+				XmlomUtil.sendToFile(Logger.DEFAULT_LOG_PROPERTIES_FILE_NAME, result);
 			} catch (final IOException e) {
 				e.printStackTrace();
 			}

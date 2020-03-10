@@ -171,23 +171,22 @@ public final class FileUtil {
 	 * &#64;throws UnsupportedEncodingException If the named encoding is not supported
 	 * &#64;throws FileNotFoundException If the file exists but is a directory rather than a regular file, does not exist but cannot be created, or cannot be opened for any other reason
 	 * @throws NullPointerException If the <code>filename</code> argument is
-	 *                                      <code>null</code>
-	 * @throws IOException                  If an I/O error occurred
-	 * @throws SecurityException            If a security manager exists and its
-	 *                                      <code>{@link
+	 *                              <code>null</code>
+	 * @throws IOException          If an I/O error occurred
+	 * @throws SecurityException    If a security manager exists and its
+	 *                              <code>{@link
 	 *          java.lang.SecurityManager#checkRead(java.lang.String) checkRead}</code>
-	 *                                      method does not permit verification of
-	 *                                      the existence of the named directory and
-	 *                                      all necessary parent directories; or if
-	 *                                      the <code>{@link
+	 *                              method does not permit verification of the
+	 *                              existence of the named directory and all
+	 *                              necessary parent directories; or if the
+	 *                              <code>{@link
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
-	 *                                      method does not permit the named
-	 *                                      directory and all necessary parent
-	 *                                      directories to be created; or if a
-	 *                                      security manager exists and its
-	 *                                      <code>{@link
+	 *                              method does not permit the named directory and
+	 *                              all necessary parent directories to be created;
+	 *                              or if a security manager exists and its
+	 *                              <code>{@link
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
-	 *                                      method denies write access to the file
+	 *                              method denies write access to the file
 	 */
 	public static BufferedWriter openFileOutputWriter(final String filename, final boolean append, final String charset)
 			throws SecurityException, UnsupportedEncodingException, FileNotFoundException, NullPointerException,
@@ -386,8 +385,41 @@ public final class FileUtil {
 	 * @param filename to make the path
 	 * @return String path
 	 */
-	public static String propertieRelativePath4FileName(final String filename) {
+	public static String propertyRelativePath4FileName(final String filename) {
 		return Constant.DEFAULT_PROPERTIES_FILE_DIR + filename + Constant.DEFAULT_PROPERTIES_XML_FILE_EXT;
+	}
+
+	/**
+	 * Makes a property path file from clazz. And creates it if does not exists.
+	 *
+	 * @param clazz
+	 * @return File (if created or already existed) or <code>null</code> if could
+	 *         not create for any reason
+	 * @throws NullPointerException If the default filename for clazz results in
+	 *                              <code>null</code>
+	 * @throws IOException          If an I/O error occurred
+	 * @throws SecurityException    If a security manager exists and its
+	 *                              <code>{@link
+	 *          java.lang.SecurityManager#checkRead(java.lang.String) checkRead}</code>
+	 *                              method does not permit verification of the
+	 *                              existence of the named directory and all
+	 *                              necessary parent directories; or if the
+	 *                              <code>{@link
+	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
+	 *                              method does not permit the named directory and
+	 *                              all necessary parent directories to be created;
+	 *                              or if a security manager exists and its
+	 *                              <code>{@link
+	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
+	 *                              method denies write access to the file
+	 */
+	public static File defaultPropertyClassFilename(final Class<?> clazz)
+			throws NullPointerException, SecurityException, IOException {
+		final String filename = clazz.getCanonicalName();
+		if (filename == null) {
+			throw new NullPointerException();
+		}
+		return createFile(propertyRelativePath4FileName(filename));
 	}
 
 	/**
