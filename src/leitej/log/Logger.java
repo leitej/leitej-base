@@ -60,7 +60,7 @@ public final class Logger {
 	private static volatile boolean CLOSED = false;
 
 	static LevelEnum DEFAULT_LOG_LEVEL = LevelEnum.WARN;
-	static final String DEFAULT_LOG_PROPERTIES_FILE_NAME = FileUtil.propertieRelativePath4FileName("logger");
+	static final String DEFAULT_LOG_PROPERTIES_FILE_NAME = FileUtil.propertyRelativePath4FileName("logger");
 	static final String DEFAULT_LOG_SIMPLE_DATE_FORMAT = "yyMMdd.HHmm.ssSSS";
 
 	private static final String METHOD_CLOSE = "close";

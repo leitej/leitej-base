@@ -68,8 +68,8 @@ final class TrustClassname {
 				INSTANCE.trustList.add(interfaceClass.getName());
 				INSTANCE.trustMap.put(interfaceClass.getName(), Boolean.TRUE);
 				Class<?> dataClass;
-				for (final Method[] gsM : AgnosticUtil.getMethodsGetSet(interfaceClass)) {
-					dataClass = gsM[0].getReturnType();
+				for (final Method[] gsMethods : AgnosticUtil.getMethodsGetSet(interfaceClass)) {
+					dataClass = gsMethods[0].getReturnType();
 					if (!LeafElement.has(dataClass)) {
 						if (!ArrayElement.has(dataClass)) {
 							if (!XmlObjectModelling.class.isAssignableFrom(dataClass)) {
@@ -88,7 +88,7 @@ final class TrustClassname {
 								}
 							} else if (List.class.isAssignableFrom(dataClass) || Set.class.equals(dataClass)) {
 								final Class<?>[] dataParameterizedClasses = AgnosticUtil
-										.getReturnParameterizedTypes(gsM[0]);
+										.getReturnParameterizedTypes(gsMethods[0]);
 								if (!LeafElement.has(dataParameterizedClasses[0])) {
 									if (!XmlObjectModelling.class.isAssignableFrom(dataParameterizedClasses[0])) {
 										throw new IllegalArgumentLtRtException(dataParameterizedClasses[0].toString());
@@ -97,7 +97,7 @@ final class TrustClassname {
 								}
 							} else if (Map.class.equals(dataClass)) {
 								final Class<?>[] dataParameterizedClasses = AgnosticUtil
-										.getReturnParameterizedTypes(gsM[0]);
+										.getReturnParameterizedTypes(gsMethods[0]);
 								if (!LeafElement.has(dataParameterizedClasses[0])) {
 									if (!XmlObjectModelling.class.isAssignableFrom(dataParameterizedClasses[0])) {
 										throw new IllegalArgumentLtRtException(dataParameterizedClasses[0].toString());
@@ -113,19 +113,6 @@ final class TrustClassname {
 							} else {
 								throw new IllegalArgumentLtRtException(
 										new ImplementationLtRtException(dataClass.toString()));
-							}
-						}
-					} else {
-						if (!has(dataClass.getName())) {
-							if (dataClass.isEnum()) {
-								INSTANCE.trustList.add(dataClass.getName());
-								INSTANCE.trustMap.put(dataClass.getName(), Boolean.TRUE);
-							} else if (XmlomDataItf.class.isAssignableFrom(dataClass)) {
-								if (dataClass.isInterface()) {
-									throw new IllegalArgumentLtRtException();
-								}
-								INSTANCE.trustList.add(dataClass.getName());
-								INSTANCE.trustMap.put(dataClass.getName(), Boolean.TRUE);
 							}
 						}
 					}

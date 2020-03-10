@@ -26,18 +26,20 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 
 import leitej.Constant;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.XmlInvalidLtException;
+import leitej.exception.XmlomInvalidLtException;
 import leitej.log.Logger;
 import leitej.net.ConstantNet;
 import leitej.net.exception.ConnectionLtException;
 import leitej.util.stream.ControlDataInputStream;
 import leitej.util.stream.ControlDataOutputStream;
 import leitej.xml.om.XmlObjectModelling;
-import leitej.xml.om.XmlomInputStream;
-import leitej.xml.om.XmlomOutputStream;
+import leitej.xml.om.XmlomReader;
+import leitej.xml.om.XmlomWriter;
 
 /**
  * Communication Session Layer
@@ -62,8 +64,8 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 	private final String charsetName;
 	private final ControlDataInputStream cdis;
 	private volatile boolean stepClosed;
-	private final XmlomOutputStream xos;
-	private final XmlomInputStream xis;
+	private final XmlomWriter xos;
+	private final XmlomReader xis;
 
 	/**
 	 * Connects and initiates session from guest side.
@@ -113,8 +115,8 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 			out = getOutputStreamWrapped(out);
 			in = getInputStreamWrapped(in);
 			initiateWrappedCommunication(in, out);
-			this.xos = new XmlomOutputStream(out, this.charsetName);
-			this.xis = new XmlomInputStream(in, this.charsetName);
+			this.xos = new XmlomWriter(out, Charset.forName(this.charsetName));
+			this.xis = new XmlomReader(in, Charset.forName(this.charsetName));
 			pass = true;
 		} catch (final SocketException e) {
 			throw e;
@@ -125,6 +127,10 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 		} catch (final UnsupportedEncodingException e) {
 			throw new ConnectionLtException(e);
 		} catch (final IOException e) {
+			throw new ConnectionLtException(e);
+		} catch (final XmlomInvalidLtException e) {
+			throw new ConnectionLtException(e);
+		} catch (final XmlInvalidLtException e) {
 			throw new ConnectionLtException(e);
 		} finally {
 			if (!pass) {
@@ -180,14 +186,18 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 			out = getOutputStreamWrapped(out);
 			in = getInputStreamWrapped(in);
 			initiateWrappedCommunication(in, out);
-			this.xos = new XmlomOutputStream(out, this.charsetName);
-			this.xis = new XmlomInputStream(in, this.charsetName);
+			this.xos = new XmlomWriter(out, Charset.forName(this.charsetName));
+			this.xis = new XmlomReader(in, Charset.forName(this.charsetName));
 			pass = true;
 		} catch (final SocketException e) {
 			throw e;
 		} catch (final IllegalArgumentLtRtException e) {
 			throw new ConnectionLtException(e);
 		} catch (final IOException e) {
+			throw new ConnectionLtException(e);
+		} catch (final XmlomInvalidLtException e) {
+			throw new ConnectionLtException(e);
+		} catch (final XmlInvalidLtException e) {
 			throw new ConnectionLtException(e);
 		} finally {
 			if (!pass) {
@@ -345,27 +355,19 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 	public final void close() throws ConnectionLtException {
 		try {
 			if (this.xos != null) {
-				this.xos.doFinal();
+				this.xos.close();
+			}
+			if (this.xis != null) {
+				this.xis.close();
 			}
 		} catch (final IOException e) {
 			LOG.debug("#0", e);
 		} finally {
-			try {
-				if (this.xos != null) {
-					this.xos.close();
-				}
-				if (this.xis != null) {
-					this.xis.close();
-				}
-			} catch (final IOException e) {
-				LOG.debug("#0", e);
-			} finally {
-				if (this.socket != null) {
-					try {
-						this.socket.close();
-					} catch (final IOException e) {
-						throw new ConnectionLtException(e);
-					}
+			if (this.socket != null) {
+				try {
+					this.socket.close();
+				} catch (final IOException e) {
+					throw new ConnectionLtException(e);
 				}
 			}
 		}

@@ -61,9 +61,6 @@ public final class DtpClient implements ConnectionClientItf {
 			if (internalMessage == null || !InternalMessage.class.isInstance(internalMessage)
 					|| !InternalMessageAction.RAW_DATA_PORTS
 							.equals(InternalMessage.class.cast(internalMessage).getAction())) {
-				if (internalMessage != null) {
-					internalMessage.release();
-				}
 				throw new ConnectionLtException(new DtpLtException());
 			}
 			final RawDataPort[] rawDataPorts = InternalMessage.class.cast(internalMessage).getRawDataPorts();
@@ -83,7 +80,6 @@ public final class DtpClient implements ConnectionClientItf {
 					}
 				}
 			}
-			internalMessage.release();
 		}
 		RawData.initResponse();
 		result = this.comSession.read(XmlObjectModelling.class);
@@ -98,9 +94,6 @@ public final class DtpClient implements ConnectionClientItf {
 				if (internalMessage == null || !InternalMessage.class.isInstance(internalMessage)
 						|| !InternalMessageAction.RAW_DATA_PORTS
 								.equals(InternalMessage.class.cast(internalMessage).getAction())) {
-					if (internalMessage != null) {
-						internalMessage.release();
-					}
 					throw new ConnectionLtException(new DtpLtException());
 				}
 				final RawDataPort[] rawDataPorts = InternalMessage.class.cast(internalMessage).getRawDataPorts();
@@ -121,7 +114,6 @@ public final class DtpClient implements ConnectionClientItf {
 						}
 					}
 				}
-				internalMessage.release();
 			}
 			if (!responseClass.isInstance(result)) {
 				throw new ConnectionLtException(new DtpLtException(new ClassCastException()));

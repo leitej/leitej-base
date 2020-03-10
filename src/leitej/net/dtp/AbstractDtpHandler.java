@@ -156,7 +156,6 @@ public abstract class AbstractDtpHandler {
 					if (dtpIM != null) {
 						this.comSession.write(dtpIM);
 						this.comSession.flush();
-						dtpIM.release();
 						dtpIM = null;
 					}
 					if (requestReceived) {
@@ -182,7 +181,6 @@ public abstract class AbstractDtpHandler {
 								dtpIM.setRawDataPorts(rawDataPorts);
 								this.comSession.write(dtpIM);
 								this.comSession.flush();
-								dtpIM.release();
 								dtpIM = null;
 							}
 							releaseDeal(request, response);

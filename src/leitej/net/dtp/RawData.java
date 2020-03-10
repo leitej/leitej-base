@@ -38,13 +38,12 @@ import leitej.util.DateUtil;
 import leitej.util.data.Cache;
 import leitej.util.data.CacheWeak;
 import leitej.util.stream.FractionInputStream;
-import leitej.xml.om.XmlomDataItf;
 
 /**
  *
  * @author Julio Leite
  */
-public final class RawData extends InputStream implements XmlomDataItf, Serializable {
+public final class RawData extends InputStream implements Serializable {
 
 	private static final long serialVersionUID = 1607307704254633948L;
 

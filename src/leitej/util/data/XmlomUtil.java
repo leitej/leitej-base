@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 import leitej.Constant;
@@ -31,15 +33,15 @@ import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.XmlInvalidLtException;
 import leitej.util.stream.FileUtil;
 import leitej.xml.om.XmlObjectModelling;
-import leitej.xml.om.XmlomInputStream;
-import leitej.xml.om.XmlomOutputStream;
+import leitej.xml.om.XmlomReader;
+import leitej.xml.om.XmlomWriter;
 
 /**
  * An useful class to help in XML Object Modelling stream.
  *
  * @author Julio Leite
- * @see leitej.xml.om.XmlomOutputStream
- * @see leitej.xml.om.XmlomInputStream
+ * @see leitej.xml.om.XmlomWriter
+ * @see leitej.xml.om.XmlomReader
  */
 public final class XmlomUtil {
 
@@ -49,13 +51,25 @@ public final class XmlomUtil {
 	private XmlomUtil() {
 	}
 
+	/**
+	 * //TODO
+	 *
+	 * @param interfaceClass
+	 * @return
+	 */
 	public static <I extends XmlObjectModelling> I newXmlObjectModelling(final Class<I> interfaceClass) {
-		return XmlomOutputStream.newXmlObjectModelling(interfaceClass);
+		return XmlomWriter.newXmlObjectModelling(interfaceClass);
 	}
 
+	/**
+	 * //TODO
+	 *
+	 * @param interfaceClass
+	 * @throws IllegalArgumentLtRtException
+	 */
 	public static <I extends XmlObjectModelling> void registry(final Class<I> interfaceClass)
 			throws IllegalArgumentLtRtException {
-		XmlomInputStream.registry(interfaceClass);
+		XmlomReader.registry(interfaceClass);
 	}
 
 	/**
@@ -78,7 +92,7 @@ public final class XmlomUtil {
 	 *                               method does not permit verification of the
 	 *                               existence of the named directory and all
 	 *                               necessary parent directories; or if the
-	 *                               <code>{@link 
+	 *                               <code>{@link
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                               method does not permit the named directory and
 	 *                               all necessary parent directories to be created;
@@ -87,9 +101,9 @@ public final class XmlomUtil {
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                               method denies write access to the file
 	 */
-	public static <I extends XmlObjectModelling> void sendToFileUTF8(final String fileName, final I obj)
+	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final I obj)
 			throws NullPointerException, FileNotFoundException, SecurityException, IOException {
-		sendToFile(fileName, Constant.UTF8_CHARSET_NAME, false, obj);
+		sendToFile(fileName, Charset.forName(Constant.UTF8_CHARSET_NAME), false, obj);
 	}
 
 	/**
@@ -112,7 +126,7 @@ public final class XmlomUtil {
 	 *                               method does not permit verification of the
 	 *                               existence of the named directory and all
 	 *                               necessary parent directories; or if the
-	 *                               <code>{@link 
+	 *                               <code>{@link
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                               method does not permit the named directory and
 	 *                               all necessary parent directories to be created;
@@ -121,24 +135,25 @@ public final class XmlomUtil {
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                               method denies write access to the file
 	 */
-	public static <I extends XmlObjectModelling> void sendToFileUTF8(final String fileName, final I[] objs)
+	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final I[] objs)
 			throws NullPointerException, FileNotFoundException, SecurityException, IOException {
-		sendToFile(fileName, Constant.UTF8_CHARSET_NAME, false, objs);
+		sendToFile(fileName, Charset.forName(Constant.UTF8_CHARSET_NAME), false, objs);
 	}
 
 	/**
 	 * Saves the objects to a file.<br/>
 	 * This method will try to create the file if not exists.
 	 *
-	 * @param fileName    a pathname string
-	 * @param charsetName name of a supported {@link java.nio.charset.Charset
-	 *                    </code>charset<code>}
-	 * &#64;param minified when false produces a human readable XML, other wise outputs a clean strait line
-	 * &#64;param objs objects to be saved
-	 * &#64;throws FileNotFoundException If the file exists but is a directory
-	 * 			rather than a regular file, does not exist but cannot
-	 * 			be created, or cannot be opened for any other reason.
-	 * @throws NullPointerException If the <code>filename</code> argument is
+	 * @param fileName a pathname string
+	 * @param charset
+	 * @param minified when false produces a human readable XML, other wise outputs
+	 *                 a clean strait line
+	 * @param objs     objects to be saved
+	 * @throws FileNotFoundException        If the file exists but is a directory
+	 *                                      rather than a regular file, does not
+	 *                                      exist but cannot be created, or cannot
+	 *                                      be opened for any other reason.
+	 * @throws NullPointerException         If the <code>filename</code> argument is
 	 *                                      <code>null</code>
 	 * @throws IOException                  If an I/O error occurred
 	 * @throws SecurityException            If a security manager exists and its
@@ -147,7 +162,7 @@ public final class XmlomUtil {
 	 *                                      method does not permit verification of
 	 *                                      the existence of the named directory and
 	 *                                      all necessary parent directories; or if
-	 *                                      the <code>{@link 
+	 *                                      the <code>{@link
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                                      method does not permit the named
 	 *                                      directory and all necessary parent
@@ -158,27 +173,28 @@ public final class XmlomUtil {
 	 *                                      method denies write access to the file
 	 * @throws UnsupportedEncodingException If the named encoding is not supported
 	 */
-	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final String charsetName,
+	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final Charset charset,
 			final boolean minified, final I[] objs) throws UnsupportedEncodingException, NullPointerException,
 			FileNotFoundException, SecurityException, IOException {
 		FileUtil.createFile(fileName);
 		final OutputStream os = new FileOutputStream(fileName, false);
-		sendToStream(true, os, charsetName, minified, objs);
+		sendToStream(true, os, charset, minified, objs);
 	}
 
 	/**
 	 * Saves the object to a file.<br/>
 	 * This method will try to create the file if not exists.
 	 *
-	 * @param fileName    a pathname string
-	 * @param charsetName name of a supported {@link java.nio.charset.Charset
-	 *                    </code>charset<code>}
-	 * &#64;param minified when false produces a human readable XML, other wise outputs a clean strait line
-	 * &#64;param obj object to be saved
-	 * &#64;throws FileNotFoundException If the file exists but is a directory
-	 * 			rather than a regular file, does not exist but cannot
-	 * 			be created, or cannot be opened for any other reason.
-	 * @throws NullPointerException If the <code>filename</code> argument is
+	 * @param fileName a pathname string
+	 * @param charset
+	 * @param minified when false produces a human readable XML, other wise outputs
+	 *                 a clean strait line
+	 * @param obj      object to be saved
+	 * @throws FileNotFoundException        If the file exists but is a directory
+	 *                                      rather than a regular file, does not
+	 *                                      exist but cannot be created, or cannot
+	 *                                      be opened for any other reason.
+	 * @throws NullPointerException         If the <code>filename</code> argument is
 	 *                                      <code>null</code>
 	 * @throws IOException                  If an I/O error occurred
 	 * @throws SecurityException            If a security manager exists and its
@@ -187,7 +203,7 @@ public final class XmlomUtil {
 	 *                                      method does not permit verification of
 	 *                                      the existence of the named directory and
 	 *                                      all necessary parent directories; or if
-	 *                                      the <code>{@link 
+	 *                                      the <code>{@link
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                                      method does not permit the named
 	 *                                      directory and all necessary parent
@@ -198,12 +214,11 @@ public final class XmlomUtil {
 	 *                                      method denies write access to the file
 	 * @throws UnsupportedEncodingException If the named encoding is not supported
 	 */
-	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final String charsetName,
+	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final Charset charset,
 			final boolean minified, final I obj) throws UnsupportedEncodingException, NullPointerException,
 			FileNotFoundException, SecurityException, IOException {
-		FileUtil.createFile(fileName);
-		final OutputStream os = new FileOutputStream(fileName, false);
-		sendToStream(true, os, charsetName, minified, obj);
+		final OutputStream os = new FileOutputStream(FileUtil.createFile(fileName), false);
+		sendToStream(true, os, charset, minified, obj);
 	}
 
 	/**
@@ -216,48 +231,45 @@ public final class XmlomUtil {
 	 * @param objs     to write to the stream
 	 * @throws IOException If an I/O error occurs
 	 */
-	public static <I extends XmlObjectModelling> void sendToStreamUTF8(final OutputStream os, final boolean minified,
+	public static <I extends XmlObjectModelling> void sendToStream(final OutputStream os, final boolean minified,
 			final I[] objs) throws IOException {
-		sendToStream(os, Constant.UTF8_CHARSET_NAME, minified, objs);
+		sendToStream(os, Charset.forName(Constant.UTF8_CHARSET_NAME), minified, objs);
 	}
 
 	/**
 	 * Writes the <code>objs</code> to the stream. And don't closes it.
 	 *
-	 * @param os          an OutputStream
-	 * @param charsetName the name of a supported {@link java.nio.charset.Charset
-	 *                    charset}
-	 * @param minified    when false produces a human readable XML, other wise
-	 *                    outputs a clean strait line
-	 * @param objs        to write to the stream
+	 * @param os       an OutputStream
+	 * @param charset
+	 * @param minified when false produces a human readable XML, other wise outputs
+	 *                 a clean strait line
+	 * @param objs     to write to the stream
 	 * @throws UnsupportedEncodingException If the named encoding is not supported
 	 * @throws IOException                  If an I/O error occurs
 	 */
-	public static <I extends XmlObjectModelling> void sendToStream(final OutputStream os, final String charsetName,
+	public static <I extends XmlObjectModelling> void sendToStream(final OutputStream os, final Charset charset,
 			final boolean minified, final I[] objs) throws UnsupportedEncodingException, IOException {
-		sendToStream(false, os, charsetName, minified, objs);
+		sendToStream(false, os, charset, minified, objs);
 	}
 
 	/**
 	 * Writes the <code>obj</code> to the stream.
 	 *
-	 * @param withClose   defines if is to close the stream at the end of write
-	 * @param os          an OutputStream
-	 * @param charsetName the name of a supported {@link java.nio.charset.Charset
-	 *                    charset}
-	 * @param minified    when false produces a human readable XML, other wise
-	 *                    outputs a clean strait line
-	 * @param obj         to write to the stream
+	 * @param withClose defines if is to close the stream at the end of write
+	 * @param os        an OutputStream
+	 * @param charset
+	 * @param minified  when false produces a human readable XML, other wise outputs
+	 *                  a clean strait line
+	 * @param obj       to write to the stream
 	 * @throws UnsupportedEncodingException If the named encoding is not supported
 	 * @throws IOException                  If an I/O error occurs
 	 */
 	private static <I extends XmlObjectModelling> void sendToStream(final boolean withClose, final OutputStream os,
-			final String charsetName, final boolean minified, final I obj)
+			final Charset charset, final boolean minified, final I obj)
 			throws UnsupportedEncodingException, IOException {
-		final XmlomOutputStream out = new XmlomOutputStream(os, charsetName, minified);
+		final XmlomWriter out = new XmlomWriter(os, charset, minified);
 		try {
 			out.write(obj);
-			out.doFinal();
 		} finally {
 			if (withClose) {
 				out.close();
@@ -268,23 +280,21 @@ public final class XmlomUtil {
 	/**
 	 * Writes the <code>objs</code> to the stream.
 	 *
-	 * @param withClose   defines if is to close the stream at the end of write
-	 * @param os          an OutputStream
-	 * @param charsetName the name of a supported {@link java.nio.charset.Charset
-	 *                    charset}
-	 * @param minified    when false produces a human readable XML, other wise
-	 *                    outputs a clean strait line
-	 * @param objs        to write to the stream
+	 * @param withClose defines if is to close the stream at the end of write
+	 * @param os        an OutputStream
+	 * @param charset
+	 * @param minified  when false produces a human readable XML, other wise outputs
+	 *                  a clean strait line
+	 * @param objs      to write to the stream
 	 * @throws UnsupportedEncodingException If the named encoding is not supported
 	 * @throws IOException                  If an I/O error occurs
 	 */
 	private static <I extends XmlObjectModelling> void sendToStream(final boolean withClose, final OutputStream os,
-			final String charsetName, final boolean minified, final I[] objs)
+			final Charset charset, final boolean minified, final I[] objs)
 			throws UnsupportedEncodingException, IOException {
-		final XmlomOutputStream out = new XmlomOutputStream(os, charsetName, minified);
+		final XmlomWriter out = new XmlomWriter(os, charset, minified);
 		try {
 			out.write(objs);
-			out.doFinal();
 		} finally {
 			if (withClose) {
 				out.close();
@@ -309,10 +319,10 @@ public final class XmlomUtil {
 	 * @throws XmlInvalidLtException If is reading a corrupted XML
 	 * @throws IOException           If an I/O error occurs
 	 */
-	public static <I extends XmlObjectModelling> List<I> getObjectsFromFileUTF8(final Class<I> interfaceClass,
+	public static <I extends XmlObjectModelling> List<I> getObjectsFromFile(final Class<I> interfaceClass,
 			final String fileName)
 			throws FileNotFoundException, SecurityException, NullPointerException, XmlInvalidLtException, IOException {
-		return getObjectsFromFile(interfaceClass, fileName, Constant.UTF8_CHARSET_NAME);
+		return getObjectsFromFile(interfaceClass, fileName, Charset.forName(Constant.UTF8_CHARSET_NAME));
 	}
 
 	/**
@@ -320,8 +330,7 @@ public final class XmlomUtil {
 	 *
 	 * @param interfaceClass type of object to be ridden
 	 * @param fileName       a pathname string
-	 * @param charsetName    the name of a supported {@link java.nio.charset.Charset
-	 *                       charset}
+	 * @param charset
 	 * @return all the ridden objects
 	 * @throws FileNotFoundException        If the file does not exist, is a
 	 *                                      directory rather than a regular file, or
@@ -337,9 +346,9 @@ public final class XmlomUtil {
 	 * @throws IOException                  If an I/O error occurs
 	 */
 	public static <I extends XmlObjectModelling> List<I> getObjectsFromFile(final Class<I> interfaceClass,
-			final String fileName, final String charsetName) throws FileNotFoundException, SecurityException,
+			final String fileName, final Charset charset) throws FileNotFoundException, SecurityException,
 			UnsupportedEncodingException, NullPointerException, XmlInvalidLtException, IOException {
-		return getObjectsFromStream(interfaceClass, true, new FileInputStream(new File(fileName)), charsetName);
+		return getObjectsFromStream(interfaceClass, true, new FileInputStream(new File(fileName)), charset);
 	}
 
 	/**
@@ -353,9 +362,9 @@ public final class XmlomUtil {
 	 * @throws XmlInvalidLtException If is reading a corrupted XML
 	 * @throws IOException           If an I/O error occurs
 	 */
-	public static <I extends XmlObjectModelling> List<I> getObjectsFromStreamUTF8(final Class<I> interfaceClass,
+	public static <I extends XmlObjectModelling> List<I> getObjectsFromStream(final Class<I> interfaceClass,
 			final InputStream is) throws NullPointerException, XmlInvalidLtException, IOException {
-		return getObjectsFromStream(interfaceClass, is, Constant.UTF8_CHARSET_NAME);
+		return getObjectsFromStream(interfaceClass, is, Charset.forName(Constant.UTF8_CHARSET_NAME));
 	}
 
 	/**
@@ -363,8 +372,7 @@ public final class XmlomUtil {
 	 *
 	 * @param interfaceClass type of object to be ridden
 	 * @param is             an InputStream
-	 * @param charsetName    the name of a supported {@link java.nio.charset.Charset
-	 *                       charset}
+	 * @param charset
 	 * @return all the ridden objects
 	 * @throws UnsupportedEncodingException If the named charset is not supported
 	 * @throws NullPointerException         If trustClass has a class null
@@ -372,9 +380,9 @@ public final class XmlomUtil {
 	 * @throws IOException                  If an I/O error occurs
 	 */
 	public static <I extends XmlObjectModelling> List<I> getObjectsFromStream(final Class<I> interfaceClass,
-			final InputStream is, final String charsetName)
+			final InputStream is, final Charset charset)
 			throws UnsupportedEncodingException, NullPointerException, XmlInvalidLtException, IOException {
-		return getObjectsFromStream(interfaceClass, false, is, charsetName);
+		return getObjectsFromStream(interfaceClass, false, is, charset);
 	}
 
 	/**
@@ -383,8 +391,7 @@ public final class XmlomUtil {
 	 * @param interfaceClass type of object to be ridden
 	 * @param withClose      defines if is to close the stream at the end of write
 	 * @param is             an InputStream
-	 * @param charsetName    the name of a supported {@link java.nio.charset.Charset
-	 *                       charset}
+	 * @param charset
 	 * @return all the ridden objects
 	 * @throws UnsupportedEncodingException If the named charset is not supported
 	 * @throws NullPointerException         If trustClass has a class null
@@ -392,18 +399,144 @@ public final class XmlomUtil {
 	 * @throws IOException                  If an I/O error occurs
 	 */
 	private static <I extends XmlObjectModelling> List<I> getObjectsFromStream(final Class<I> interfaceClass,
-			final boolean withClose, final InputStream is, final String charsetName)
+			final boolean withClose, final InputStream is, final Charset charset)
 			throws UnsupportedEncodingException, NullPointerException, XmlInvalidLtException, IOException {
-		List<I> result = null;
-		final XmlomInputStream in = new XmlomInputStream(is, charsetName);
+		final List<I> result = new ArrayList<>();
+		I tmp;
+		final XmlomReader in = new XmlomReader(is, charset);
 		try {
-			result = in.readAll(interfaceClass);
+			while ((tmp = in.read(interfaceClass)) != null) {
+				result.add(tmp);
+			}
 		} finally {
 			if (withClose) {
 				in.close();
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Reads the content of configuration file in default file for the
+	 * interfaceClass. With charset <code>Constant.UTF8_CHARSET_NAME</code>. If does
+	 * not exist, write a standard one as an example, and return null.
+	 *
+	 * @param interfaceClass
+	 * @return
+	 * @throws NullPointerException If the default filename for interfaceClass
+	 *                              results in <code>null</code>
+	 * @throws IOException          If an I/O error occurred
+	 * @throws SecurityException    If a security manager exists and it denies read
+	 *                              or write
+	 */
+	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass)
+			throws NullPointerException, SecurityException, IOException {
+		return getConfig(interfaceClass, Charset.forName(Constant.UTF8_CHARSET_NAME), true);
+	}
+
+	/**
+	 * Reads the content of configuration file in default file for the
+	 * interfaceClass. If does not exist, write a standard one as an example, and
+	 * return null.
+	 *
+	 * @param interfaceClass
+	 * @param charset
+	 * @param standardContent
+	 * @return
+	 * @throws NullPointerException If the default filename for interfaceClass
+	 *                              results in <code>null</code>
+	 * @throws IOException          If an I/O error occurred
+	 * @throws SecurityException    If a security manager exists and it denies read
+	 *                              or write
+	 */
+	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final Charset charset,
+			final boolean standardContent) throws NullPointerException, SecurityException, IOException {
+		return getConfig(interfaceClass, FileUtil.defaultPropertyClassFilename(interfaceClass), charset,
+				standardContent);
+	}
+
+	/**
+	 * Reads the content of configuration file. If does not exist, write a standard
+	 * one as an example, and return null.
+	 *
+	 * @param interfaceClass
+	 * @param fromFile
+	 * @param charset
+	 * @param standardContent
+	 * @return
+	 */
+	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final File fromFile,
+			final Charset charset, final boolean standardContent) {
+		final List<I> defaultContent;
+		if (standardContent) {
+			defaultContent = new ArrayList<>(1);
+			defaultContent.add(createExample(interfaceClass));
+		} else {
+			defaultContent = null;
+		}
+		return getConfig(interfaceClass, fromFile, charset, defaultContent);
+	}
+
+	private static <I extends XmlObjectModelling> I createExample(final Class<I> interfaceClass) {
+		final I result = newXmlObjectModelling(interfaceClass);
+		// TODO implement a new xmlom with all fields fulfilled as example
+		// (attention to loops)
+		return result;
+	}
+
+	/**
+	 * Reads the content of configuration file in default file for the
+	 * interfaceClass. With charset <code>Constant.UTF8_CHARSET_NAME</code>. If does
+	 * not exist, write the default one, and gives it as return.
+	 *
+	 * @param interfaceClass
+	 * @param defaultContent
+	 * @return
+	 * @throws NullPointerException If the default filename for interfaceClass
+	 *                              results in <code>null</code>
+	 * @throws IOException          If an I/O error occurred
+	 * @throws SecurityException    If a security manager exists and it denies read
+	 *                              or write
+	 */
+	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass,
+			final List<I> defaultContent) throws NullPointerException, SecurityException, IOException {
+		return getConfig(interfaceClass, Charset.forName(Constant.UTF8_CHARSET_NAME), defaultContent);
+	}
+
+	/**
+	 * Reads the configuration file in default file for the interfaceClass.If does
+	 * not exist, write the default one, and gives it as return.
+	 *
+	 * @param interfaceClass
+	 * @param charset
+	 * @param defaultContent
+	 * @return
+	 * @throws NullPointerException If the default filename for interfaceClass
+	 *                              results in <code>null</code>
+	 * @throws IOException          If an I/O error occurred
+	 * @throws SecurityException    If a security manager exists and it denies read
+	 *                              or write
+	 */
+	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final Charset charset,
+			final List<I> defaultContent) throws NullPointerException, SecurityException, IOException {
+		return getConfig(interfaceClass, FileUtil.defaultPropertyClassFilename(interfaceClass), charset,
+				defaultContent);
+	}
+
+	/**
+	 * Reads the content of configuration file. If does not exist, write the default
+	 * one, and gives it as return.
+	 *
+	 * @param interfaceClass
+	 * @param fromFile
+	 * @param charset
+	 * @param defaultContent
+	 * @return
+	 */
+	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final File fromFile,
+			final Charset charset, final List<I> defaultContent) {
+		// TODO implement
+		return null;
 	}
 
 }
