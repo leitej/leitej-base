@@ -255,7 +255,7 @@ final class Parser {
 				}
 				object = readArrayObject(dataClass);
 			} else {
-				object = Pool.poolXmlObjectModelling((Class<I>) dataClass);
+				object = DATA_PROXY.newXmlObjectModelling((Class<I>) dataClass);
 				final Integer id = getElementAttributeId();
 				if (id != null) {
 					this.trackLoopObjects.put(id, object);

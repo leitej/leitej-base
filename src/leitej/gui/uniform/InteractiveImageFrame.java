@@ -88,7 +88,6 @@ public class InteractiveImageFrame extends ImageFrame {
 					}
 				}
 			}
-			actionInput.release();
 		}
 		fastUpdate();
 		return result;

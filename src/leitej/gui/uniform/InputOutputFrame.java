@@ -125,7 +125,6 @@ public final class InputOutputFrame extends OutputFrame {
 					}
 				}
 			}
-			actionInput.release();
 		}
 		fastUpdate(this.textAreaUpdate);
 		return result;

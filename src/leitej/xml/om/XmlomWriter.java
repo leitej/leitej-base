@@ -35,8 +35,10 @@ import leitej.exception.XmlInvalidLtException;
  */
 public final class XmlomWriter {
 
+	private static final DataProxy DATA_PROXY = DataProxy.getInstance();
+
 	public static <I extends XmlObjectModelling> I newXmlObjectModelling(final Class<I> interfaceClass) {
-		return Pool.poolXmlObjectModelling(interfaceClass);
+		return DATA_PROXY.newXmlObjectModelling(interfaceClass);
 	}
 
 	private final Producer out;

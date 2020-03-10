@@ -401,10 +401,13 @@ public final class XmlomUtil {
 	private static <I extends XmlObjectModelling> List<I> getObjectsFromStream(final Class<I> interfaceClass,
 			final boolean withClose, final InputStream is, final Charset charset)
 			throws UnsupportedEncodingException, NullPointerException, XmlInvalidLtException, IOException {
-		List<I> result = null;
+		final List<I> result = new ArrayList<>();
+		I tmp;
 		final XmlomReader in = new XmlomReader(is, charset);
 		try {
-			result = in.read(interfaceClass, Integer.MAX_VALUE);
+			while ((tmp = in.read(interfaceClass)) != null) {
+				result.add(tmp);
+			}
 		} finally {
 			if (withClose) {
 				in.close();

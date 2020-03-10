@@ -32,6 +32,4 @@ public abstract interface XmlObjectModelling {
 
 	public abstract void setComments(List<String> comments);
 
-	public abstract void release();
-
 }

@@ -31,6 +31,7 @@ import java.nio.charset.Charset;
 import leitej.Constant;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.XmlInvalidLtException;
+import leitej.exception.XmlomInvalidLtException;
 import leitej.log.Logger;
 import leitej.net.ConstantNet;
 import leitej.net.exception.ConnectionLtException;
@@ -115,7 +116,7 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 			in = getInputStreamWrapped(in);
 			initiateWrappedCommunication(in, out);
 			this.xos = new XmlomWriter(out, Charset.forName(this.charsetName));
-			this.xis = new XmlomReader(in, this.charsetName);
+			this.xis = new XmlomReader(in, Charset.forName(this.charsetName));
 			pass = true;
 		} catch (final SocketException e) {
 			throw e;
@@ -126,6 +127,10 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 		} catch (final UnsupportedEncodingException e) {
 			throw new ConnectionLtException(e);
 		} catch (final IOException e) {
+			throw new ConnectionLtException(e);
+		} catch (final XmlomInvalidLtException e) {
+			throw new ConnectionLtException(e);
+		} catch (final XmlInvalidLtException e) {
 			throw new ConnectionLtException(e);
 		} finally {
 			if (!pass) {
@@ -182,13 +187,17 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 			in = getInputStreamWrapped(in);
 			initiateWrappedCommunication(in, out);
 			this.xos = new XmlomWriter(out, Charset.forName(this.charsetName));
-			this.xis = new XmlomReader(in, this.charsetName);
+			this.xis = new XmlomReader(in, Charset.forName(this.charsetName));
 			pass = true;
 		} catch (final SocketException e) {
 			throw e;
 		} catch (final IllegalArgumentLtRtException e) {
 			throw new ConnectionLtException(e);
 		} catch (final IOException e) {
+			throw new ConnectionLtException(e);
+		} catch (final XmlomInvalidLtException e) {
+			throw new ConnectionLtException(e);
+		} catch (final XmlInvalidLtException e) {
 			throw new ConnectionLtException(e);
 		} finally {
 			if (!pass) {
