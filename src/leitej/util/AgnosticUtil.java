@@ -304,9 +304,7 @@ public final class AgnosticUtil implements Serializable {
 			final Type[] parameterizedTypes = ParameterizedType.class.cast(type).getActualTypeArguments();
 			result = new Class<?>[parameterizedTypes.length];
 			for (int i = 0; i < result.length; i++) {
-				System.out.println(parameterizedTypes[i]);
 				result[i] = getClass(parameterizedTypes[i]);
-				System.out.println(result[i]);
 			}
 		}
 		return result;
