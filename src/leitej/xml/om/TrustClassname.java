@@ -115,6 +115,11 @@ final class TrustClassname {
 										new ImplementationLtRtException(dataClass.toString()));
 							}
 						}
+					} else {
+						if (dataClass.isEnum() && !has(dataClass.getName())) {
+							INSTANCE.trustList.add(dataClass.getName());
+							INSTANCE.trustMap.put(dataClass.getName(), Boolean.TRUE);
+						}
 					}
 				}
 			}
