@@ -390,36 +390,19 @@ public final class FileUtil {
 	}
 
 	/**
-	 * Makes a property path file from clazz. And creates it if does not exists.
+	 * Makes a property path file from clazz.
 	 *
 	 * @param clazz
-	 * @return File (if created or already existed) or <code>null</code> if could
-	 *         not create for any reason
+	 * @return An abstract representation of file
 	 * @throws NullPointerException If the default filename for clazz results in
 	 *                              <code>null</code>
-	 * @throws IOException          If an I/O error occurred
-	 * @throws SecurityException    If a security manager exists and its
-	 *                              <code>{@link
-	 *          java.lang.SecurityManager#checkRead(java.lang.String) checkRead}</code>
-	 *                              method does not permit verification of the
-	 *                              existence of the named directory and all
-	 *                              necessary parent directories; or if the
-	 *                              <code>{@link
-	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
-	 *                              method does not permit the named directory and
-	 *                              all necessary parent directories to be created;
-	 *                              or if a security manager exists and its
-	 *                              <code>{@link
-	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
-	 *                              method denies write access to the file
 	 */
-	public static File defaultPropertyClassFilename(final Class<?> clazz)
-			throws NullPointerException, SecurityException, IOException {
+	public static File defaultPropertyClassFilename(final Class<?> clazz) throws NullPointerException {
 		final String filename = clazz.getCanonicalName();
 		if (filename == null) {
 			throw new NullPointerException();
 		}
-		return createFile(propertyRelativePath4FileName(filename));
+		return new File(propertyRelativePath4FileName(filename));
 	}
 
 	/**

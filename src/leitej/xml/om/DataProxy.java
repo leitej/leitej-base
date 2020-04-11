@@ -38,6 +38,12 @@ final class DataProxy extends AbstractDataProxy<XmlObjectModelling, DataProxyHan
 		super(Serializable.class);
 	}
 
+	/**
+	 * Instantiates a new xmlom object.
+	 *
+	 * @param iClass interface to interact to this new xmlom object
+	 * @return the new xmlom object
+	 */
 	<I extends XmlObjectModelling> I newXmlObjectModelling(final Class<I> iClass) {
 		return newProxyInstance(iClass, new DataProxyHandler(iClass));
 	}

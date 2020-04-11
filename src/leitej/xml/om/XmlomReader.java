@@ -35,6 +35,14 @@ import leitej.exception.XmlomInvalidLtException;
  */
 public final class XmlomReader {
 
+	/**
+	 * Catalog interface for instantiation permission.
+	 *
+	 * @param interfaceClass to be trusted
+	 * @throws IllegalArgumentLtRtException if <code>interfaceClass</code> in
+	 *                                      parameter is null or does not represents
+	 *                                      a valid interface
+	 */
 	public static <I extends XmlObjectModelling> void registry(final Class<I> interfaceClass)
 			throws IllegalArgumentLtRtException {
 		TrustClassname.registry(interfaceClass);

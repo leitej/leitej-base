@@ -23,9 +23,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import leitej.Constant;
@@ -52,20 +52,22 @@ public final class XmlomUtil {
 	}
 
 	/**
-	 * //TODO
+	 * Instantiates a new xmlom object.
 	 *
-	 * @param interfaceClass
-	 * @return
+	 * @param interfaceClass to interact to this new xmlom object
+	 * @return the new xmlom object
 	 */
 	public static <I extends XmlObjectModelling> I newXmlObjectModelling(final Class<I> interfaceClass) {
 		return XmlomWriter.newXmlObjectModelling(interfaceClass);
 	}
 
 	/**
-	 * //TODO
+	 * Catalog interface for instantiation permission.
 	 *
-	 * @param interfaceClass
-	 * @throws IllegalArgumentLtRtException
+	 * @param interfaceClass to be trusted
+	 * @throws IllegalArgumentLtRtException if <code>interfaceClass</code> in
+	 *                                      parameter is null or does not represents
+	 *                                      a valid interface
 	 */
 	public static <I extends XmlObjectModelling> void registry(final Class<I> interfaceClass)
 			throws IllegalArgumentLtRtException {
@@ -149,33 +151,31 @@ public final class XmlomUtil {
 	 * @param minified when false produces a human readable XML, other wise outputs
 	 *                 a clean strait line
 	 * @param objs     objects to be saved
-	 * @throws FileNotFoundException        If the file exists but is a directory
-	 *                                      rather than a regular file, does not
-	 *                                      exist but cannot be created, or cannot
-	 *                                      be opened for any other reason.
-	 * @throws NullPointerException         If the <code>filename</code> argument is
-	 *                                      <code>null</code>
-	 * @throws IOException                  If an I/O error occurred
-	 * @throws SecurityException            If a security manager exists and its
-	 *                                      <code>{@link
+	 * @throws FileNotFoundException If the file exists but is a directory rather
+	 *                               than a regular file, does not exist but cannot
+	 *                               be created, or cannot be opened for any other
+	 *                               reason.
+	 * @throws NullPointerException  If the <code>filename</code> argument is
+	 *                               <code>null</code>
+	 * @throws IOException           If an I/O error occurred
+	 * @throws SecurityException     If a security manager exists and its
+	 *                               <code>{@link
 	 *          java.lang.SecurityManager#checkRead(java.lang.String) checkRead}</code>
-	 *                                      method does not permit verification of
-	 *                                      the existence of the named directory and
-	 *                                      all necessary parent directories; or if
-	 *                                      the <code>{@link
+	 *                               method does not permit verification of the
+	 *                               existence of the named directory and all
+	 *                               necessary parent directories; or if the
+	 *                               <code>{@link
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
-	 *                                      method does not permit the named
-	 *                                      directory and all necessary parent
-	 *                                      directories to be created; or if a
-	 *                                      security manager exists and its
-	 *                                      <code>{@link
+	 *                               method does not permit the named directory and
+	 *                               all necessary parent directories to be created;
+	 *                               or if a security manager exists and its
+	 *                               <code>{@link
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
-	 *                                      method denies write access to the file
-	 * @throws UnsupportedEncodingException If the named encoding is not supported
+	 *                               method denies write access to the file
 	 */
 	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final Charset charset,
-			final boolean minified, final I[] objs) throws UnsupportedEncodingException, NullPointerException,
-			FileNotFoundException, SecurityException, IOException {
+			final boolean minified, final I[] objs)
+			throws NullPointerException, FileNotFoundException, SecurityException, IOException {
 		FileUtil.createFile(fileName);
 		final OutputStream os = new FileOutputStream(fileName, false);
 		sendToStream(true, os, charset, minified, objs);
@@ -190,33 +190,31 @@ public final class XmlomUtil {
 	 * @param minified when false produces a human readable XML, other wise outputs
 	 *                 a clean strait line
 	 * @param obj      object to be saved
-	 * @throws FileNotFoundException        If the file exists but is a directory
-	 *                                      rather than a regular file, does not
-	 *                                      exist but cannot be created, or cannot
-	 *                                      be opened for any other reason.
-	 * @throws NullPointerException         If the <code>filename</code> argument is
-	 *                                      <code>null</code>
-	 * @throws IOException                  If an I/O error occurred
-	 * @throws SecurityException            If a security manager exists and its
-	 *                                      <code>{@link
+	 * @throws FileNotFoundException If the file exists but is a directory rather
+	 *                               than a regular file, does not exist but cannot
+	 *                               be created, or cannot be opened for any other
+	 *                               reason.
+	 * @throws NullPointerException  If the <code>filename</code> argument is
+	 *                               <code>null</code>
+	 * @throws IOException           If an I/O error occurred
+	 * @throws SecurityException     If a security manager exists and its
+	 *                               <code>{@link
 	 *          java.lang.SecurityManager#checkRead(java.lang.String) checkRead}</code>
-	 *                                      method does not permit verification of
-	 *                                      the existence of the named directory and
-	 *                                      all necessary parent directories; or if
-	 *                                      the <code>{@link
+	 *                               method does not permit verification of the
+	 *                               existence of the named directory and all
+	 *                               necessary parent directories; or if the
+	 *                               <code>{@link
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
-	 *                                      method does not permit the named
-	 *                                      directory and all necessary parent
-	 *                                      directories to be created; or if a
-	 *                                      security manager exists and its
-	 *                                      <code>{@link
+	 *                               method does not permit the named directory and
+	 *                               all necessary parent directories to be created;
+	 *                               or if a security manager exists and its
+	 *                               <code>{@link
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
-	 *                                      method denies write access to the file
-	 * @throws UnsupportedEncodingException If the named encoding is not supported
+	 *                               method denies write access to the file
 	 */
 	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final Charset charset,
-			final boolean minified, final I obj) throws UnsupportedEncodingException, NullPointerException,
-			FileNotFoundException, SecurityException, IOException {
+			final boolean minified, final I obj)
+			throws NullPointerException, FileNotFoundException, SecurityException, IOException {
 		final OutputStream os = new FileOutputStream(FileUtil.createFile(fileName), false);
 		sendToStream(true, os, charset, minified, obj);
 	}
@@ -244,11 +242,10 @@ public final class XmlomUtil {
 	 * @param minified when false produces a human readable XML, other wise outputs
 	 *                 a clean strait line
 	 * @param objs     to write to the stream
-	 * @throws UnsupportedEncodingException If the named encoding is not supported
-	 * @throws IOException                  If an I/O error occurs
+	 * @throws IOException If an I/O error occurs
 	 */
 	public static <I extends XmlObjectModelling> void sendToStream(final OutputStream os, final Charset charset,
-			final boolean minified, final I[] objs) throws UnsupportedEncodingException, IOException {
+			final boolean minified, final I[] objs) throws IOException {
 		sendToStream(false, os, charset, minified, objs);
 	}
 
@@ -261,12 +258,10 @@ public final class XmlomUtil {
 	 * @param minified  when false produces a human readable XML, other wise outputs
 	 *                  a clean strait line
 	 * @param obj       to write to the stream
-	 * @throws UnsupportedEncodingException If the named encoding is not supported
-	 * @throws IOException                  If an I/O error occurs
+	 * @throws IOException If an I/O error occurs
 	 */
 	private static <I extends XmlObjectModelling> void sendToStream(final boolean withClose, final OutputStream os,
-			final Charset charset, final boolean minified, final I obj)
-			throws UnsupportedEncodingException, IOException {
+			final Charset charset, final boolean minified, final I obj) throws IOException {
 		final XmlomWriter out = new XmlomWriter(os, charset, minified);
 		try {
 			out.write(obj);
@@ -286,12 +281,10 @@ public final class XmlomUtil {
 	 * @param minified  when false produces a human readable XML, other wise outputs
 	 *                  a clean strait line
 	 * @param objs      to write to the stream
-	 * @throws UnsupportedEncodingException If the named encoding is not supported
-	 * @throws IOException                  If an I/O error occurs
+	 * @throws IOException If an I/O error occurs
 	 */
 	private static <I extends XmlObjectModelling> void sendToStream(final boolean withClose, final OutputStream os,
-			final Charset charset, final boolean minified, final I[] objs)
-			throws UnsupportedEncodingException, IOException {
+			final Charset charset, final boolean minified, final I[] objs) throws IOException {
 		final XmlomWriter out = new XmlomWriter(os, charset, minified);
 		try {
 			out.write(objs);
@@ -332,22 +325,20 @@ public final class XmlomUtil {
 	 * @param fileName       a pathname string
 	 * @param charset
 	 * @return all the ridden objects
-	 * @throws FileNotFoundException        If the file does not exist, is a
-	 *                                      directory rather than a regular file, or
-	 *                                      for some other reason cannot be opened
-	 *                                      for reading
-	 * @throws SecurityException            If a security manager exists and its
-	 *                                      <code>checkRead</code> method denies
-	 *                                      read access to the file.
-	 * @throws UnsupportedEncodingException If the named charset is not supported
-	 * @throws NullPointerException         If the pathname argument is null; or if
-	 *                                      trustClass has a class null
-	 * @throws XmlInvalidLtException        If is reading a corrupted XML
-	 * @throws IOException                  If an I/O error occurs
+	 * @throws FileNotFoundException If the file does not exist, is a directory
+	 *                               rather than a regular file, or for some other
+	 *                               reason cannot be opened for reading
+	 * @throws SecurityException     If a security manager exists and its
+	 *                               <code>checkRead</code> method denies read
+	 *                               access to the file.
+	 * @throws NullPointerException  If the pathname argument is null; or if
+	 *                               trustClass has a class null
+	 * @throws XmlInvalidLtException If is reading a corrupted XML
+	 * @throws IOException           If an I/O error occurs
 	 */
 	public static <I extends XmlObjectModelling> List<I> getObjectsFromFile(final Class<I> interfaceClass,
-			final String fileName, final Charset charset) throws FileNotFoundException, SecurityException,
-			UnsupportedEncodingException, NullPointerException, XmlInvalidLtException, IOException {
+			final String fileName, final Charset charset)
+			throws FileNotFoundException, SecurityException, NullPointerException, XmlInvalidLtException, IOException {
 		return getObjectsFromStream(interfaceClass, true, new FileInputStream(new File(fileName)), charset);
 	}
 
@@ -374,14 +365,13 @@ public final class XmlomUtil {
 	 * @param is             an InputStream
 	 * @param charset
 	 * @return all the ridden objects
-	 * @throws UnsupportedEncodingException If the named charset is not supported
-	 * @throws NullPointerException         If trustClass has a class null
-	 * @throws XmlInvalidLtException        If is reading a corrupted XML
-	 * @throws IOException                  If an I/O error occurs
+	 * @throws NullPointerException  If trustClass has a class null
+	 * @throws XmlInvalidLtException If is reading a corrupted XML
+	 * @throws IOException           If an I/O error occurs
 	 */
 	public static <I extends XmlObjectModelling> List<I> getObjectsFromStream(final Class<I> interfaceClass,
 			final InputStream is, final Charset charset)
-			throws UnsupportedEncodingException, NullPointerException, XmlInvalidLtException, IOException {
+			throws NullPointerException, XmlInvalidLtException, IOException {
 		return getObjectsFromStream(interfaceClass, false, is, charset);
 	}
 
@@ -393,14 +383,13 @@ public final class XmlomUtil {
 	 * @param is             an InputStream
 	 * @param charset
 	 * @return all the ridden objects
-	 * @throws UnsupportedEncodingException If the named charset is not supported
-	 * @throws NullPointerException         If trustClass has a class null
-	 * @throws XmlInvalidLtException        If is reading a corrupted XML
-	 * @throws IOException                  If an I/O error occurs
+	 * @throws NullPointerException  If trustClass has a class null
+	 * @throws XmlInvalidLtException If is reading a corrupted XML
+	 * @throws IOException           If an I/O error occurs
 	 */
 	private static <I extends XmlObjectModelling> List<I> getObjectsFromStream(final Class<I> interfaceClass,
 			final boolean withClose, final InputStream is, final Charset charset)
-			throws UnsupportedEncodingException, NullPointerException, XmlInvalidLtException, IOException {
+			throws NullPointerException, XmlInvalidLtException, IOException {
 		final List<I> result = new ArrayList<>();
 		I tmp;
 		final XmlomReader in = new XmlomReader(is, charset);
@@ -423,14 +412,18 @@ public final class XmlomUtil {
 	 *
 	 * @param interfaceClass
 	 * @return
-	 * @throws NullPointerException If the default filename for interfaceClass
-	 *                              results in <code>null</code>
-	 * @throws IOException          If an I/O error occurred
-	 * @throws SecurityException    If a security manager exists and it denies read
-	 *                              or write
+	 * @throws FileNotFoundException If default filename results in a directory
+	 *                               rather than a regular file, or for some other
+	 *                               reason cannot be opened for reading
+	 * @throws IOException           If an I/O error occurred
+	 * @throws XmlInvalidLtException If is reading a corrupted XML
+	 * @throws NullPointerException  If the default filename for interfaceClass
+	 *                               results in <code>null</code>
+	 * @throws SecurityException     If a security manager exists and it denies read
+	 *                               or write
 	 */
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass)
-			throws NullPointerException, SecurityException, IOException {
+			throws FileNotFoundException, NullPointerException, SecurityException, IOException, XmlInvalidLtException {
 		return getConfig(interfaceClass, Charset.forName(Constant.UTF8_CHARSET_NAME), true);
 	}
 
@@ -443,14 +436,19 @@ public final class XmlomUtil {
 	 * @param charset
 	 * @param standardContent
 	 * @return
-	 * @throws NullPointerException If the default filename for interfaceClass
-	 *                              results in <code>null</code>
-	 * @throws IOException          If an I/O error occurred
-	 * @throws SecurityException    If a security manager exists and it denies read
-	 *                              or write
+	 * @throws FileNotFoundException If default filename results in a directory
+	 *                               rather than a regular file, or for some other
+	 *                               reason cannot be opened for reading
+	 * @throws IOException           If an I/O error occurred
+	 * @throws XmlInvalidLtException If is reading a corrupted XML
+	 * @throws NullPointerException  If the default filename for interfaceClass
+	 *                               results in <code>null</code>
+	 * @throws SecurityException     If a security manager exists and it denies read
+	 *                               or write
 	 */
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final Charset charset,
-			final boolean standardContent) throws NullPointerException, SecurityException, IOException {
+			final boolean standardContent)
+			throws FileNotFoundException, NullPointerException, SecurityException, IOException, XmlInvalidLtException {
 		return getConfig(interfaceClass, FileUtil.defaultPropertyClassFilename(interfaceClass), charset,
 				standardContent);
 	}
@@ -464,17 +462,19 @@ public final class XmlomUtil {
 	 * @param charset
 	 * @param standardContent
 	 * @return
+	 * @throws FileNotFoundException If <code>fromFile</code> is a directory rather
+	 *                               than a regular file, or for some other reason
+	 *                               cannot be opened for reading
+	 * @throws IOException           If an I/O error occurs
+	 * @throws XmlInvalidLtException If is reading a corrupted XML
+	 * @throws NullPointerException  If any of arguments is null
+	 * @throws SecurityException     If a security manager exists and it denies read
+	 *                               or write
 	 */
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final File fromFile,
-			final Charset charset, final boolean standardContent) {
-		final List<I> defaultContent;
-		if (standardContent) {
-			defaultContent = new ArrayList<>(1);
-			defaultContent.add(createExample(interfaceClass));
-		} else {
-			defaultContent = null;
-		}
-		return getConfig(interfaceClass, fromFile, charset, defaultContent);
+			final Charset charset, final boolean standardContent)
+			throws FileNotFoundException, SecurityException, NullPointerException, XmlInvalidLtException, IOException {
+		return getConfig(interfaceClass, fromFile, charset, null, createExample(interfaceClass));
 	}
 
 	private static <I extends XmlObjectModelling> I createExample(final Class<I> interfaceClass) {
@@ -492,14 +492,18 @@ public final class XmlomUtil {
 	 * @param interfaceClass
 	 * @param defaultContent
 	 * @return
-	 * @throws NullPointerException If the default filename for interfaceClass
-	 *                              results in <code>null</code>
-	 * @throws IOException          If an I/O error occurred
-	 * @throws SecurityException    If a security manager exists and it denies read
-	 *                              or write
+	 * @throws FileNotFoundException If default location is a directory rather than
+	 *                               a regular file, or for some other reason cannot
+	 *                               be opened for reading
+	 * @throws NullPointerException  If <code>interfaceClass</code> is null
+	 * @throws IOException           If an I/O error occurred
+	 * @throws SecurityException     If a security manager exists and it denies read
+	 *                               or write
+	 * @throws XmlInvalidLtException If is reading a corrupted XML
 	 */
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass,
-			final List<I> defaultContent) throws NullPointerException, SecurityException, IOException {
+			final I[] defaultContent)
+			throws FileNotFoundException, NullPointerException, SecurityException, IOException, XmlInvalidLtException {
 		return getConfig(interfaceClass, Charset.forName(Constant.UTF8_CHARSET_NAME), defaultContent);
 	}
 
@@ -511,14 +515,19 @@ public final class XmlomUtil {
 	 * @param charset
 	 * @param defaultContent
 	 * @return
-	 * @throws NullPointerException If the default filename for interfaceClass
-	 *                              results in <code>null</code>
-	 * @throws IOException          If an I/O error occurred
-	 * @throws SecurityException    If a security manager exists and it denies read
-	 *                              or write
+	 * @throws FileNotFoundException If default location is a directory rather than
+	 *                               a regular file, or for some other reason cannot
+	 *                               be opened for reading
+	 * @throws IOException           If an I/O error occurs
+	 * @throws XmlInvalidLtException If is reading a corrupted XML
+	 * @throws NullPointerException  If any of arguments is null, except
+	 *                               <code>defaultContent</code>
+	 * @throws SecurityException     If a security manager exists and it denies read
+	 *                               or write
 	 */
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final Charset charset,
-			final List<I> defaultContent) throws NullPointerException, SecurityException, IOException {
+			final I[] defaultContent)
+			throws FileNotFoundException, NullPointerException, SecurityException, IOException, XmlInvalidLtException {
 		return getConfig(interfaceClass, FileUtil.defaultPropertyClassFilename(interfaceClass), charset,
 				defaultContent);
 	}
@@ -532,11 +541,66 @@ public final class XmlomUtil {
 	 * @param charset
 	 * @param defaultContent
 	 * @return
+	 * @throws FileNotFoundException If <code>fromFile</code> is a directory rather
+	 *                               than a regular file, or for some other reason
+	 *                               cannot be opened for reading
+	 * @throws IOException           If an I/O error occurs
+	 * @throws XmlInvalidLtException If is reading a corrupted XML
+	 * @throws NullPointerException  If any of arguments is null, except
+	 *                               <code>defaultContent</code>
+	 * @throws SecurityException     If a security manager exists and it denies read
+	 *                               or write
 	 */
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final File fromFile,
-			final Charset charset, final List<I> defaultContent) {
-		// TODO implement
-		return null;
+			final Charset charset, final I[] defaultContent)
+			throws FileNotFoundException, SecurityException, NullPointerException, XmlInvalidLtException, IOException {
+		return getConfig(interfaceClass, fromFile, charset, defaultContent, null);
+	}
+
+	/**
+	 * Reads the content of configuration file. If does not exist, write the example
+	 * and the default one, and gives the default as return.
+	 *
+	 * @param interfaceClass
+	 * @param fromFile
+	 * @param charset
+	 * @param defaultContent
+	 * @param exampleContent
+	 * @return
+	 * @throws FileNotFoundException If <code>fromFile</code> is a directory rather
+	 *                               than a regular file, or for some other reason
+	 *                               cannot be opened for reading
+	 * @throws IOException           If an I/O error occurs
+	 * @throws XmlInvalidLtException If is reading a corrupted XML
+	 * @throws NullPointerException  If any of arguments is null, except
+	 *                               <code>defaultContent</code> and
+	 *                               <code>exampleContent</code>
+	 * @throws SecurityException     If a security manager exists and it denies read
+	 *                               or write
+	 */
+	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final File fromFile,
+			final Charset charset, final I[] defaultContent, final I exampleContent)
+			throws FileNotFoundException, SecurityException, NullPointerException, XmlInvalidLtException, IOException {
+		List<I> result = null;
+		final String filename = fromFile.getAbsolutePath();
+		try {
+			result = XmlomUtil.getObjectsFromFile(interfaceClass, filename, charset);
+		} catch (final FileNotFoundException e1) {
+//			System.err.println("xmlom util - " + e1.getMessage());
+			if (exampleContent != null) {
+				final File example = new File(fromFile.getAbsolutePath() + Constant.DEFAULT_EXAMPLE_EXTENSION);
+				if (!example.exists()) {
+//					System.err.println("xmlom util - config - writing - " + example);
+					XmlomUtil.sendToFile(example.getAbsolutePath(), charset, false, exampleContent);
+				}
+			}
+			if (defaultContent != null && !fromFile.exists()) {
+//				System.err.println("xmlom util - config - writing - " + filename);
+				XmlomUtil.sendToFile(filename, charset, false, defaultContent);
+			}
+			result = Arrays.asList(defaultContent);
+		}
+		return result;
 	}
 
 }

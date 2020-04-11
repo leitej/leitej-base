@@ -17,6 +17,9 @@
 package leitej;
 
 import java.math.BigInteger;
+import java.nio.charset.Charset;
+
+import leitej.log.LevelEnum;
 
 /**
  * Constants
@@ -31,6 +34,8 @@ public final class Constant {
 	public static final String LEITEJ = "leitej";
 
 	public static final boolean DEBUG_ACTIVE = false;
+	public static final String DEFAULT_LOG_SIMPLE_DATE_FORMAT = "yyMMdd.HHmm.ssSSS";
+	public static LevelEnum DEFAULT_LOG_LEVEL = LevelEnum.WARN;
 
 	public static final int KILO = 1024;
 	public static final int MEGA = KILO * KILO;
@@ -45,6 +50,7 @@ public final class Constant {
 
 	public static final String UTF8_CHARSET_NAME = "UTF-8";
 	public static final String DEFAULT_CHARSET_NAME = UTF8_CHARSET_NAME;
+	public static final Charset DEFAULT_CHARSET = Charset.forName(DEFAULT_CHARSET_NAME);
 
 	public static final String DEFAULT_FILE_SEPARATOR = System.getProperties().getProperty("file.separator", "/");
 	public final static String DEFAULT_LINE_SEPARATOR = System.getProperties().getProperty("line.separator", "\n");
@@ -54,13 +60,13 @@ public final class Constant {
 	public static final String IS_PREFIX = "is";
 	public static final String SET_PREFIX = "set";
 	public static final String VALUEOF_METHOD_NAME = "valueOf";
-	public static final String ALIAS_CLASS_NAME_METHOD_NAME = "aliasClassName";
 
 	public static final String DEFAULT_PROPERTIES_FILE_DIR = "meta-inf" + DEFAULT_FILE_SEPARATOR;
 	public static final String DEFAULT_DATA_FILE_DIR = "data" + DEFAULT_FILE_SEPARATOR;
 
 	public static final String DEFAULT_PROPERTIES_XML_FILE_EXT = ".xml";
 	public final static String DEFAULT_BACKUP_EXTENSION = ".bkp";
+	public final static String DEFAULT_EXAMPLE_EXTENSION = ".example";
 
 	public static final String BIG_BINARY_TEMPORARY_DIRECTORY = DEFAULT_DATA_FILE_DIR + "bigBinary"
 			+ DEFAULT_FILE_SEPARATOR;

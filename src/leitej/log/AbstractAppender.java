@@ -20,10 +20,10 @@ import java.lang.reflect.Array;
 import java.util.Date;
 import java.util.Map;
 
+import leitej.Constant;
 import leitej.locale.message.Messages;
 import leitej.util.DateUtil;
 import leitej.util.StringUtil;
-import leitej.util.stream.FileUtil;
 
 /**
  * Appender
@@ -33,7 +33,6 @@ import leitej.util.stream.FileUtil;
 abstract class AbstractAppender {
 
 	private static final Messages MESSAGES = Messages.getInstance();
-	private static final String LINE_SEPARATOR = FileUtil.LINE_SEPARATOR;
 
 	private static String[] getHierarchicalSignLog(final String logSignClean) {
 		String[] result = null;
@@ -56,8 +55,8 @@ abstract class AbstractAppender {
 	private final Map<String, LevelEnum> packageLogLevel;
 
 	AbstractAppender(final Config lp) {
-		this.sdFormat = (lp.getDateFormat() != null) ? lp.getDateFormat() : Logger.DEFAULT_LOG_SIMPLE_DATE_FORMAT;
-		this.defaultLevel = (lp.getLogLevel() != null) ? lp.getLogLevel() : Logger.DEFAULT_LOG_LEVEL;
+		this.sdFormat = (lp.getDateFormat() != null) ? lp.getDateFormat() : Constant.DEFAULT_LOG_SIMPLE_DATE_FORMAT;
+		this.defaultLevel = (lp.getLogLevel() != null) ? lp.getLogLevel() : Constant.DEFAULT_LOG_LEVEL;
 		this.packageLogLevel = (lp.getPackageLogLevel() != null) ? lp.getPackageLogLevel() : null;
 	}
 
@@ -104,7 +103,7 @@ abstract class AbstractAppender {
 		outPrint(false, signLog);
 		outPrint(false, " - ");
 		outPrint(false, plainLog);
-		outPrint(false, LINE_SEPARATOR);
+		outPrint(false, Constant.DEFAULT_LINE_SEPARATOR);
 		if ((level.ordinal() < LevelEnum.WARN.ordinal() || level.ordinal() > LevelEnum.DEBUG.ordinal()) && args != null
 				&& args.length > 0) {
 			for (int i = 0; i < args.length; i++) {
@@ -121,7 +120,7 @@ abstract class AbstractAppender {
 		Throwable throwable = e.getCause();
 		while (throwable != null) {
 			outPrint(false, MESSAGES.get("lt.CausedBy", throwable));
-			outPrint(false, LINE_SEPARATOR);
+			outPrint(false, Constant.DEFAULT_LINE_SEPARATOR);
 			elements = throwable.getStackTrace();
 			printOutputStackTrace(elements);
 			throwable = throwable.getCause();
@@ -134,7 +133,7 @@ abstract class AbstractAppender {
 			outPrint(false, MESSAGES.get("lt.AtMethod"));
 			outPrint(false, " ");
 			outPrint(false, elements[j].toString());
-			outPrint(false, LINE_SEPARATOR);
+			outPrint(false, Constant.DEFAULT_LINE_SEPARATOR);
 		}
 	}
 

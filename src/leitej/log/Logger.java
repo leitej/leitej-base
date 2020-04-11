@@ -28,7 +28,6 @@ import leitej.util.data.Invoke;
 import leitej.util.data.InvokeItf;
 import leitej.util.machine.ShutdownHookUtil;
 import leitej.util.machine.VMMonitor;
-import leitej.util.stream.FileUtil;
 
 /**
  * <p>
@@ -57,31 +56,29 @@ import leitej.util.stream.FileUtil;
  */
 public final class Logger {
 
+	private static final String METHOD_CLOSE = "close";
 	private static volatile boolean CLOSED = false;
 
-	static LevelEnum DEFAULT_LOG_LEVEL = LevelEnum.WARN;
-	static final String DEFAULT_LOG_PROPERTIES_FILE_NAME = FileUtil.propertyRelativePath4FileName("logger");
-	static final String DEFAULT_LOG_SIMPLE_DATE_FORMAT = "yyMMdd.HHmm.ssSSS";
-
-	private static final String METHOD_CLOSE = "close";
 	private static final InvokeItf CLOSE_AT_JVM_SHUTDOWN;
-	private static final Cache<String, Logger> ISTANCES = new CacheWeak<>();
-	private static final Logger MY_LOG = new Logger(Logger.class.getCanonicalName());
+	private static final Cache<String, Logger> ISTANCES;
+	private static final Logger LOG;
 
 	static {
-		MY_LOG.info("osArch: #0", VMMonitor.osArch());
-		MY_LOG.info("osName: #0", VMMonitor.osName());
-		MY_LOG.info("osVersion: #0", VMMonitor.osVersion());
-		MY_LOG.info("vmName: #0", VMMonitor.vmName());
-		MY_LOG.info("vmVendor: #0", VMMonitor.vmVendor());
-		MY_LOG.info("vmVersion: #0", VMMonitor.vmVersion());
-		MY_LOG.info("time: #0", DateUtil.format(DateUtil.now(), "yyyy-MM-dd HH:mm:ss.SSS 'GMT' Z z (zzzz)"));
-		MY_LOG.info("locale: #0", Locale.getDefault());
-		MY_LOG.debug("javaArguments: #0", VMMonitor.javaArguments());
-		MY_LOG.debug("availableProcessors: #0", VMMonitor.availableProcessors());
-		MY_LOG.debug("threadCount: #0", VMMonitor.threadCount());
-		MY_LOG.debug("heapMemoryUsage: #0", VMMonitor.heapMemoryUsage());
-		MY_LOG.debug("nonHeapMemoryUsage: #0", VMMonitor.nonHeapMemoryUsage());
+		ISTANCES = new CacheWeak<>();
+		LOG = new Logger(Logger.class.getCanonicalName());
+		LOG.info("osArch: #0", VMMonitor.osArch());
+		LOG.info("osName: #0", VMMonitor.osName());
+		LOG.info("osVersion: #0", VMMonitor.osVersion());
+		LOG.info("vmName: #0", VMMonitor.vmName());
+		LOG.info("vmVendor: #0", VMMonitor.vmVendor());
+		LOG.info("vmVersion: #0", VMMonitor.vmVersion());
+		LOG.info("time: #0", DateUtil.format(DateUtil.now(), "yyyy-MM-dd HH:mm:ss.SSS 'GMT' Z z (zzzz)"));
+		LOG.info("locale: #0", Locale.getDefault());
+		LOG.debug("javaArguments: #0", VMMonitor.javaArguments());
+		LOG.debug("availableProcessors: #0", VMMonitor.availableProcessors());
+		LOG.debug("threadCount: #0", VMMonitor.threadCount());
+		LOG.debug("heapMemoryUsage: #0", VMMonitor.heapMemoryUsage());
+		LOG.debug("nonHeapMemoryUsage: #0", VMMonitor.nonHeapMemoryUsage());
 		try {
 			CLOSE_AT_JVM_SHUTDOWN = new Invoke(Logger.class, AgnosticUtil.getMethod(Logger.class, METHOD_CLOSE));
 			ShutdownHookUtil.addToLast(CLOSE_AT_JVM_SHUTDOWN);
@@ -118,10 +115,10 @@ public final class Logger {
 	public static synchronized void close() {
 		if (!CLOSED) {
 			removeCloseAsyncInvokeFromShutdownHook();
-			MY_LOG.debug("threadCount: #0", VMMonitor.threadCount());
-			MY_LOG.debug("heapMemoryUsage: #0", VMMonitor.heapMemoryUsage());
-			MY_LOG.debug("nonHeapMemoryUsage: #0", VMMonitor.nonHeapMemoryUsage());
-			MY_LOG.info("lt.LogClose");
+			LOG.debug("threadCount: #0", VMMonitor.threadCount());
+			LOG.debug("heapMemoryUsage: #0", VMMonitor.heapMemoryUsage());
+			LOG.debug("nonHeapMemoryUsage: #0", VMMonitor.nonHeapMemoryUsage());
+			LOG.info("lt.LogClose");
 			CLOSED = true;
 			AppenderManager.close();
 			ISTANCES.clear();
@@ -145,7 +142,7 @@ public final class Logger {
 	 */
 	private Logger(final String signClass) {
 		this.appenderMng = new AppenderManager(signClass);
-		this.trace("lt.NewInstance");
+		LOG.trace("lt.NewInstance");
 	}
 
 	/**
@@ -248,7 +245,7 @@ public final class Logger {
 		if (!CLOSED) {
 			this.appenderMng.print(level, Thread.currentThread().getName(), msg, args);
 		} else {
-			System.err.println(level + " - " + Thread.currentThread().getName() + " - Fail print: " + msg);
+			System.err.println("LOG_CLOSED - " + level + " - " + Thread.currentThread().getName() + " - " + msg);
 		}
 	}
 

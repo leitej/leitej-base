@@ -19,7 +19,6 @@ package leitej.xml.om;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
 import leitej.exception.XmlInvalidLtException;
@@ -37,6 +36,12 @@ public final class XmlomWriter {
 
 	private static final DataProxy DATA_PROXY = DataProxy.getInstance();
 
+	/**
+	 * Instantiates a new xmlom object.
+	 *
+	 * @param interfaceClass to interact to this new xmlom object
+	 * @return the new xmlom object
+	 */
 	public static <I extends XmlObjectModelling> I newXmlObjectModelling(final Class<I> interfaceClass) {
 		return DATA_PROXY.newXmlObjectModelling(interfaceClass);
 	}
@@ -48,10 +53,9 @@ public final class XmlomWriter {
 	 *
 	 * @param out     an OutputStream
 	 * @param charset
-	 * @throws UnsupportedEncodingException If the named encoding is not supported
-	 * @throws IOException                  If an I/O error occurs
+	 * @throws IOException If an I/O error occurs
 	 */
-	public XmlomWriter(final OutputStream out, final Charset charset) throws UnsupportedEncodingException, IOException {
+	public XmlomWriter(final OutputStream out, final Charset charset) throws IOException {
 		this(out, charset, true);
 	}
 
@@ -62,11 +66,9 @@ public final class XmlomWriter {
 	 * @param charset
 	 * @param minified when false produces a human readable XML, other wise outputs
 	 *                 a clean strait line
-	 * @throws UnsupportedEncodingException If the named encoding is not supported
-	 * @throws IOException                  If an I/O error occurs
+	 * @throws IOException If an I/O error occurs
 	 */
-	public XmlomWriter(final OutputStream out, final Charset charset, final boolean minified)
-			throws UnsupportedEncodingException, IOException {
+	public XmlomWriter(final OutputStream out, final Charset charset, final boolean minified) throws IOException {
 		try {
 			this.out = new Producer(new OutputStreamWriter(out, charset), minified);
 		} catch (final XmlInvalidLtException e) {
