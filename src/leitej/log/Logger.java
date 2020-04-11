@@ -142,7 +142,6 @@ public final class Logger {
 	 */
 	private Logger(final String signClass) {
 		this.appenderMng = new AppenderManager(signClass);
-		LOG.trace("lt.NewInstance");
 	}
 
 	/**
