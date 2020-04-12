@@ -34,7 +34,7 @@ public final class Constant {
 	public static final String LEITEJ = "leitej";
 
 	public static final boolean DEBUG_ACTIVE = false;
-	public static final String DEFAULT_LOG_SIMPLE_DATE_FORMAT = "yyMMdd.HHmm.ssSSS";
+	public static final String DEFAULT_SIMPLE_DATE_FORMAT = "yyMMdd.HHmm.ssSSS";
 	public static LevelEnum DEFAULT_LOG_LEVEL = LevelEnum.WARN;
 
 	public static final int KILO = 1024;

@@ -53,7 +53,7 @@ final class AppenderManager {
 		pl.setFile(plf);
 		pl.setConsole(true);
 		pl.setLogLevel(Constant.DEFAULT_LOG_LEVEL);
-		pl.setDateFormat(Constant.DEFAULT_LOG_SIMPLE_DATE_FORMAT);
+		pl.setDateFormat(Constant.DEFAULT_SIMPLE_DATE_FORMAT);
 		final Map<String, LevelEnum> pll = new HashMap<>();
 		pll.put("leitej", LevelEnum.INFO);
 		pl.setPackageLogLevel(pll);

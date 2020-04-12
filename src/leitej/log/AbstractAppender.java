@@ -55,7 +55,7 @@ abstract class AbstractAppender {
 	private final Map<String, LevelEnum> packageLogLevel;
 
 	AbstractAppender(final Config lp) {
-		this.sdFormat = (lp.getDateFormat() != null) ? lp.getDateFormat() : Constant.DEFAULT_LOG_SIMPLE_DATE_FORMAT;
+		this.sdFormat = (lp.getDateFormat() != null) ? lp.getDateFormat() : Constant.DEFAULT_SIMPLE_DATE_FORMAT;
 		this.defaultLevel = (lp.getLogLevel() != null) ? lp.getLogLevel() : Constant.DEFAULT_LOG_LEVEL;
 		this.packageLogLevel = (lp.getPackageLogLevel() != null) ? lp.getPackageLogLevel() : null;
 	}
