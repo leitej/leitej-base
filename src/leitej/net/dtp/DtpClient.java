@@ -23,7 +23,6 @@ import leitej.net.csl.AbstractCommunicationSession;
 import leitej.net.exception.ConnectionLtException;
 import leitej.net.exception.DtpLtException;
 import leitej.thread.PoolAgnosticThread;
-import leitej.util.data.XmlomUtil;
 import leitej.xml.om.XmlObjectModelling;
 
 /**
@@ -52,7 +51,7 @@ public final class DtpClient implements ConnectionClientItf {
 		}
 		List<RawData> rawDataList;
 		RawData.initRequest();
-		XmlomUtil.registry(responseClass);
+//		XmlomUtil.registry(responseClass);
 		this.comSession.write(request);
 		this.comSession.flush();
 		rawDataList = RawData.endRequest();

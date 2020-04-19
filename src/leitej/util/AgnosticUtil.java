@@ -20,8 +20,6 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,8 +29,6 @@ import leitej.Constant;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.util.data.InvokeItf;
-import sun.reflect.generics.reflectiveObjects.GenericArrayTypeImpl;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 /**
  * An useful class to help in agnostics methods.
@@ -281,60 +277,6 @@ public final class AgnosticUtil implements Serializable {
 	public static final Class<?> getReturnType(final Method method) {
 		final Class<?> result = method.getReturnType();
 		return (!result.getName().equals(VOID_CLASS_NAME)) ? result : null;
-	}
-
-	/**
-	 *
-	 * @param method
-	 * @return
-	 */
-	public static final Class<?>[] getReturnParameterizedTypes(final Method method) {
-		return getParameterizedClasses(method.getGenericReturnType());
-	}
-
-	/**
-	 *
-	 * @param type
-	 * @return the parameterized classes or null if the <code>type</code> is not a
-	 *         <code>ParameterizedType</code>
-	 */
-	public static Class<?>[] getParameterizedClasses(final Type type) {
-		Class<?>[] result = null;
-		if (type instanceof ParameterizedType) {
-			final Type[] parameterizedTypes = ParameterizedType.class.cast(type).getActualTypeArguments();
-			result = new Class<?>[parameterizedTypes.length];
-			for (int i = 0; i < result.length; i++) {
-				result[i] = getClass(parameterizedTypes[i]);
-			}
-		}
-		return result;
-	}
-
-	private static Class<?> getClass(final Type type) {
-		Class<?> result = null;
-		if (ParameterizedTypeImpl.class.isInstance(type)) {
-			result = getClass(ParameterizedTypeImpl.class.cast(type));
-		} else if (GenericArrayTypeImpl.class.isInstance(type)) {
-			result = getClass(GenericArrayTypeImpl.class.cast(type));
-		} else if (Class.class.isInstance(type)) {
-			result = (Class<?>) type;
-		} else {
-			new ImplementationLtRtException(type.toString());
-		}
-		return result;
-	}
-
-	private static Class<?> getClass(final ParameterizedTypeImpl pti) {
-		return pti.getRawType();
-	}
-
-	private static Class<?> getClass(GenericArrayTypeImpl gati) {
-		int dim = 1;
-		while (GenericArrayTypeImpl.class.isInstance(gati.getGenericComponentType())) {
-			gati = GenericArrayTypeImpl.class.cast(gati.getGenericComponentType());
-			dim++;
-		}
-		return Array.newInstance(getClass(gati.getGenericComponentType()), new int[dim]).getClass();
 	}
 
 	public static final Method[][] getDeclaredMethodsGetSet(final Class<?> clazz) {

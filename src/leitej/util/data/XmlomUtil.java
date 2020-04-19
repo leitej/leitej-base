@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import leitej.Constant;
-import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.XmlInvalidLtException;
 import leitej.util.stream.FileUtil;
 import leitej.xml.om.XmlObjectModelling;
@@ -59,19 +58,6 @@ public final class XmlomUtil {
 	 */
 	public static <I extends XmlObjectModelling> I newXmlObjectModelling(final Class<I> interfaceClass) {
 		return XmlomWriter.newXmlObjectModelling(interfaceClass);
-	}
-
-	/**
-	 * Catalog interface for instantiation permission.
-	 *
-	 * @param interfaceClass to be trusted
-	 * @throws IllegalArgumentLtRtException if <code>interfaceClass</code> in
-	 *                                      parameter is null or does not represents
-	 *                                      a valid interface
-	 */
-	public static <I extends XmlObjectModelling> void registry(final Class<I> interfaceClass)
-			throws IllegalArgumentLtRtException {
-		XmlomReader.registry(interfaceClass);
 	}
 
 	/**

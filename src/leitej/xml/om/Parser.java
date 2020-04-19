@@ -129,7 +129,6 @@ final class Parser {
 	synchronized <I extends XmlObjectModelling> I read(final Class<I> interfaceClass)
 			throws IllegalArgumentLtRtException, XmlomSecurityLtException, XmlomInvalidLtException,
 			XmlInvalidLtException, IOException {
-		TrustClassname.registry(interfaceClass);
 		I result = null;
 		if (this.consumer != null) {
 			result = readObject(interfaceClass);
@@ -211,6 +210,21 @@ final class Parser {
 		return obj;
 	}
 
+	private Object tryfindObjectById(final List<String> comments) throws XmlInvalidLtException {
+		Object object = null;
+		final Integer id = getElementAttributeId();
+		if (id != null) {
+			if (comments != null) {
+				throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentLoopObj");
+			}
+			object = this.trackLoopObjects.get(id);
+			if (object == null) {
+				throw new XmlomInvalidLtException();
+			}
+		}
+		return object;
+	}
+
 	/**
 	 *
 	 * @return
@@ -227,57 +241,52 @@ final class Parser {
 		// parse the class of returning object
 		Class<?> dataClass;
 		this.sbTmpAttb.setLength(0);
-		if (!this.consumer.getElementAttributeValue(this.sbTmpAttb, Producer.ATTRIBUTE_CLASS_NAME)
-				|| this.sbTmpAttb.length() == 0) {
-			throw new XmlomInvalidLtException("lt.XmlOmMissesAttribClass", this.consumer);
-		}
-		final String className = TypeVsClassname.getClassname(this.sbTmpAttb.toString());
-		try {
-			if (!TrustClassname.has(className)) {
-				throw new XmlomSecurityLtException("lt.XmlOmUntrustedClass", className);
+		if (this.consumer.getElementAttributeValue(this.sbTmpAttb, Producer.ATTRIBUTE_CLASS_NAME)
+				&& this.sbTmpAttb.length() > 0) {
+			final String className = TypeVsClassname.getClassname(this.sbTmpAttb.toString());
+			try {
+				dataClass = AgnosticUtil.getClass(className);
+			} catch (final ClassNotFoundException e) {
+				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidAttribClass", this.consumer);
 			}
-			dataClass = AgnosticUtil.getClass(className);
-		} catch (final ClassNotFoundException e) {
-			throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidAttribClass", this.consumer);
-		}
-		// parse object
-		if (!XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType())) {
-			if (LeafElement.has(dataClass)) {
-				if (comments != null) {
-					throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentLeaf");
+			// parse object
+			if (!XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType())) {
+				if (LeafElement.has(dataClass)) {
+					if (comments != null) {
+						throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentLeaf");
+					}
+					this.sbTmpVal.setLength(0);
+					this.consumer.getElementValue(this.sbTmpVal);
+					object = convertFromElementValue(dataClass, this.sbTmpVal);
+				} else if (ArrayElement.has(dataClass)) {
+					if (comments != null) {
+						throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentArray");
+					}
+					object = readArrayObject(dataClass);
+				} else {
+					if (!XmlObjectModelling.class.isAssignableFrom(dataClass)) {
+						throw new IllegalArgumentLtRtException(dataClass.toString());
+					}
+					object = DATA_PROXY.newXmlObjectModelling((Class<I>) dataClass);
+					final Integer id = getElementAttributeId();
+					if (id != null) {
+						this.trackLoopObjects.put(id, object);
+					}
+					if (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
+						readObjectData(XmlObjectModelling.class.cast(object));
+					}
+					XmlObjectModelling.class.cast(object).setComments(comments);
 				}
-				this.sbTmpVal.setLength(0);
-				this.consumer.getElementValue(this.sbTmpVal);
-				object = convertFromElementValue(dataClass, this.sbTmpVal);
-			} else if (ArrayElement.has(dataClass)) {
-				if (comments != null) {
-					throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentArray");
-				}
-				object = readArrayObject(dataClass);
 			} else {
-				object = DATA_PROXY.newXmlObjectModelling((Class<I>) dataClass);
-				final Integer id = getElementAttributeId();
-				if (id != null) {
-					this.trackLoopObjects.put(id, object);
-				}
-				if (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
-					readObjectData(XmlObjectModelling.class.cast(object));
-				}
-				XmlObjectModelling.class.cast(object).setComments(comments);
-			}
-		} else {
-			final Integer id = getElementAttributeId();
-			if (id != null) {
-				if (comments != null) {
-					throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentLoopObj");
-				}
-				object = this.trackLoopObjects.get(id);
-				if (object == null) {
+				object = tryfindObjectById(comments);
+				if (object == null && dataClass.isPrimitive()) {
 					throw new XmlomInvalidLtException();
 				}
-			} else if (dataClass.isPrimitive()) {
-				throw new XmlomInvalidLtException();
 			}
+		} else if (XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType())) {
+			object = tryfindObjectById(comments);
+		} else {
+			throw new XmlomInvalidLtException("lt.XmlOmMissesAttribClass", this.consumer);
 		}
 		return object;
 	}
@@ -540,10 +549,12 @@ final class Parser {
 				}
 				this.consumer.nextElement();// close element 'element' (only to structure)
 				map.put(key, value);
+				key = null;
+				value = null;
 			}
 			object = map;
 		} else {
-			new ImplementationLtRtException("lt.XmlOmArrayImplementBug");
+			throw new ImplementationLtRtException("lt.XmlOmArrayImplementBug");
 		}
 		return object;
 	}

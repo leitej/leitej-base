@@ -24,7 +24,6 @@ import leitej.net.ConstantNet;
 import leitej.net.csl.AbstractCommunicationFactory;
 import leitej.net.exception.ConnectionLtException;
 import leitej.thread.PoolAgnosticThread;
-import leitej.util.data.XmlomUtil;
 
 /**
  * Data Transport Protocol (DTP)
@@ -35,9 +34,9 @@ import leitej.util.data.XmlomUtil;
  */
 public final class DtpFactory<H extends AbstractDtpHandler> {
 
-	static {
-		XmlomUtil.registry(InternalMessage.class);
-	}
+//	static {
+//		XmlomUtil.registry(InternalMessage.class);
+//	}
 
 	private final AbstractCommunicationFactory<?, ?, ?, ?> comFactory;
 	private final Class<H> handlerClass;
