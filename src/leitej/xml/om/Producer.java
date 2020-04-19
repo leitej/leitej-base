@@ -19,7 +19,6 @@ package leitej.xml.om;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,7 +32,6 @@ import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.exception.XmlInvalidLtException;
 import leitej.exception.XmlomInvalidLtException;
-import leitej.util.AgnosticUtil;
 import leitej.util.HexaUtil;
 import leitej.xml.XmlProducer;
 
@@ -154,7 +152,7 @@ final class Producer {
 				typeClass = DATA_PROXY.getInvocationHandler((I) o).getInterface();
 				this.sbTmpElmName.setLength(0);
 				this.sbTmpElmName.append(typeClass.getSimpleName());
-				printObject(null, o, typeClass, this.sbTmpElmName);
+				printObject(o, this.sbTmpElmName);
 			}
 		}
 	}
@@ -164,9 +162,7 @@ final class Producer {
 	 * com parameterizacao directa: LeafElement ou Interface ArrayElement
 	 * multidimensional com componente: LeafElement ou Interface
 	 *
-	 * @param method
 	 * @param obj
-	 * @param typeClass
 	 * @param elementName
 	 * @throws XmlInvalidLtException
 	 * @throws IOException
@@ -175,64 +171,48 @@ final class Producer {
 	 * @see TrustClassname#registry(Class)
 	 */
 	@SuppressWarnings("unchecked")
-	private <I extends XmlObjectModelling> void printObject(final Method method, final Object obj,
-			final Class<?> typeClass, final StringBuilder elementName) throws XmlInvalidLtException, IOException {
+	private <I extends XmlObjectModelling> void printObject(final Object obj, final StringBuilder elementName)
+			throws XmlInvalidLtException, IOException {
 		this.sbTmpAttb.setLength(0);
-		final StringBuilder localElementName = new StringBuilder(elementName);
-		if (LeafElement.has(typeClass) || obj == null) {
-			genAttribute(this.sbTmpAttb, typeClass);
-			this.producer.printElement(localElementName,
-					((obj == null) ? null : convertToElementValue(this.sbTmpVal, obj)), this.sbTmpAttb);
+		if (obj == null) {
+			final StringBuilder localElementName = new StringBuilder(elementName);
+			this.producer.printTagOpenClose(localElementName, this.sbTmpAttb);
 		} else {
-			if (ArrayElement.has(typeClass)) {
-				genAttribute(this.sbTmpAttb, typeClass);
-				this.producer.printTagOpen(localElementName, this.sbTmpAttb);
-				Class<?>[] typeComponentClass;
-				if (typeClass.isArray()) {
-					if (!LeafElement.has(typeClass.getComponentType())
-							&& !XmlObjectModelling.class.isAssignableFrom(typeClass.getComponentType())
-							&& !typeClass.getComponentType().isArray()) {
-						throw new IllegalArgumentLtRtException(typeClass.toString());
-					}
-					typeComponentClass = new Class[] { typeClass.getComponentType() };
-				} else if (List.class.isAssignableFrom(typeClass) || Set.class.equals(typeClass)) {
-					typeComponentClass = AgnosticUtil.getReturnParameterizedTypes(method);
-					if (!LeafElement.has(typeComponentClass[0])
-							&& !XmlObjectModelling.class.isAssignableFrom(typeComponentClass[0])) {
-						throw new IllegalArgumentLtRtException(typeClass.toString());
-					}
-				} else if (Map.class.equals(typeClass)) {
-					typeComponentClass = AgnosticUtil.getReturnParameterizedTypes(method);
-					if (!LeafElement.has(typeComponentClass[0])
-							&& !XmlObjectModelling.class.isAssignableFrom(typeComponentClass[0])) {
-						throw new IllegalArgumentLtRtException(typeClass.toString());
-					}
-					if (!LeafElement.has(typeComponentClass[1])
-							&& !XmlObjectModelling.class.isAssignableFrom(typeComponentClass[1])) {
-						throw new IllegalArgumentLtRtException(typeClass.toString());
-					}
-				} else {
-					throw new IllegalArgumentLtRtException(new ImplementationLtRtException(typeClass.toString()));
-				}
-				printArrayElement(obj, typeComponentClass);
-				this.producer.printTagClose(localElementName);
+			final Class<?> typeClass;
+			if (XmlObjectModelling.class.isInstance(obj)) {
+				typeClass = DATA_PROXY.getInvocationHandler((I) obj).getInterface();
 			} else {
-				final Integer registId = registId(obj);
-				genAttribute(this.sbTmpAttb, typeClass, registId);
-				if (registId.equals(this.objectCount)) {
-					if (!XmlObjectModelling.class.isInstance(obj)) {
-						throw new IOException(new IllegalArgumentLtRtException(obj.getClass().getName()));
-					}
-					if (((I) obj).getComments() != null) {
-						for (final String comment : ((I) obj).getComments()) {
-							this.producer.printComment(comment);
-						}
-					}
+				typeClass = obj.getClass();
+			}
+			final StringBuilder localElementName = new StringBuilder(elementName);
+			if (LeafElement.has(typeClass)) {
+				genAttribute(this.sbTmpAttb, typeClass);
+				this.producer.printElement(localElementName,
+						((obj == null) ? null : convertToElementValue(this.sbTmpVal, obj)), this.sbTmpAttb);
+			} else {
+				if (ArrayElement.has(typeClass)) {
+					genAttribute(this.sbTmpAttb, typeClass);
 					this.producer.printTagOpen(localElementName, this.sbTmpAttb);
-					printMethods((I) obj);
+					printArrayElement(obj);
 					this.producer.printTagClose(localElementName);
 				} else {
-					this.producer.printTagOpenClose(localElementName, this.sbTmpAttb);
+					final Integer registId = registId(obj);
+					genAttribute(this.sbTmpAttb, typeClass, registId);
+					if (registId.equals(this.objectCount)) {
+						if (!XmlObjectModelling.class.isInstance(obj)) {
+							throw new IOException(new IllegalArgumentLtRtException(obj.getClass().getName()));
+						}
+						if (((I) obj).getComments() != null) {
+							for (final String comment : ((I) obj).getComments()) {
+								this.producer.printComment(comment);
+							}
+						}
+						this.producer.printTagOpen(localElementName, this.sbTmpAttb);
+						printMethods((I) obj);
+						this.producer.printTagClose(localElementName);
+					} else {
+						this.producer.printTagOpenClose(localElementName, this.sbTmpAttb);
+					}
 				}
 			}
 		}
@@ -250,7 +230,6 @@ final class Producer {
 		return dest;
 	}
 
-	@SuppressWarnings("unchecked")
 	private <I extends XmlObjectModelling> void printMethods(final I o) throws IOException, XmlInvalidLtException {
 		LtSystemOut.debug("lt.XmlOmProcessObject", o.getClass().getSimpleName());
 		final DataProxyHandler dph = DATA_PROXY.getInvocationHandler(o);
@@ -259,41 +238,34 @@ final class Producer {
 		for (final String dataName : dph.getDataNames()) {
 			data = dphData.get(dataName);
 			if (data != null) {
-				final Method mGet = dph.getMethodsGetSet(dataName)[0];
 				this.sbTmpElmName.setLength(0);
 				this.sbTmpElmName.append(dataName);
-				if (XmlObjectModelling.class.isInstance(data)) {
-					printObject(mGet, data, DATA_PROXY.getInvocationHandler((I) data).getInterface(),
-							this.sbTmpElmName);
-				} else {
-					printObject(mGet, data, mGet.getReturnType(), this.sbTmpElmName);
-				}
+				printObject(data, this.sbTmpElmName);
 			}
 		}
 	}
 
-	private void printArrayElement(final Object obj, final Class<?>[] typeComponentClass)
-			throws XmlInvalidLtException, IOException {
+	private void printArrayElement(final Object obj) throws XmlInvalidLtException, IOException {
 		if (obj.getClass().isArray()) {
 			final Object[] array = (Object[]) obj;
 			for (final Object o : array) {
 				this.sbTmpElmName.setLength(0);
 				this.sbTmpElmName.append(ELEMENT_NAME_ARRAYCLASS);
-				printObject(null, o, typeComponentClass[0], this.sbTmpElmName);
+				printObject(o, this.sbTmpElmName);
 			}
 		} else if (List.class.isAssignableFrom(obj.getClass())) {
 			final List<?> list = (List<?>) obj;
 			for (final Object o : list) {
 				this.sbTmpElmName.setLength(0);
 				this.sbTmpElmName.append(ELEMENT_NAME_ARRAYCLASS);
-				printObject(null, o, typeComponentClass[0], this.sbTmpElmName);
+				printObject(o, this.sbTmpElmName);
 			}
 		} else if (Set.class.isAssignableFrom(obj.getClass())) {
 			final Set<?> set = (Set<?>) obj;
 			for (final Object o : set) {
 				this.sbTmpElmName.setLength(0);
 				this.sbTmpElmName.append(ELEMENT_NAME_ARRAYCLASS);
-				printObject(null, o, typeComponentClass[0], this.sbTmpElmName);
+				printObject(o, this.sbTmpElmName);
 			}
 		} else if (Map.class.isAssignableFrom(obj.getClass())) {
 			final Map<?, ?> map = (Map<?, ?>) obj;
@@ -306,10 +278,10 @@ final class Producer {
 				this.producer.printTagOpen(this.sbTmpElmName, null);
 				this.sbTmpElmName.setLength(0);
 				this.sbTmpElmName.append(ELEMENT_NAME_MAP_KEY);
-				printObject(null, key, typeComponentClass[0], this.sbTmpElmName);
+				printObject(key, this.sbTmpElmName);
 				this.sbTmpElmName.setLength(0);
 				this.sbTmpElmName.append(ELEMENT_NAME_MAP_VALUE);
-				printObject(null, o, typeComponentClass[1], this.sbTmpElmName);
+				printObject(o, this.sbTmpElmName);
 				this.sbTmpElmName.setLength(0);
 				this.sbTmpElmName.append(ELEMENT_NAME_ARRAYCLASS);
 				this.producer.printTagClose(this.sbTmpElmName);

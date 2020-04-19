@@ -50,24 +50,24 @@ final class TypeVsClassname {
 			"Date", "java.util.Date", //
 			"Set", "java.util.Set", //
 //			"LinkedHashSet",				"java.util.LinkedHashSet",
-//			"HashSet",						"java.util.HashSet",
+			"Set", "java.util.HashSet",
 //			"TreeSet",						"java.util.TreeSet",
 //			"SortedSet",					"java.util.SortedSet",
 //			"EnumSet",						"java.util.EnumSet",
 			"Map", "java.util.Map", //
 //			"SortedMap",					"java.util.SortedMap",
 //			"EnumMap",						"java.util.EnumMap",
-//			"HashMap",						"java.util.HashMap",
+			"Map", "java.util.HashMap",
 //			"Hashtable",					"java.util.Hashtable",
 //			"LinkedHashMap",				"java.util.LinkedHashMap",
 //			"Properties",					"java.util.Properties",
 //			"TreeMap",						"java.util.TreeMap",
 			"List", "java.util.List", //
-//			"ArrayList",					"java.util.ArrayList",
+			"List", "java.util.ArrayList",
 //			"LinkedList",					"java.util.LinkedList",
 //			"Stack",						"java.util.Stack",
 //			"Vector",						"java.util.Vector"
-			"leitej.XmlObjectModelling", "leitej.xml.om.XmlObjectModelling"//
+			"xmlom", "leitej.xml.om.XmlObjectModelling"//
 	};
 
 	private final Map<String, String> mapClass = new HashMap<>();
