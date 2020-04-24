@@ -109,7 +109,7 @@ public abstract class AbstractFtpServer<H extends AbstractFtpServerHandler> {
 
 	public synchronized final void startServer() {
 		if (!this.closed && Thread.currentThread().getId() == this.aThread.getId()) {
-			LOG.info("lt.FTPStart", this.serverSocket.getLocalSocketAddress());
+			LOG.info("Start FTP server at #0", this.serverSocket.getLocalSocketAddress());
 			H handler;
 			try {
 				while (!this.closed) {
@@ -136,7 +136,7 @@ public abstract class AbstractFtpServer<H extends AbstractFtpServerHandler> {
 			}
 		} else {
 			if (this.closed) {
-				LOG.warn("lt.FTPAlreadyClosed");
+				LOG.warn("Already closed");
 			} else {
 				if (Thread.currentThread().getId() != this.aThread.getId() && !this.aThread.isAlive()) {
 					try {
@@ -175,7 +175,7 @@ public abstract class AbstractFtpServer<H extends AbstractFtpServerHandler> {
 			removeCloseAsyncInvokeFromShutdownHook();
 		}
 		if (!this.serverSocket.isClosed()) {
-			LOG.debug("lt.FTPClosing");
+			LOG.debug("Closing FTP server");
 			try {
 				this.serverSocket.close();
 			} catch (final IOException e) {

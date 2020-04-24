@@ -215,20 +215,20 @@ final class XmlTools {
 	 */
 	static void validatesElementName(final CharSequence elementName) throws XmlInvalidLtException {
 		if (elementName == null || elementName.length() == 0) {
-			throw new XmlInvalidLtException("lt.XmlInvalidElementName", elementName);
+			throw new XmlInvalidLtException("Invalid XML element name '#0'", elementName);
 		}
 		if (!Character.isLetter(elementName.charAt(0))) {
-			throw new XmlInvalidLtException("lt.XmlInvalidElementName", elementName);
+			throw new XmlInvalidLtException("Invalid XML element name '#0'", elementName);
 		}
 		if (elementName.length() > 2
 				&& XmlTools.KEY_XML_ELEMENT_NAME.charAt(0) == Character.toLowerCase(elementName.charAt(0))
 				&& XmlTools.KEY_XML_ELEMENT_NAME.charAt(1) == Character.toLowerCase(elementName.charAt(1))
 				&& XmlTools.KEY_XML_ELEMENT_NAME.charAt(2) == Character.toLowerCase(elementName.charAt(2))) {
-			throw new XmlInvalidLtException("lt.XmlInvalidElementName", elementName);
+			throw new XmlInvalidLtException("Invalid XML element name '#0'", elementName);
 		}
 		for (int i = 1; i < elementName.length(); i++) {
 			if (Character.isWhitespace(elementName.charAt(i))) {
-				throw new XmlInvalidLtException("lt.XmlInvalidElementName", elementName);
+				throw new XmlInvalidLtException("Invalid XML element name '#0'", elementName);
 			}
 		}
 	}

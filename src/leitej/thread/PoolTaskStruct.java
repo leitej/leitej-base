@@ -47,7 +47,7 @@ class PoolTaskStruct implements Comparable<PoolTaskStruct>, Serializable {
 		this.xThreadData = xThreadData;
 		this.compareUniqueId = 0;
 		updateTask();
-		LOG.trace("lt.NewInstance");
+		LOG.trace("new instance");
 	}
 
 	@Override

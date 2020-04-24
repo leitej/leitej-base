@@ -44,7 +44,7 @@ public final class LtMouseMotionAdapter extends MouseMotionAdapter {
 		if (mouseDragged != null) {
 			if (!mouseDragged.matchArguments()) {
 				if (!mouseDragged.matchArguments(MouseEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "mouseDragged",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "mouseDragged",
 							MouseEvent.class);
 				}
 				this.mouseDraggedWithEvent = true;
@@ -59,7 +59,7 @@ public final class LtMouseMotionAdapter extends MouseMotionAdapter {
 		if (mouseMoved != null) {
 			if (!mouseMoved.matchArguments()) {
 				if (!mouseMoved.matchArguments(MouseEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "mouseMoved",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "mouseMoved",
 							MouseEvent.class);
 				}
 				this.mouseMovedWithEvent = true;

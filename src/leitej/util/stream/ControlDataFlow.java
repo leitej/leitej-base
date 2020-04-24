@@ -103,7 +103,7 @@ final class ControlDataFlow {
 		if (this.controlMaxBytePerStep) {
 			this.sizeStep += bytecount;
 			if (this.sizeStep > this.maxBytePerStep) {
-				throw new DataOverflowLtException("lt.CSBytesExceeded");
+				throw new DataOverflowLtException("Passed the limit imposed on the volume of data");
 			}
 		}
 		if (this.controlBytePerSecond) {

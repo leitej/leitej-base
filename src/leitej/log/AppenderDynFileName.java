@@ -53,7 +53,7 @@ class AppenderDynFileName extends AbstractAppender {
 	AppenderDynFileName(final Config lp) throws UnsupportedEncodingException, FileNotFoundException {
 		super(lp);
 		if (lp.getFile() == null) {
-			throw new FileNotFoundException(MESSAGES.get("lt.FileNull"));
+			throw new FileNotFoundException(MESSAGES.get("try open file 'null'"));
 		}
 		if (lp.getFile().getAppendFile() != null) {
 			this.appendFile = lp.getFile().getAppendFile();

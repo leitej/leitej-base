@@ -80,7 +80,7 @@ final class ConnectionDB {
 
 	void logMetaData() throws SQLException {
 		final DatabaseMetaData meta = this.conn.getMetaData();
-		LOG.debug("lt.MngDriverName", meta.getDriverName());
+		LOG.debug("Driver Name: #0", meta.getDriverName());
 	}
 
 	void connError(final SQLException e) {

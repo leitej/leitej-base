@@ -38,7 +38,7 @@ class AppenderFile extends AbstractAppender {
 	AppenderFile(final Config lp) throws UnsupportedEncodingException, FileNotFoundException {
 		super(lp);
 		if (lp.getFile() == null) {
-			throw new FileNotFoundException(MESSAGES.get("lt.FileNull"));
+			throw new FileNotFoundException(MESSAGES.get("try open file 'null'"));
 		} else {
 			final boolean appendFile = (lp.getFile().getAppendFile() == null) ? true : lp.getFile().getAppendFile();
 			final String charsetName = (lp.getFile().getCharsetName() != null) ? lp.getFile().getCharsetName()

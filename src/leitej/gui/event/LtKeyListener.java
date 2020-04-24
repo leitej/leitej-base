@@ -61,7 +61,7 @@ public final class LtKeyListener implements KeyListener {
 		if (invokeKeyTyped != null) {
 			if (!invokeKeyTyped.matchArguments()) {
 				if (!invokeKeyTyped.matchArguments(KeyEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "invokeKeyTyped",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "invokeKeyTyped",
 							KeyEvent.class);
 				}
 				this.invokeKeyTypedWithEvent = true;
@@ -76,7 +76,7 @@ public final class LtKeyListener implements KeyListener {
 		if (invokeKeyPressed != null) {
 			if (!invokeKeyPressed.matchArguments()) {
 				if (!invokeKeyPressed.matchArguments(KeyEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "invokeKeyPressed",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "invokeKeyPressed",
 							KeyEvent.class);
 				}
 				this.invokeKeyPressedWithEvent = true;
@@ -91,7 +91,7 @@ public final class LtKeyListener implements KeyListener {
 		if (invokeKeyReleased != null) {
 			if (!invokeKeyReleased.matchArguments()) {
 				if (!invokeKeyReleased.matchArguments(KeyEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "invokeKeyReleased",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "invokeKeyReleased",
 							KeyEvent.class);
 				}
 				this.invokeKeyReleasedWithEvent = true;

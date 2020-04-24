@@ -109,7 +109,7 @@ public final class BlockSystemExit {
 					public void checkPermission(final Permission permission) {
 						if (permission != null && permission.getName().matches("exitVM.*")
 								&& Thread.currentThread().equals(specialAllow)) {
-							LOG.debug("lt.BlockExit", permission.getName(), Thread.currentThread());
+							LOG.debug("Blocked: #0 - For thread: #1", permission.getName(), Thread.currentThread());
 							throw new ExitTrappedException();
 						}
 						super.checkPermission(permission);
@@ -117,7 +117,7 @@ public final class BlockSystemExit {
 				};
 				try {
 					// execute method
-					LOG.trace("lt.BlockInvoke", method);
+					LOG.trace("Blocking invoke: #0", method);
 					result = AgnosticUtil.invoke(object, method, args);
 				} catch (final InvocationTargetException e) {
 					if (!ExitTrappedException.class.isInstance(e.getCause())) {

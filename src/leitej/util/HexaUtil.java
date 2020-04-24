@@ -152,7 +152,7 @@ public final class HexaUtil {
 			throw new IndexOutOfBoundsException();
 		}
 		if (MathUtil.isOdd(len)) {
-			throw new IllegalArgumentLtRtException("lt.HexaInvalid");
+			throw new IllegalArgumentLtRtException("Data has an invalid hex value");
 		}
 		int tmp1;
 		int tmp2;
@@ -166,7 +166,7 @@ public final class HexaUtil {
 				tmp1 += NON_DIGIT_LOWER_GAP;
 			}
 			if (tmp1 < 0) {
-				throw new IllegalArgumentLtRtException("lt.HexaInvalid");
+				throw new IllegalArgumentLtRtException("Data has an invalid hex value");
 			}
 			tmp2 = data.charAt(i + 1) + DIGIT_GAP;
 			if (tmp2 > 9) {
@@ -176,7 +176,7 @@ public final class HexaUtil {
 				tmp2 += NON_DIGIT_LOWER_GAP;
 			}
 			if (tmp2 < 0) {
-				throw new IllegalArgumentLtRtException("lt.HexaInvalid");
+				throw new IllegalArgumentLtRtException("Data has an invalid hex value");
 			}
 			destination[r++] = (byte) ((byte) tmp1 << 4 | tmp2);
 		}

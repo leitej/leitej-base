@@ -180,107 +180,107 @@ public enum CodeEnum {
 	public String getMessageKey() {
 		switch (this) {
 		case _110:
-			return "lt.FTPCode_110";
+			return "110 Restart marker reply";
 		case _120:
-			return "lt.FTPCode_120";
+			return "120 Service ready in #0 minutes";
 		case _125:
-			return "lt.FTPCode_125";
+			return "125 Data connection already open; transfer starting";
 		case _150:
-			return "lt.FTPCode_150";
+			return "150 File status okay; about to open data connection";
 		case _200:
-			return "lt.FTPCode_200";
+			return "200 Command okay";
 		case _202:
-			return "lt.FTPCode_202";
+			return "202 Command not implemented, superfluous at this site";
 		case _211:
-			return "lt.FTPCode_211";
+			return "211 System status, or system help reply";
 		case _212:
-			return "lt.FTPCode_212";
+			return "212 Directory status";
 		case _213:
-			return "lt.FTPCode_213";
+			return "213 File status";
 		case _214:
-			return "lt.FTPCode_214";
+			return "214 Help message";
 		case _215:
-			return "lt.FTPCode_215";
+			return "215 NAME system type";
 		case _220:
-			return "lt.FTPCode_220";
+			return "220 Service ready for new user";
 		case _221:
-			return "lt.FTPCode_221";
+			return "221 Service closing control connection. Logged out if appropriate";
 		case _225:
-			return "lt.FTPCode_225";
+			return "225 Data connection open; no transfer in progress";
 		case _226:
-			return "lt.FTPCode_226";
+			return "226 Closing data connection. Requested file action successful (for example, file transfer or file abort)";
 		case _227:
-			return "lt.FTPCode_227";
+			return "227 Entering Passive Mode (#0)";
 		case _230:
-			return "lt.FTPCode_230";
+			return "230 User logged in, proceed";
 		case _250:
-			return "lt.FTPCode_250";
+			return "250 Requested file action okay, completed";
 		case _257:
-			return "lt.FTPCode_257";
+			return "257 Pathname created";
 		case _331:
-			return "lt.FTPCode_331";
+			return "331 User name okay, need password";
 		case _332:
-			return "lt.FTPCode_332";
+			return "332 Need account for login";
 		case _350:
-			return "lt.FTPCode_350";
+			return "350 Requested file action pending further information";
 		case _421:
-			return "lt.FTPCode_421";
+			return "421 Service not available, closing control connection. This may be a reply to any command if the service knows it must shut down";
 		case _425:
-			return "lt.FTPCode_425";
+			return "425 Can't open data connection";
 		case _426:
-			return "lt.FTPCode_426";
+			return "426 Connection closed; transfer aborted";
 		case _450:
-			return "lt.FTPCode_450";
+			return "450 Requested file action not taken. File unavailable (e.g., file busy)";
 		case _451:
-			return "lt.FTPCode_451";
+			return "451 Requested action aborted: local error in processing";
 		case _452:
-			return "lt.FTPCode_452";
+			return "452 Requested action not taken. Insufficient storage space in system";
 		case _500:
-			return "lt.FTPCode_500";
+			return "500 Syntax error, command unrecognized. This may include errors such as command line too long";
 		case _500_nps:
-			return "lt.FTPCode_500_nps";
+			return "500 Can't establish data connection: no PORT specified";
 		case _501:
-			return "lt.FTPCode_501";
+			return "501 Syntax error in parameters or arguments";
 		case _502:
-			return "lt.FTPCode_502";
+			return "502 Command not implemented";
 		case _503:
-			return "lt.FTPCode_503";
+			return "503 Bad sequence of commands";
 		case _503_luf:
-			return "lt.FTPCode_503_luf";
+			return "503 Login with USER first";
 		case _504:
-			return "lt.FTPCode_504";
+			return "504 Command not implemented for that parameter";
 		case _530:
-			return "lt.FTPCode_530";
+			return "530 Not logged in";
 		case _532:
-			return "lt.FTPCode_532";
+			return "532 Need account for storing files";
 		case _550:
-			return "lt.FTPCode_550";
+			return "550 Requested action not taken. File unavailable (e.g., file not found, no access)";
 		case _550_ned:
-			return "lt.FTPCode_550_ned";
+			return "550 Nonexistent directory";
 		case _550_ind:
-			return "lt.FTPCode_550_ind";
+			return "550 Is not a directory";
 		case _550_nef:
-			return "lt.FTPCode_550_nef";
+			return "550 Nonexistent file";
 		case _550_cndf:
-			return "lt.FTPCode_550_cndf";
+			return "550 Could not delete file";
 		case _550_cnrd:
-			return "lt.FTPCode_550_cnrd";
+			return "550 Could not remove directory";
 		case _550_fe:
-			return "lt.FTPCode_550_fe";
+			return "550 File exists";
 		case _550_dcnc:
-			return "lt.FTPCode_550_dcnc";
+			return "550 Directory could not be created";
 		case _550_npf:
-			return "lt.FTPCode_550_npf";
+			return "550 Not a plain file";
 		case _550_fel:
-			return "lt.FTPCode_550_fel";
+			return "550 File exists in that location";
 		case _550_cwf:
-			return "lt.FTPCode_550_cwf";
+			return "550 Can't write to file";
 		case _551:
-			return "lt.FTPCode_551";
+			return "551 Requested action aborted: page type unknown";
 		case _552:
-			return "lt.FTPCode_552";
+			return "552 Requested file action aborted. Exceeded storage allocation (for current directory or dataset)";
 		case _553:
-			return "lt.FTPCode_553";
+			return "553 Requested action not taken. File name not allowed";
 		default:
 			throw new ImplementationLtRtException(this.toString());
 		}

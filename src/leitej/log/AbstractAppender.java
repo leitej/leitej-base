@@ -119,7 +119,7 @@ abstract class AbstractAppender {
 		printOutputStackTrace(elements);
 		Throwable throwable = e.getCause();
 		while (throwable != null) {
-			outPrint(false, MESSAGES.get("lt.CausedBy", throwable));
+			outPrint(false, MESSAGES.get("Caused by: #0", throwable));
 			outPrint(false, Constant.DEFAULT_LINE_SEPARATOR);
 			elements = throwable.getStackTrace();
 			printOutputStackTrace(elements);
@@ -130,7 +130,7 @@ abstract class AbstractAppender {
 	private void printOutputStackTrace(final StackTraceElement[] elements) {
 		for (int j = 0; j < elements.length; j++) {
 			outPrint(false, "\t");
-			outPrint(false, MESSAGES.get("lt.AtMethod"));
+			outPrint(false, MESSAGES.get("at"));
 			outPrint(false, " ");
 			outPrint(false, elements[j].toString());
 			outPrint(false, Constant.DEFAULT_LINE_SEPARATOR);

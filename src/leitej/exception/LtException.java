@@ -97,7 +97,7 @@ public class LtException extends Exception {
 		synchronized (stream) {
 			super.printStackTrace(stream);
 			if ((this.mCause != null) && (!superClassPrintsCause())) {
-				stream.println(MESSAGES.get("lt.CausedBy", this.mCause.getMessage()));
+				stream.println(MESSAGES.get("Caused by: #0", this.mCause.getMessage()));
 				this.mCause.printStackTrace(stream);
 			}
 		}
@@ -114,7 +114,7 @@ public class LtException extends Exception {
 		synchronized (writer) {
 			super.printStackTrace(writer);
 			if ((this.mCause != null) && (!superClassPrintsCause())) {
-				writer.println(MESSAGES.get("lt.CausedBy", this.mCause.getMessage()));
+				writer.println(MESSAGES.get("Caused by: #0", this.mCause.getMessage()));
 				this.mCause.printStackTrace(writer);
 			}
 		}

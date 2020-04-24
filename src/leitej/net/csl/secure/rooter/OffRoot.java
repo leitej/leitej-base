@@ -79,10 +79,10 @@ public final class OffRoot {
 
 	public OffRoot(final Password password) throws KeyStoreLtException, IOException {
 		if (!FileUtil.exists(KEYSTORE_FILENAME)) {
-			LOG.warn("lt.CSLKeystoreCreate", KEYSTORE_FILENAME);
+			LOG.warn("Creating keystore: #0", KEYSTORE_FILENAME);
 			this.keystore = UberKeyStore.create(KEYSTORE_FILENAME, password);
 		} else {
-			LOG.info("lt.CSLKeystoreLoad", KEYSTORE_FILENAME);
+			LOG.info("Loading keystore: #0", KEYSTORE_FILENAME);
 			this.keystore = UberKeyStore.load(KEYSTORE_FILENAME, password);
 		}
 		updateVault();
@@ -116,7 +116,7 @@ public final class OffRoot {
 		if (DateUtil.isFuture(this.keystore.getKeyCertificate(MY_CONTINGENCY_ENTRY_KEY_ALIAS).getNotBefore())) {
 			throw new ImplementationLtRtException();
 		}
-		LOG.info("lt.CSLKeyContingencyUpgrade");
+		LOG.info("Upgrading contingency key");
 		this.keystore.setPrivateKeyEntry(MY_ENTRY_KEY_OLD_ALIAS, this.keystore.getPrivateKey(MY_ENTRY_KEY_ALIAS),
 				new X509Certificate[] { this.keystore.getKeyCertificate(MY_ENTRY_KEY_ALIAS) });
 		this.keystore.setPrivateKeyEntry(MY_ENTRY_KEY_ALIAS,
@@ -132,7 +132,7 @@ public final class OffRoot {
 
 	private final void newKeys(final String aliasName, final String certificateFilename, final Date validAfter,
 			final Date validTill) throws KeyStoreLtException, IOException {
-		LOG.info("lt.CSLKeyGenerate", RSA_KEY_BIT_SIZE);
+		LOG.info("Generating new key: #0", RSA_KEY_BIT_SIZE);
 		try {
 			final KeyPair keys = Cryptography.RSA.keyPairGenerate(RSA_KEY_BIT_SIZE);
 			final X509Certificate certificate = CertificateUtil.generateX509CertificateV3SelfSigned(
@@ -183,7 +183,7 @@ public final class OffRoot {
 	 */
 	private final void sign(final File fileRequest)
 			throws CertificationRequestLtException, IOException, CertificateLtException, KeyStoreLtException {
-		LOG.info("lt.CSLSignRequest", fileRequest.getName());
+		LOG.info("Signing request: #0", fileRequest.getName());
 		final Date now = DateUtil.zeroTill(DateUtil.now(), DateFieldEnum.DAY_OF_MONTH);
 		PKCS10CertificationRequest request;
 		try {

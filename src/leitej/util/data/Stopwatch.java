@@ -225,14 +225,14 @@ public final class Stopwatch implements Serializable {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
-		sb.append(MESSAGES.get("lt.SWatch"));
+		sb.append(MESSAGES.get("Stopwatch"));
 		sb.append(" '");
 		sb.append(this.name);
 		sb.append("' ");
-		sb.append(MESSAGES.get("lt.SWatchTable"));
+		sb.append(MESSAGES.get("table"));
 		sb.append(": ");
 		if (this.stepTime.size() == 0) {
-			sb.append(MESSAGES.get("lt.SWatchNone"));
+			sb.append(MESSAGES.get("none"));
 		} else {
 			final String unidade = ((this.nano) ? "(nanos)" : "(ms)");
 			Long tr = this.stepTime.firstElement().getTime();
@@ -249,7 +249,7 @@ public final class Stopwatch implements Serializable {
 				tr = this.stepTime.elementAt(i).getTime();
 			}
 			sb.append("\n ");
-			sb.append(MESSAGES.get("lt.SWatchTotal"));
+			sb.append(MESSAGES.get("Total"));
 			sb.append("> ");
 			sb.append(peekTotalElapsedTime());
 			sb.append(unidade);

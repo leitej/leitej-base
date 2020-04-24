@@ -71,7 +71,7 @@ public final class CommunicationSecureHost extends AbstractCommunicationSecureSe
 			// |< 1Byte 0x00 confirming the version (else value close connection)
 			if (CommunicationSecureFactory.VERSION != tmp) {
 				sendDenyByte(out);
-				throw new IOException(new IllegalStateLtRtException("lt.CSLWrongVersion"));
+				throw new IOException(new IllegalStateLtRtException("Endpoint with diferent version"));
 			} else {
 				sendConfirmationByte(out);
 			}

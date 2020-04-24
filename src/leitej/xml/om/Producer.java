@@ -76,14 +76,14 @@ final class Producer {
 	 */
 	Producer(final OutputStreamWriter osr, final boolean minified) throws XmlInvalidLtException, IOException {
 		this.producer = new XmlProducer(osr, minified);
-		LtSystemOut.debug("lt.NewInstance");
+		LtSystemOut.debug("new instance");
 		printMetaData();
 		printRootElementTagOpen();
 	}
 
 	synchronized <I extends XmlObjectModelling> void add(final I obj) {
 		if (this.objectSet == null) {
-			throw new IllegalStateLtRtException("lt.XmlOmProducerAlreadyDone");
+			throw new IllegalStateLtRtException("Already finalized the XML");
 		}
 		if (obj != null) {
 			this.objectSet.add(obj);
@@ -92,7 +92,7 @@ final class Producer {
 
 	synchronized <I extends XmlObjectModelling> void add(final I[] objs) {
 		if (this.objectSet == null) {
-			throw new IllegalStateLtRtException("lt.XmlOmProducerAlreadyDone");
+			throw new IllegalStateLtRtException("Already finalized the XML");
 		}
 		if (objs != null) {
 			for (final XmlObjectModelling o : objs) {
@@ -103,7 +103,7 @@ final class Producer {
 
 	synchronized void flush() throws XmlInvalidLtException, IOException {
 		if (this.objectSet == null) {
-			throw new IllegalStateLtRtException("lt.XmlOmProducerAlreadyDone");
+			throw new IllegalStateLtRtException("Already finalized the XML");
 		}
 		printObjectSet();
 		this.producer.flush();
@@ -147,7 +147,7 @@ final class Producer {
 		for (final Object o : objs) {
 			if (o != null) {
 				if (!this.objectSet.remove(o)) {
-					throw new XmlomInvalidLtException("lt.XmlOmNotRemovingObject");
+					throw new XmlomInvalidLtException("Can not remove object after write to stream");
 				}
 				typeClass = DATA_PROXY.getInvocationHandler((I) o).getInterface();
 				this.sbTmpElmName.setLength(0);
@@ -231,7 +231,7 @@ final class Producer {
 	}
 
 	private <I extends XmlObjectModelling> void printMethods(final I o) throws IOException, XmlInvalidLtException {
-		LtSystemOut.debug("lt.XmlOmProcessObject", o.getClass().getSimpleName());
+		LtSystemOut.debug("processing object: #0", o.getClass().getSimpleName());
 		final DataProxyHandler dph = DATA_PROXY.getInvocationHandler(o);
 		final Map<String, Object> dphData = dph.getDataMap();
 		Object data;
@@ -287,7 +287,7 @@ final class Producer {
 				this.producer.printTagClose(this.sbTmpElmName);
 			}
 		} else {
-			throw new ImplementationLtRtException("lt.XmlOmArrayImplementBug");
+			throw new ImplementationLtRtException("Something wrong (Defined an array in 'ArrayElement.ARRAY_CLASS' element which isn't implemented!)");
 		}
 	}
 

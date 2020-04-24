@@ -84,7 +84,7 @@ final class AppenderManager {
 					try {
 						list.add(newLogAppender(config));
 					} catch (final UnsupportedEncodingException | FileNotFoundException e) {
-						(new LtException(e, "lt.LogAppendErrorOpen")).printStackTrace();
+						(new LtException(e, "Can't open an appender log")).printStackTrace();
 					}
 				}
 			}

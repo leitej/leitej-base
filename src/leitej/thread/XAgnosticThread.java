@@ -108,7 +108,7 @@ public class XAgnosticThread extends AgnosticThread {
 	 */
 	public synchronized void workOn(final XThreadData xThreadData) throws AgnosticThreadLtException {
 		if (isWorking()) {
-			throw new AgnosticThreadLtException("lt.ThreadAlreadyWork");
+			throw new AgnosticThreadLtException("Only give work when not digesting other work! (#0)");
 		}
 		this.xThreadData = xThreadData;
 		internalStart();

@@ -71,7 +71,7 @@ public final class InsetData {
 		this.inputList = new QueueBlockingFIFO<>(6);
 		this.mainComponent = new JPanel(new BorderLayout());
 		this.waitGlassPane = new WaitGlassPane(this);
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 	}
 
 	final void close() {

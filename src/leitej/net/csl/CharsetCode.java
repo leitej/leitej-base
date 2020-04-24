@@ -50,7 +50,7 @@ final class CharsetCode {
 		case UTF8:
 			return Constant.UTF8_CHARSET_NAME;
 		default:
-			throw new IllegalArgumentLtRtException("lt.CSLCharsetCodeNotDefined", csc);
+			throw new IllegalArgumentLtRtException("Charset code '#0' not defined", csc);
 		}
 	}
 
@@ -66,7 +66,7 @@ final class CharsetCode {
 		if (cs.toString().equals(Constant.UTF8_CHARSET_NAME)) {
 			return UTF8;
 		}
-		throw new IllegalArgumentLtRtException("lt.CSLCharsetNameNotDefined", charsetName);
+		throw new IllegalArgumentLtRtException("Charset name '#0' not defined", charsetName);
 	}
 
 	/**
@@ -93,7 +93,7 @@ final class CharsetCode {
 	static String readCharsetCode(final InputStream is) throws IllegalArgumentLtRtException, IOException {
 		final int csc = is.read();
 		if (csc == -1) {
-			throw new IOException(new ClosedLtRtException("lt.CSLEndStream"));
+			throw new IOException(new ClosedLtRtException("Unexpected end of stream"));
 		}
 		return CharsetCode.getCharsetName((byte) (csc & 0xff));
 	}

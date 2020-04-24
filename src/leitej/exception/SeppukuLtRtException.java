@@ -46,7 +46,7 @@ public final class SeppukuLtRtException extends LtRtException {
 			new Thread((new Runnable() {
 				@Override
 				public void run() {
-					LOG.warn("lt.Init");
+					LOG.warn("initialized");
 					try {
 						System.exit(status);
 					} catch (final SecurityException e) {
@@ -67,7 +67,7 @@ public final class SeppukuLtRtException extends LtRtException {
 								System.exit(status);
 							}
 						} catch (final SecurityException e1) {
-							LOG.error("lt.FaultDetected");
+							LOG.error("Fault detected");
 							LOG.error("#0", e1);
 						}
 					}

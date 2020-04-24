@@ -118,7 +118,7 @@ public final class Logger {
 			LOG.debug("threadCount: #0", VMMonitor.threadCount());
 			LOG.debug("heapMemoryUsage: #0", VMMonitor.heapMemoryUsage());
 			LOG.debug("nonHeapMemoryUsage: #0", VMMonitor.nonHeapMemoryUsage());
-			LOG.info("lt.LogClose");
+			LOG.info("Logger closing");
 			CLOSED = true;
 			AppenderManager.close();
 			ISTANCES.clear();

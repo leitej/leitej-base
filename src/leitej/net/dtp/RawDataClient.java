@@ -56,9 +56,9 @@ public final class RawDataClient {
 	private static final String METHOD_NAME_HANDLE_SEND = "handleSend";
 
 	public static void handleSend(final InetAddress address, final int port, final RawData in, final long callNumber) {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		// TODO: if(!PoolAgnosticThread.isCurrentThreadFrom(rawDataThreadPool)) throw
-		// new ImplementationLtRtException("lt.DTPWrongCall");
+		// new ImplementationLtRtException("This method only can be called by abstract class AbstractHandler");
 		try {
 			final Socket socket = new Socket(address, port);
 			final byte[] tmp = new byte[8];
@@ -108,9 +108,9 @@ public final class RawDataClient {
 
 	public static void setReceiveInputStream(final InetAddress address, final int port, final RawData in,
 			final long callNumber) {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		// TODO: if(!PoolAgnosticThread.isCurrentThreadFrom(rawDataThreadPool)) throw
-		// new ImplementationLtRtException("lt.DTPWrongCall");
+		// new ImplementationLtRtException("This method only can be called by abstract class AbstractHandler");
 		try {
 			final byte[] tmp = new byte[8];
 			final Socket socket = new Socket(address, port);

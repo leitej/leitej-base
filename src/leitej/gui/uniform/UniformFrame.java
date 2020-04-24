@@ -83,7 +83,7 @@ public class UniformFrame extends AbstractFrame {
 		if (frame != null) {
 			set(frame);
 		}
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 	}
 
 	@Override

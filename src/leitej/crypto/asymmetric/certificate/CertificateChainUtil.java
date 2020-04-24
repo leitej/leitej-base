@@ -531,7 +531,7 @@ public final class CertificateChainUtil {
 	public static void verifyChain(final Certificate[] chain, final PublicKey pbcKeyTrust, final int secureChainLength)
 			throws CertificateLtException {
 		if (secureChainLength > -1 && chain.length != secureChainLength) {
-			throw new CertificateLtException(new CertificateChainLtException("lt.CryptoCertInvalidChainLength",
+			throw new CertificateLtException(new CertificateChainLtException("The chain length is #0 and expected to be #1",
 					chain.length, secureChainLength));
 		}
 		PublicKey pbcKeyTmp = pbcKeyTrust;
@@ -566,12 +566,12 @@ public final class CertificateChainUtil {
 					if (pathLength == -1) {
 						// its not a CA
 						if (linkPosition != 0) {
-							throw new CertificateChainLtException("lt.CryptoCertNotCAWrongChainPosition", linkPosition);
+							throw new CertificateChainLtException("The chain can not have an end-entity (not CA) at #0 position", linkPosition);
 						}
 					} else {
 						// its a CA
 						if (pathLength < linkPosition - 1) {
-							throw new CertificateChainLtException("lt.CryptoCertCAtoHighChainPosition", linkPosition,
+							throw new CertificateChainLtException("Certificate at index #0 in the chain can only have #1 links bellow", linkPosition,
 									(pathLength + 1));
 						}
 					}

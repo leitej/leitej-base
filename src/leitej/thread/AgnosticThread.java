@@ -182,7 +182,7 @@ public class AgnosticThread extends Thread {
 	 */
 	public synchronized void workOn(final ThreadData threadData) throws AgnosticThreadLtException {
 		if (isWorking()) {
-			throw new AgnosticThreadLtException("lt.ThreadAlreadyWork", getName());
+			throw new AgnosticThreadLtException("Only give work when not digesting other work! (#0)", getName());
 		}
 		this.threadData = threadData;
 		this.internalStart();

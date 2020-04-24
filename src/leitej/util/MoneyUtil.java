@@ -69,7 +69,7 @@ public final class MoneyUtil {
 	 */
 	private static String euroFormat(final char[] value, final int indexUnit) throws IllegalArgumentLtRtException {
 		if (indexUnit < 0) {
-			throw new IllegalArgumentLtRtException("lt.MoneyNegativeIndex");
+			throw new IllegalArgumentLtRtException("IndexUnit is negative");
 		}
 		int negative;
 		if (value[0] == '-') {
@@ -162,10 +162,10 @@ public final class MoneyUtil {
 	public static long euroValue(final String value, final boolean round, final int indexUnit)
 			throws IllegalArgumentLtRtException {
 		if (indexUnit < 0) {
-			throw new IllegalArgumentLtRtException("lt.MoneyNegativeIndex");
+			throw new IllegalArgumentLtRtException("IndexUnit is negative");
 		}
 		if (!isEuroFormatValid(value)) {
-			throw new IllegalArgumentLtRtException("lt.MoneyArgInvalidFormat");
+			throw new IllegalArgumentLtRtException("Value is not a valid representation of euro format");
 		}
 		long result = 0L;
 		final char[] tmp = value.toCharArray();
@@ -196,14 +196,14 @@ public final class MoneyUtil {
 				startDecimal = true;
 			}
 			if (result < 0) {
-				throw new IllegalArgumentLtRtException("lt.MoneyArgTooHigh");
+				throw new IllegalArgumentLtRtException("Value is too high for the type long");
 			}
 		}
 		while (countDecimal < indexUnit) {
 			countDecimal++;
 			result *= 10;
 			if (result < 0) {
-				throw new IllegalArgumentLtRtException("lt.MoneyArgTooHigh");
+				throw new IllegalArgumentLtRtException("Value is too high for the type long");
 			}
 		}
 		if (negative) {

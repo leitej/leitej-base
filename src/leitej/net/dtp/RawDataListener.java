@@ -60,7 +60,7 @@ final class RawDataListener {
 	}
 
 	void handleSend(final RawData in, final long callNumber) throws SocketTimeoutException, IOException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		if (this.handling) {
 			throw new ImplementationLtRtException();
 		}
@@ -89,7 +89,7 @@ final class RawDataListener {
 	}
 
 	void setReceiveInputStream(final RawData in, final long callNumber) throws SocketTimeoutException, IOException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		if (this.handling) {
 			throw new ImplementationLtRtException();
 		}

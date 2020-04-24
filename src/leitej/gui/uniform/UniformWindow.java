@@ -52,7 +52,7 @@ public class UniformWindow extends AbstractWindow {
 		if (window != null) {
 			set(window);
 		}
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 	}
 
 	@Override
