@@ -23,7 +23,6 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
 import leitej.Constant;
-import leitej.locale.message.Messages;
 
 /**
  * AppenderFile
@@ -32,13 +31,12 @@ import leitej.locale.message.Messages;
  */
 class AppenderFile extends AbstractAppender {
 
-	private static final Messages MESSAGES = Messages.getInstance();
 	private PrintStream out = null;
 
 	AppenderFile(final Config lp) throws UnsupportedEncodingException, FileNotFoundException {
 		super(lp);
 		if (lp.getFile() == null) {
-			throw new FileNotFoundException(MESSAGES.get("try open file 'null'"));
+			throw new FileNotFoundException("try open file 'null'");
 		} else {
 			final boolean appendFile = (lp.getFile().getAppendFile() == null) ? true : lp.getFile().getAppendFile();
 			final String charsetName = (lp.getFile().getCharsetName() != null) ? lp.getFile().getCharsetName()

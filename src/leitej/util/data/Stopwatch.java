@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
-import leitej.locale.message.Messages;
 import leitej.util.DateUtil;
 import leitej.util.StringUtil;
 
@@ -33,8 +32,6 @@ import leitej.util.StringUtil;
 public final class Stopwatch implements Serializable {
 
 	private static final long serialVersionUID = -5680151515624212060L;
-
-	private static final Messages MESSAGES = Messages.getInstance();
 
 	private static final String DEFAULT_STOPWATCH_NAME = "default";
 	private static final String DEFAULT_DESC = null;
@@ -225,14 +222,11 @@ public final class Stopwatch implements Serializable {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
-		sb.append(MESSAGES.get("Stopwatch"));
-		sb.append(" '");
+		sb.append("Stopwatch '");
 		sb.append(this.name);
-		sb.append("' ");
-		sb.append(MESSAGES.get("table"));
-		sb.append(": ");
+		sb.append("' table: ");
 		if (this.stepTime.size() == 0) {
-			sb.append(MESSAGES.get("none"));
+			sb.append("none");
 		} else {
 			final String unidade = ((this.nano) ? "(nanos)" : "(ms)");
 			Long tr = this.stepTime.firstElement().getTime();
@@ -248,9 +242,7 @@ public final class Stopwatch implements Serializable {
 				sb.append(unidade);
 				tr = this.stepTime.elementAt(i).getTime();
 			}
-			sb.append("\n ");
-			sb.append(MESSAGES.get("Total"));
-			sb.append("> ");
+			sb.append("\n Total> ");
 			sb.append(peekTotalElapsedTime());
 			sb.append(unidade);
 		}

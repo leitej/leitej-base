@@ -16,8 +16,8 @@
 
 package leitej;
 
-import leitej.locale.message.Messages;
 import leitej.util.DateUtil;
+import leitej.util.StringUtil;
 
 /**
  * This is used to write debug messages to system.out and can not use the
@@ -27,8 +27,6 @@ import leitej.util.DateUtil;
  * @author Julio Leite
  */
 public final class LtSystemOut {
-
-	private static final Messages MESSAGES = Messages.getInstance();
 
 	static {
 		debug(LtSystemOut.class.getCanonicalName() + " is Active");
@@ -46,7 +44,7 @@ public final class LtSystemOut {
 	public static final void debug(final String msg, final Object... args) {
 		if (Constant.DEBUG_ACTIVE) {
 			System.out.println("DEBUG_TO_SYS_OUT " + DateUtil.nowTime() + " [" + Thread.currentThread().getName() + "] "
-					+ (new Throwable()).getStackTrace()[1].toString() + " - " + MESSAGES.get(msg, args));
+					+ (new Throwable()).getStackTrace()[1].toString() + " - " + StringUtil.insertObjects(msg, args));
 		}
 	}
 

@@ -86,9 +86,11 @@ public final class Cryptography {
 		providerAvailable();
 		if (!hasUnrestrictedPolicyFiles()) {
 			LOG.warn("You can find the unrestricted policy files on the same page as the JCE_JDK downloads are found.");
-			LOG.warn("Normally it will be a discrete link at the bottom of the download page entitled something like "Unlimited Strength Jurisdiction Policy Files."");
+			LOG.warn(
+					"Normally it will be a discrete link at the bottom of the download page entitled something like \"Unlimited Strength Jurisdiction Policy Files.\"");
 			LOG.warn("The download is a ZIP file, and providing it is legal for you to do so;");
-			LOG.warn("You should download the ZIP file and install the two JAR files it contains according to the instructions in the README file contained in the ZIP file.");
+			LOG.warn(
+					"You should download the ZIP file and install the two JAR files it contains according to the instructions in the README file contained in the ZIP file.");
 		}
 	}
 

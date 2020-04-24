@@ -35,12 +35,12 @@ import java.util.StringTokenizer;
 import leitej.Constant;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.LtException;
-import leitej.locale.message.Messages;
 import leitej.log.Logger;
 import leitej.net.exception.FtpLtException;
 import leitej.thread.PoolAgnosticThread;
 import leitej.thread.XThreadData;
 import leitej.util.AgnosticUtil;
+import leitej.util.StringUtil;
 import leitej.util.data.Invoke;
 import leitej.util.fs.Path;
 
@@ -51,7 +51,6 @@ import leitej.util.fs.Path;
 public abstract class AbstractFtpServerHandler {
 
 	private static final Logger LOG = Logger.getInstance();
-	private static final Messages MESSAGES = Messages.getInstance();
 
 	private PoolAgnosticThread poolAThread;
 	private AbstractFtpServer<?> server;
@@ -915,7 +914,7 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	protected final CodeEnum send(final CodeEnum code, final Object... args) {
-		final String txt = MESSAGES.get(code.getMessageKey(), args);
+		final String txt = StringUtil.insertObjects(code.getMessageKey(), args);
 		this.writer.println(txt);
 		this.writer.flush();
 		this.sessionData.setLastCodeSent(code);

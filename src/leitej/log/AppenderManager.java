@@ -29,8 +29,8 @@ import java.util.Map;
 import leitej.Constant;
 import leitej.exception.LtException;
 import leitej.exception.XmlInvalidLtException;
-import leitej.locale.message.Messages;
 import leitej.util.DateUtil;
+import leitej.util.StringUtil;
 import leitej.util.data.XmlomUtil;
 
 /**
@@ -39,8 +39,6 @@ import leitej.util.data.XmlomUtil;
  * @author Julio Leite
  */
 final class AppenderManager {
-
-	private static final Messages MESSAGES = Messages.getInstance();
 
 	private static final AbstractAppender[] APPENDERS = loadAppenders();
 
@@ -131,7 +129,7 @@ final class AppenderManager {
 			}
 			synchronized (APPENDERS) {
 				final Date date = DateUtil.now();
-				final String plainLog = MESSAGES.get(msg, args);
+				final String plainLog = StringUtil.insertObjects(msg, args);
 				for (int i = 0; i < APPENDERS.length; i++) {
 					if (level.ordinal() <= this.signLogLevelPerAppender[i].ordinal()) {
 						APPENDERS[i].print(level, threadName, signLog, date, plainLog, args);
