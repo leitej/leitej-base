@@ -42,7 +42,7 @@ public final class LtActionListener implements ActionListener {
 		if (actionPerformed != null) {
 			if (!actionPerformed.matchArguments()) {
 				if (!actionPerformed.matchArguments(ActionEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "actionPerformed",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "actionPerformed",
 							ActionEvent.class);
 				}
 				this.actionPerformedWithEvent = true;

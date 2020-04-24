@@ -187,7 +187,7 @@ abstract class AbstractCommunicationSecureSession extends
 		int tmp;
 		tmp = in.read();
 		if (tmp == -1) {
-			throw new IOException(new ClosedLtRtException("lt.CSLEndStream"));
+			throw new IOException(new ClosedLtRtException("Unexpected end of stream"));
 		}
 		return tmp;
 	}
@@ -199,7 +199,7 @@ abstract class AbstractCommunicationSecureSession extends
 		if (certificate == null) {
 			throw new IllegalStateLtRtException();
 		}
-		LOG.debug("lt.CSLSendId");
+		LOG.debug("Sending my end-certificate");
 		try {
 			CertificateIoUtil.writeX509Certificates(out, certificate);
 		} catch (final CertificateLtException e) {
@@ -210,7 +210,7 @@ abstract class AbstractCommunicationSecureSession extends
 		// certificate host unknown)
 		int tmp = readByte(in);
 		if (tmp != 0) {
-			LOG.debug("lt.CSLSendIdChain");
+			LOG.debug("Sending my chain certificate");
 			// |< nBytes with host chain without the end-point certificate (already sent)
 			final X509Certificate[] hostChain = getFactory().getCslVault().getCslChainCertificate();
 			try {
@@ -225,7 +225,7 @@ abstract class AbstractCommunicationSecureSession extends
 			// connection)
 			tmp = readByte(in);
 			if (tmp != 0) {
-				throw new IOException(new IllegalStateLtRtException("lt.CSLInvalidMineChain"));
+				throw new IOException(new IllegalStateLtRtException("Endpoint held my chain invalid"));
 			}
 		}
 	}
@@ -238,12 +238,12 @@ abstract class AbstractCommunicationSecureSession extends
 		X509Certificate clientCertificate = null;
 		try {
 			clientCertificate = CertificateIoUtil.readX509Certificate(in);
-			LOG.debug("lt.CSLReceiveRemoteId");
+			LOG.debug("Receiving remote end-certificate");
 			getFactory().getCslVault().verifyEndPointCertificate(clientCertificate);
 			sendConfirmationByte(out);
 		} catch (final CertificateLtException e) {
 			sendDenyByte(out);
-			LOG.debug("lt.CSLReceiveRemoteIdChain");
+			LOG.debug("Receiving remote chain certificate");
 			if (clientCertificate != null) {
 				// |> nBytes with client chain without the end-point certificate (already sent)
 				// |< 1Byte 0x00 confirming validation of client chain (else value close
@@ -258,10 +258,10 @@ abstract class AbstractCommunicationSecureSession extends
 					sendConfirmationByte(out);
 				} catch (final CertificateLtException e1) {
 					sendDenyByte(out);
-					throw new IOException(new IllegalStateLtRtException(e1, "lt.CSLEndpointCertificateInvalid"));
+					throw new IOException(new IllegalStateLtRtException(e1, "Endpoint certificate is invalid"));
 				} catch (final CertificateChainLtException e1) {
 					sendDenyByte(out);
-					throw new IOException(new IllegalStateLtRtException(e1, "lt.CSLEndpointCertificateInvalid"));
+					throw new IOException(new IllegalStateLtRtException(e1, "Endpoint certificate is invalid"));
 				} catch (final LtmLtRtException e1) {
 					sendDenyByte(out);
 					throw new IOException(e1);

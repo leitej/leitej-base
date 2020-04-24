@@ -24,7 +24,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
 import leitej.Constant;
-import leitej.locale.message.Messages;
 import leitej.util.DateUtil;
 import leitej.util.data.DateFieldEnum;
 import leitej.util.data.DateTimer;
@@ -36,8 +35,6 @@ import leitej.util.data.DateTimerItf;
  * @author Julio Leite
  */
 class AppenderDynFileName extends AbstractAppender {
-
-	private static final Messages MESSAGES = Messages.getInstance();
 
 	private final String pathFile;
 	private final String staticFileName;
@@ -53,7 +50,7 @@ class AppenderDynFileName extends AbstractAppender {
 	AppenderDynFileName(final Config lp) throws UnsupportedEncodingException, FileNotFoundException {
 		super(lp);
 		if (lp.getFile() == null) {
-			throw new FileNotFoundException(MESSAGES.get("lt.FileNull"));
+			throw new FileNotFoundException("try open file 'null'");
 		}
 		if (lp.getFile().getAppendFile() != null) {
 			this.appendFile = lp.getFile().getAppendFile();

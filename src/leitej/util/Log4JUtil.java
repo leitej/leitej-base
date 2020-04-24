@@ -64,7 +64,7 @@ public final class Log4JUtil {
 			} catch (final IOException e) {
 				LOG.error("#0", e);
 			}
-			LOG.trace("lt.FileCreated", DEFAULT_LOG4J_PROPERTIES_FILE_NAME);
+			LOG.trace("Created file: #0", DEFAULT_LOG4J_PROPERTIES_FILE_NAME);
 		}
 	}
 }

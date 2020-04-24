@@ -87,7 +87,7 @@ public final class ShutdownHookUtil extends Thread {
 			}
 		}
 		this.log = Logger.getInstance();
-		this.log.warn("lt.Init");
+		this.log.warn("initialized");
 		this.sCount = new SyncCounter(0, 0, Integer.MAX_VALUE);
 		XThreadData xThreadData;
 		InvokeSignature invokeSig;
@@ -143,7 +143,7 @@ public final class ShutdownHookUtil extends Thread {
 				this.atPool.closeAsync();
 			}
 		}
-		// logDebug("lt.End");
+		// logDebug("ended");
 	}
 
 	private static final String METHOD_RUN_TASK = "runTask";
@@ -179,7 +179,7 @@ public final class ShutdownHookUtil extends Thread {
 		boolean result;
 		synchronized (INSTANCE.hooked) {
 			if (INSTANCE.hooked.booleanValue()) {
-				throw new IllegalStateLtRtException("lt.STDWHookStarted");
+				throw new IllegalStateLtRtException("Shutdown hook already started");
 			}
 			result = FILO_TASKS_FIRST.add(invoke);
 		}
@@ -206,7 +206,7 @@ public final class ShutdownHookUtil extends Thread {
 		boolean result;
 		synchronized (INSTANCE.hooked) {
 			if (INSTANCE.hooked.booleanValue()) {
-				throw new IllegalStateLtRtException("lt.STDWHookStarted");
+				throw new IllegalStateLtRtException("Shutdown hook already started");
 			}
 			result = TASKS.add(invoke);
 		}
@@ -232,7 +232,7 @@ public final class ShutdownHookUtil extends Thread {
 		boolean result;
 		synchronized (INSTANCE.hooked) {
 			if (INSTANCE.hooked.booleanValue()) {
-				throw new IllegalStateLtRtException("lt.STDWHookStarted");
+				throw new IllegalStateLtRtException("Shutdown hook already started");
 			}
 			result = FILO_TASKS_LAST.add(invoke);
 		}
@@ -259,7 +259,7 @@ public final class ShutdownHookUtil extends Thread {
 		boolean result;
 		synchronized (INSTANCE.hooked) {
 			if (INSTANCE.hooked.booleanValue()) {
-				throw new IllegalStateLtRtException("lt.STDWHookStarted");
+				throw new IllegalStateLtRtException("Shutdown hook already started");
 			}
 			result = FILO_TASKS_FIRST.remove(invoke);
 			if (!result) {

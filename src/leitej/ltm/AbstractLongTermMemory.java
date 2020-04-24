@@ -145,7 +145,7 @@ abstract class AbstractLongTermMemory {
 		} catch (final InterruptedException e) {
 			throw new LtmLtRtException(e);
 		}
-		LOG.warn("lt.LtmErase");
+		LOG.warn("Erased All Long Term Memory");
 	}
 
 	private static final String METHOD_CLOSE = "close";

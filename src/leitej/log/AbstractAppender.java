@@ -21,7 +21,6 @@ import java.util.Date;
 import java.util.Map;
 
 import leitej.Constant;
-import leitej.locale.message.Messages;
 import leitej.util.DateUtil;
 import leitej.util.StringUtil;
 
@@ -31,8 +30,6 @@ import leitej.util.StringUtil;
  * @author Julio Leite
  */
 abstract class AbstractAppender {
-
-	private static final Messages MESSAGES = Messages.getInstance();
 
 	private static String[] getHierarchicalSignLog(final String logSignClean) {
 		String[] result = null;
@@ -119,7 +116,7 @@ abstract class AbstractAppender {
 		printOutputStackTrace(elements);
 		Throwable throwable = e.getCause();
 		while (throwable != null) {
-			outPrint(false, MESSAGES.get("lt.CausedBy", throwable));
+			outPrint(false, StringUtil.insertObjects("Caused by: #0", throwable));
 			outPrint(false, Constant.DEFAULT_LINE_SEPARATOR);
 			elements = throwable.getStackTrace();
 			printOutputStackTrace(elements);
@@ -130,7 +127,7 @@ abstract class AbstractAppender {
 	private void printOutputStackTrace(final StackTraceElement[] elements) {
 		for (int j = 0; j < elements.length; j++) {
 			outPrint(false, "\t");
-			outPrint(false, MESSAGES.get("lt.AtMethod"));
+			outPrint(false, "at");
 			outPrint(false, " ");
 			outPrint(false, elements[j].toString());
 			outPrint(false, Constant.DEFAULT_LINE_SEPARATOR);

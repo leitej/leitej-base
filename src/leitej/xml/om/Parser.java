@@ -70,7 +70,7 @@ final class Parser {
 	 */
 	Parser(final InputStreamReader isr) throws XmlomInvalidLtException, XmlInvalidLtException, IOException {
 		this.consumer = new XmlConsumer(isr);
-		LtSystemOut.debug("lt.NewInstance");
+		LtSystemOut.debug("new instance");
 		readMetaData();
 		readRootElementOpen();
 	}
@@ -97,7 +97,7 @@ final class Parser {
 		this.consumer.nextElement();
 		if (!XmlTagType.OPEN.equals(this.consumer.getTagType())
 				&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType())) {
-			throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntaxRootInit", this.consumer);
+			throw new XmlomInvalidLtException("Invalid XML syntax, expected root_element '#0'", this.consumer);
 		}
 		LtSystemOut.debug("#0", this.consumer);
 	}
@@ -110,7 +110,7 @@ final class Parser {
 	private void readRootElementClose() throws XmlomInvalidLtException, XmlInvalidLtException {
 		if (!XmlTagType.CLOSE.equals(this.consumer.getTagType())
 				&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType())) {
-			throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntaxRootEnd", this.consumer);
+			throw new XmlomInvalidLtException("Invalid XML syntax, expected end root_element '#0'", this.consumer);
 		}
 		LtSystemOut.debug("#0", this.consumer);
 	}
@@ -194,7 +194,7 @@ final class Parser {
 			} else {
 				// there is no next object
 				if (comments != null) {
-					throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentSyntax", comments);
+					throw new XmlomInvalidLtException("Invalid XMLOM, expected open element for the comments '#0'", comments);
 				}
 				this.consumer.nextElement();
 				if (this.consumer.isEnded()) {
@@ -203,7 +203,7 @@ final class Parser {
 					close();
 				} else {
 					// invalid xmlom
-					throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
+					throw new XmlomInvalidLtException("Invalid XMLOM, expected open element '#0'", this.consumer);
 				}
 			}
 		}
@@ -215,7 +215,7 @@ final class Parser {
 		final Integer id = getElementAttributeId();
 		if (id != null) {
 			if (comments != null) {
-				throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentLoopObj");
+				throw new XmlomInvalidLtException("Invalid XMLOM, object refered by ID can not have comment");
 			}
 			object = this.trackLoopObjects.get(id);
 			if (object == null) {
@@ -247,20 +247,20 @@ final class Parser {
 			try {
 				dataClass = AgnosticUtil.getClass(className);
 			} catch (final ClassNotFoundException e) {
-				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidAttribClass", this.consumer);
+				throw new XmlomInvalidLtException(e, "Invalid XMLOM element attribute class '#0'", this.consumer);
 			}
 			// parse object
 			if (!XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType())) {
 				if (LeafElement.has(dataClass)) {
 					if (comments != null) {
-						throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentLeaf");
+						throw new XmlomInvalidLtException("Invalid XMLOM, leaf object can not have comment");
 					}
 					this.sbTmpVal.setLength(0);
 					this.consumer.getElementValue(this.sbTmpVal);
 					object = convertFromElementValue(dataClass, this.sbTmpVal);
 				} else if (ArrayElement.has(dataClass)) {
 					if (comments != null) {
-						throw new XmlomInvalidLtException("lt.XmlOmInvalidCommentArray");
+						throw new XmlomInvalidLtException("Invalid XMLOM, array object can not have comment");
 					}
 					object = readArrayObject(dataClass);
 				} else {
@@ -286,7 +286,7 @@ final class Parser {
 		} else if (XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType())) {
 			object = tryfindObjectById(comments);
 		} else {
-			throw new XmlomInvalidLtException("lt.XmlOmMissesAttribClass", this.consumer);
+			throw new XmlomInvalidLtException("Invalid XMLOM element without attribute type '#0'", this.consumer);
 		}
 		return object;
 	}
@@ -304,7 +304,7 @@ final class Parser {
 			try {
 				return Integer.valueOf(this.sbTmpAttb.toString());
 			} catch (final NumberFormatException e) {
-				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidAttribId", this.consumer);
+				throw new XmlomInvalidLtException(e, "Invalid value for attribute id '#0'", this.consumer);
 			}
 		} else {
 			return null;
@@ -344,54 +344,54 @@ final class Parser {
 			}
 		} else if (classValue.equals(Character.class)) {
 			if (valueSb.length() != 1) {
-				throw new XmlomInvalidLtException("lt.XmlOmInvalidValueChar", valueSb.toString());
+				throw new XmlomInvalidLtException("Invalid char - '#0'", valueSb.toString());
 			}
 			result = valueSb.charAt(0);
 		} else if (classValue.equals(AgnosticUtil.PRIMITIVE_BYTE_CLASS)) {
 			try {
 				result = Byte.valueOf(valueSb.toString()).byteValue();
 			} catch (final NumberFormatException e) {
-				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidValueByte", valueSb.toString());
+				throw new XmlomInvalidLtException(e, "Invalid byte - '#0'", valueSb.toString());
 			}
 		} else if (classValue.equals(AgnosticUtil.PRIMITIVE_SHORT_CLASS)) {
 			try {
 				result = Short.valueOf(valueSb.toString()).shortValue();
 			} catch (final NumberFormatException e) {
-				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidValueShort", valueSb.toString());
+				throw new XmlomInvalidLtException(e, "Invalid short - '#0'", valueSb.toString());
 			}
 		} else if (classValue.equals(AgnosticUtil.PRIMITIVE_INT_CLASS)) {
 			try {
 				result = Integer.valueOf(valueSb.toString()).intValue();
 			} catch (final NumberFormatException e) {
-				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidValueInt", valueSb.toString());
+				throw new XmlomInvalidLtException(e, "Invalid int - '#0'", valueSb.toString());
 			}
 		} else if (classValue.equals(AgnosticUtil.PRIMITIVE_LONG_CLASS)) {
 			try {
 				result = Long.valueOf(valueSb.toString()).longValue();
 			} catch (final NumberFormatException e) {
-				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidValueLong", valueSb.toString());
+				throw new XmlomInvalidLtException(e, "Invalid long - '#0'", valueSb.toString());
 			}
 		} else if (classValue.equals(AgnosticUtil.PRIMITIVE_FLOAT_CLASS)) {
 			try {
 				result = Float.valueOf(valueSb.toString()).floatValue();
 			} catch (final NumberFormatException e) {
-				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidValueFloat", valueSb.toString());
+				throw new XmlomInvalidLtException(e, "Invalid float - '#0'", valueSb.toString());
 			}
 		} else if (classValue.equals(AgnosticUtil.PRIMITIVE_DOUBLE_CLASS)) {
 			try {
 				result = Double.valueOf(valueSb.toString()).doubleValue();
 			} catch (final NumberFormatException e) {
-				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidValueDouble", valueSb.toString());
+				throw new XmlomInvalidLtException(e, "Invalid double - '#0'", valueSb.toString());
 			}
 		} else if (classValue.equals(AgnosticUtil.PRIMITIVE_BOOLEAN_CLASS)) {
 			try {
 				result = Boolean.valueOf(valueSb.toString()).booleanValue();
 			} catch (final NumberFormatException e) {
-				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidValueBoolean", valueSb.toString());
+				throw new XmlomInvalidLtException(e, "Invalid boolean - '#0'", valueSb.toString());
 			}
 		} else if (classValue.equals(AgnosticUtil.PRIMITIVE_CHAR_CLASS)) {
 			if (valueSb.length() != 1) {
-				throw new XmlomInvalidLtException("lt.XmlOmInvalidValueChar", valueSb.toString());
+				throw new XmlomInvalidLtException("Invalid char - '#0'", valueSb.toString());
 			}
 			result = valueSb.charAt(0);
 		} else {
@@ -403,7 +403,7 @@ final class Parser {
 					| IllegalArgumentLtRtException | IllegalAccessException e) {
 				throw new XmlomInvalidLtException(e);
 			} catch (final InvocationTargetException e) {
-				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidInvokeValueOf", Constant.VALUEOF_METHOD_NAME,
+				throw new XmlomInvalidLtException(e, "Invalid call '#0' from class '#1' with arg '#2'", Constant.VALUEOF_METHOD_NAME,
 						classValue.getSimpleName(), valueSb.toString());
 			}
 		}
@@ -432,13 +432,13 @@ final class Parser {
 			if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
 					&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
 				this.consumer.nextElement();
-				throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
+				throw new XmlomInvalidLtException("Invalid XMLOM, expected open element '#0'", this.consumer);
 			}
 			this.consumer.nextElement();
 			isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
 			dataName = this.consumer.getElementName().toString();
 			if (!dph.existsDataName(dataName)) {
-				throw new XmlomInvalidLtException("lt.XmlOmInvalidData", dataName, dph.getInterface().getName());
+				throw new XmlomInvalidLtException("Invalid XMLOM, data parser, fail to set '#0' in object '#1'", dataName, dph.getInterface().getName());
 			}
 			dphData.put(dataName, readObjectAux(comments));
 			if (!isElementTagOpenClose) {
@@ -459,7 +459,7 @@ final class Parser {
 				if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
 						&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
 					this.consumer.nextElement();
-					throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
+					throw new XmlomInvalidLtException("Invalid XMLOM, expected open element '#0'", this.consumer);
 				}
 				this.consumer.nextElement();
 				isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
@@ -474,7 +474,7 @@ final class Parser {
 					Array.set(object, i, arrayList.get(i));
 				}
 			} catch (final IllegalArgumentException e) {
-				throw new XmlomInvalidLtException(e, "lt.XmlOmInvalidPrimitiveArray");
+				throw new XmlomInvalidLtException(e, "A primitive array can't have a null element");
 			}
 		} else if (List.class.equals(dataClass)) {
 			// LIST
@@ -483,7 +483,7 @@ final class Parser {
 				if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
 						&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
 					this.consumer.nextElement();
-					throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
+					throw new XmlomInvalidLtException("Invalid XMLOM, expected open element '#0'", this.consumer);
 				}
 				this.consumer.nextElement();
 				isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
@@ -500,7 +500,7 @@ final class Parser {
 				if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
 						&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
 					this.consumer.nextElement();
-					throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
+					throw new XmlomInvalidLtException("Invalid XMLOM, expected open element '#0'", this.consumer);
 				}
 				this.consumer.nextElement();
 				isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
@@ -519,18 +519,18 @@ final class Parser {
 				if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
 						&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
 					this.consumer.nextElement();
-					throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
+					throw new XmlomInvalidLtException("Invalid XMLOM, expected open element '#0'", this.consumer);
 				}
 				if (XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
 					this.consumer.nextElement();
-					throw new XmlomInvalidLtException("lt.XmlOmInvalidMapElementNull", this.consumer);
+					throw new XmlomInvalidLtException("Invalid XMLOM syntax, map element can't be null '#0'", this.consumer);
 				}
 				this.consumer.nextElement();// open element 'element' (only to structure)
 				while (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
 					if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
 							&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
 						this.consumer.nextElement();
-						throw new XmlomInvalidLtException("lt.XmlOmInvalidSyntax", this.consumer);
+						throw new XmlomInvalidLtException("Invalid XMLOM, expected open element '#0'", this.consumer);
 					}
 					this.consumer.nextElement();
 					isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
@@ -541,7 +541,7 @@ final class Parser {
 					} else if (StringUtil.isEquals(Producer.ELEMENT_NAME_MAP_VALUE, this.sbTmpElmName)) {
 						value = readObjectAux(null);
 					} else {
-						new IOException(new XmlomInvalidLtException("lt.XmlOmIgnoredTag", this.consumer));
+						new IOException(new XmlomInvalidLtException("read map elements -> ignore tag '#0'", this.consumer));
 					}
 					if (!isElementTagOpenClose) {
 						this.consumer.nextElement();// close element
@@ -554,7 +554,7 @@ final class Parser {
 			}
 			object = map;
 		} else {
-			throw new ImplementationLtRtException("lt.XmlOmArrayImplementBug");
+			throw new ImplementationLtRtException("Something wrong (Defined an array in 'ArrayElement.ARRAY_CLASS' element which isn't implemented!)");
 		}
 		return object;
 	}

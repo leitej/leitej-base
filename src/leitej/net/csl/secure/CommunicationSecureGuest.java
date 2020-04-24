@@ -77,7 +77,7 @@ public final class CommunicationSecureGuest extends AbstractCommunicationSecureS
 			// |< 1Byte 0x00 confirming the version (else value close connection)
 			tmp = readByte(in);
 			if (tmp != 0) {
-				throw new IOException(new IllegalStateLtRtException("lt.CSLWrongVersion"));
+				throw new IOException(new IllegalStateLtRtException("Endpoint with diferent version"));
 			}
 
 			sendMyIdentification(in, out);

@@ -133,7 +133,7 @@ public final class FileUtil {
 	public static boolean createFile(final String filename, final long length)
 			throws IllegalArgumentException, NullPointerException, SecurityException, IOException {
 		if (length < 0) {
-			throw new IllegalArgumentLtRtException("lt.NegativeValue", "length");
+			throw new IllegalArgumentLtRtException("The #0 argument is less then 0", "length");
 		}
 		boolean result;
 		final File file = new File(filename);
@@ -330,7 +330,7 @@ public final class FileUtil {
 	 */
 	public static byte[] readAllAtOnce(final File file) throws FileNotFoundException, SecurityException, IOException {
 		if (file.length() > Integer.MAX_VALUE) {
-			throw new IllegalArgumentLtRtException("lt.FileLengthTooBig", file.getAbsoluteFile());
+			throw new IllegalArgumentLtRtException("File(#0) length too big for an array of bytes", file.getAbsoluteFile());
 		}
 		final InputStream is = new FileInputStream(file);
 		byte[] result;
@@ -346,7 +346,7 @@ public final class FileUtil {
 			}
 			// Ensure all the bytes have been read in
 			if (offset < arrayLength) {
-				throw new IOException(new IllegalStateLtRtException("lt.IncompleteReadFile", file.getAbsoluteFile()));
+				throw new IOException(new IllegalStateLtRtException("Could not completely read file(#0)", file.getAbsoluteFile()));
 			}
 		} finally {
 			is.close();

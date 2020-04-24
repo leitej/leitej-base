@@ -56,7 +56,7 @@ public final class LtMouseListener implements MouseListener {
 		if (mouseClicked != null) {
 			if (!mouseClicked.matchArguments()) {
 				if (!mouseClicked.matchArguments(MouseEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "mouseClicked",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "mouseClicked",
 							MouseEvent.class);
 				}
 				this.mouseClickedWithEvent = true;
@@ -71,7 +71,7 @@ public final class LtMouseListener implements MouseListener {
 		if (mouseEntered != null) {
 			if (!mouseEntered.matchArguments()) {
 				if (!mouseEntered.matchArguments(MouseEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "mouseEntered",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "mouseEntered",
 							MouseEvent.class);
 				}
 				this.mouseEnteredWithEvent = true;
@@ -86,7 +86,7 @@ public final class LtMouseListener implements MouseListener {
 		if (mouseExited != null) {
 			if (!mouseExited.matchArguments()) {
 				if (!mouseExited.matchArguments(MouseEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "mouseExited",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "mouseExited",
 							MouseEvent.class);
 				}
 				this.mouseExitedWithEvent = true;
@@ -101,7 +101,7 @@ public final class LtMouseListener implements MouseListener {
 		if (mousePressed != null) {
 			if (!mousePressed.matchArguments()) {
 				if (!mousePressed.matchArguments(MouseEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "mousePressed",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "mousePressed",
 							MouseEvent.class);
 				}
 				this.mousePressedWithEvent = true;
@@ -116,7 +116,7 @@ public final class LtMouseListener implements MouseListener {
 		if (mousePressed != null) {
 			if (!mouseReleased.matchArguments()) {
 				if (!mouseReleased.matchArguments(MouseEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "mouseReleased",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "mouseReleased",
 							MouseEvent.class);
 				}
 				this.mouseReleasedWithEvent = true;

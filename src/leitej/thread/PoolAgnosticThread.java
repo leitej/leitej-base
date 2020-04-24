@@ -256,7 +256,7 @@ public final class PoolAgnosticThread {
 		} else {
 			this.closeAsyncInvoke = null;
 		}
-		LOG.trace("lt.NewInstance");
+		LOG.trace("new instance");
 	}
 
 	/**
@@ -271,9 +271,9 @@ public final class PoolAgnosticThread {
 			final PoolEmbebedAgnosticThread peat = newThread();
 			this.threadMonitor[this.numThread++] = peat;
 			offerThread(peat);
-			LOG.trace("lt.ThreadNew", peat.getName());
+			LOG.trace("Instantiated new thread #0", peat.getName());
 		} else {
-			LOG.trace("lt.ThreadNewDeny", this.maxNumThread);
+			LOG.trace("Can't create more threads to pool (max: #0 - all working!)", this.maxNumThread);
 		}
 	}
 
@@ -339,7 +339,7 @@ public final class PoolAgnosticThread {
 			this.closed = true;
 			removeCloseAsyncInvokeFromShutdownHook();
 			internalClose();
-			LOG.trace("lt.Closed");
+			LOG.trace("closed");
 		}
 	}
 
@@ -356,7 +356,7 @@ public final class PoolAgnosticThread {
 			this.closed = true;
 			removeCloseAsyncInvokeFromShutdownHook();
 			internalClose();
-			LOG.trace("lt.Closed");
+			LOG.trace("closed");
 		}
 	}
 
@@ -466,7 +466,7 @@ public final class PoolAgnosticThread {
 	public void normalizerJob() {
 		if (Thread.currentThread().getId() == this.normalizer.getId()) {
 			try {
-				LOG.debug("lt.Init");
+				LOG.debug("initialized");
 				if (!this.executioner.isAlive() || !this.rescuer.isAlive()) {
 					throw new SeppukuLtRtException(420, null);
 				}
@@ -485,7 +485,7 @@ public final class PoolAgnosticThread {
 				if (!this.closed) {
 					ensuresMinimalThread();
 				}
-				LOG.debug("lt.End");
+				LOG.debug("ended");
 			} catch (final ImplementationLtRtException e) {
 				e.printStackTrace();
 				throw new SeppukuLtRtException(420, e);
@@ -495,7 +495,7 @@ public final class PoolAgnosticThread {
 				e.printStackTrace();
 			}
 		} else {
-			throw new ImplementationLtRtException("lt.ThreadNormalizerRule");
+			throw new ImplementationLtRtException("This method can only be invoked by the thread normalizer");
 		}
 	}
 
@@ -586,18 +586,18 @@ public final class PoolAgnosticThread {
 			if (this.threadMonitor[i] != null && this.threadMonitor[i].isTerminated()) {
 				peat = this.threadMonitor[i];
 				peat.closeAsync();
-				LOG.warn("lt.AtypicallyStoppedThreadDetected", peat.getName());
+				LOG.warn("Thread '#0' stopped atypically with unknown reason", peat.getName());
 				ts = this.taskWorkingMap.get(peat.getId());
 				if (ts != null) {
 					xtd = (XThreadData) ts.getXThreadData();
 					if (xtd != null) {
 						try {
 							xtd.getResult();
-							xtd.setException(new PoolAgnosticThreadLtException("lt.AtypicallyStoppedThreadDetected",
+							xtd.setException(new PoolAgnosticThreadLtException("Thread '#0' stopped atypically with unknown reason",
 									peat.getName()));
 						} catch (final ParallelLtRtException e) {
 							xtd.setException(new PoolAgnosticThreadLtException(e.getCause(),
-									"lt.AtypicallyStoppedThreadDetected", peat.getName()));
+									"Thread '#0' stopped atypically with unknown reason", peat.getName()));
 						}
 						xtd.stopAtypically();
 						xtd.done();
@@ -620,7 +620,7 @@ public final class PoolAgnosticThread {
 		boolean flag = true;
 		for (int i = 0; i < this.maxNumThread && !this.closed; i++) {
 			if (this.threadMonitor[i] != null && !flag) {
-				new ImplementationLtRtException("lt.FaultDetected");
+				new ImplementationLtRtException("Fault detected");
 			}
 			if (this.threadMonitor[i] == null && flag) {
 				flag = false;
@@ -637,7 +637,7 @@ public final class PoolAgnosticThread {
 	public void rescuerJob() {
 		if (Thread.currentThread().getId() == this.rescuer.getId()) {
 			try {
-				LOG.debug("lt.Init");
+				LOG.debug("initialized");
 				Long key = null;
 				boolean poolKeyDone = false;
 				boolean threadOfferDone = false;
@@ -669,7 +669,7 @@ public final class PoolAgnosticThread {
 							} catch (final InterruptedException e) {
 								/* ignored */}
 						}
-						LOG.trace("lt.ThreadOffer", key);
+						LOG.trace("Thread id: #0 recovering to offer", key);
 						// get thread done
 						thread = this.threadWorkingMap.remove(key);
 						// get task done
@@ -685,14 +685,14 @@ public final class PoolAgnosticThread {
 									/* ignored */}
 							}
 						} else {
-							new ImplementationLtRtException("lt.ThreadThreadNull", key);
+							new ImplementationLtRtException("Received a null when trying to get thread id: #0 (this shouldn't happen)", key);
 						}
 						if (ts != null) {
 							ts.updateTask();
 							// put task to work again
 							addTaskToWork(ts);
 						} else {
-							new ImplementationLtRtException("lt.ThreadTaskNull", key);
+							new ImplementationLtRtException("Received a null when trying to get task that worked on thread id: #0 (this shouldn't happen)", key);
 						}
 					}
 					synchronized (this.rescuer) {
@@ -703,12 +703,12 @@ public final class PoolAgnosticThread {
 					this.rescuerPause = false;
 					Thread.interrupted();
 				}
-				LOG.debug("lt.ThreadRescuerStop");
+				LOG.debug("stopping the rescuer thread");
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		} else {
-			throw new ImplementationLtRtException("lt.ThreadRescuerRule");
+			throw new ImplementationLtRtException("This method can only be invoked by the thread rescuer");
 		}
 	}
 
@@ -721,7 +721,7 @@ public final class PoolAgnosticThread {
 	public void executionerJob() throws ClosedLtRtException {
 		if (Thread.currentThread().getId() == this.executioner.getId()) {
 			try {
-				LOG.debug("lt.Init");
+				LOG.debug("initialized");
 				long sleepTime = EXECUTIONER_SLEEP_TIME;
 				PoolEmbebedAgnosticThread threadTmp = null;
 				PoolTaskStruct tsTmp = null;
@@ -746,7 +746,7 @@ public final class PoolAgnosticThread {
 							try {
 								threadTmp = poolThread();
 								if (!this.closed) {
-									LOG.trace("lt.ThreadTaskWork", tsTmp, tsTmp.getDate().getTime());
+									LOG.trace("put to work #0 at #1", tsTmp, tsTmp.getDate().getTime());
 									this.taskWorkingMap.put(threadTmp.getId(), tsTmp);
 									threadTmp.workOn((ThreadData) tsTmp.getXThreadData());
 									this.taskWaitingSet.remove(tsTmp);
@@ -760,7 +760,7 @@ public final class PoolAgnosticThread {
 							}
 						} else {
 							this.taskWaitingSet.remove(tsTmp);
-							LOG.trace("lt.ThreadTaskLeaveAtypically",
+							LOG.trace("XThreadData '#0' atypically leave queue",
 									tsTmp.getXThreadData().getInvokeData().getMethod().getName());
 						}
 					}
@@ -780,12 +780,12 @@ public final class PoolAgnosticThread {
 					this.executionerPause = false;
 					Thread.interrupted();
 				}
-				LOG.debug("lt.ThreadExecutionerStop");
+				LOG.debug("stopping the executioner thread");
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		} else {
-			throw new ImplementationLtRtException("lt.ThreadExecutionerRule");
+			throw new ImplementationLtRtException("This method can only be invoked by the thread executioner");
 		}
 	}
 
@@ -874,13 +874,13 @@ public final class PoolAgnosticThread {
 	public void workOn(final XThreadData xThreadData)
 			throws PoolAgnosticThreadLtException, SeppukuLtRtException, IllegalArgumentLtRtException {
 		if (this.closed || this.closedWorkOn) {
-			throw new PoolAgnosticThreadLtException(new ClosedLtRtException("lt.ThreadAlreadyClose"));
+			throw new PoolAgnosticThreadLtException(new ClosedLtRtException("Only give work before close the pool!"));
 		}
 		if (!this.normalizer.isAlive()) {
 			throw new SeppukuLtRtException(420, null);
 		}
 		if (xThreadData == null) {
-			throw new IllegalArgumentLtRtException("lt.ThreadWorkOnNull");
+			throw new IllegalArgumentLtRtException("The parameter xThreadData can't be null");
 		}
 		addTaskToWork(new PoolTaskStruct(xThreadData));
 	}
@@ -888,14 +888,14 @@ public final class PoolAgnosticThread {
 	private void addTaskToWork(final PoolTaskStruct ts) {
 		if (ts.getDate() != null) {
 			this.taskWaitingSet.add(ts);
-			LOG.trace("lt.ThreadTaskEnter", ts, this.taskWaitingSet.size());
+			LOG.trace("taskStruct: #0, Enter queue todoSet size: #1", ts, this.taskWaitingSet.size());
 			synchronized (this.executioner) {
 				if (this.executionerPause) {
 					this.executioner.interrupt();
 				}
 			}
 		} else {
-			LOG.trace("lt.ThreadTaskLeave", ts, this.taskWaitingSet.size());
+			LOG.trace("taskStruct: #0, Leave queue todoSet size: #1", ts, this.taskWaitingSet.size());
 		}
 	}
 

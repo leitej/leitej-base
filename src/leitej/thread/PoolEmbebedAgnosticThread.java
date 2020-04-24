@@ -37,7 +37,7 @@ final class PoolEmbebedAgnosticThread extends AgnosticThread {
 	PoolEmbebedAgnosticThread(final String name, final PoolAgnosticThread myPool) {
 		super(name, true);
 		if (myPool == null) {
-			throw new IllegalArgumentLtRtException("lt.ThreadEmbebedPoolNull");
+			throw new IllegalArgumentLtRtException("The parameter myPool can't be null");
 		}
 		this.myPool = myPool;
 	}

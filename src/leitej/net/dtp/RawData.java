@@ -68,7 +68,7 @@ public final class RawData extends InputStream implements Serializable {
 	}
 
 	static void initRequest() {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		myList().clear();
 	}
 
@@ -79,7 +79,7 @@ public final class RawData extends InputStream implements Serializable {
 	}
 
 	static void initResponse() {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		myList().clear();
 	}
 
@@ -133,7 +133,7 @@ public final class RawData extends InputStream implements Serializable {
 	}
 
 	void setInputStream(final RawDataListener rawDataListener) throws IOException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		if (this.in != null) {
 			throw new ImplementationLtRtException();
 		}
@@ -143,7 +143,7 @@ public final class RawData extends InputStream implements Serializable {
 	}
 
 	void setInputStream(final Socket socket) throws IOException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		if (this.in != null) {
 			throw new ImplementationLtRtException();
 		}

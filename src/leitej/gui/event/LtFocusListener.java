@@ -44,7 +44,7 @@ public final class LtFocusListener implements FocusListener {
 		if (focusGained != null) {
 			if (!focusGained.matchArguments()) {
 				if (!focusGained.matchArguments(FocusEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "focusGained",
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "focusGained",
 							FocusEvent.class);
 				}
 				this.focusGainedWithEvent = true;
@@ -59,7 +59,7 @@ public final class LtFocusListener implements FocusListener {
 		if (focusLost != null) {
 			if (!focusLost.matchArguments()) {
 				if (!focusLost.matchArguments(FocusEvent.class)) {
-					throw new IllegalArgumentLtRtException("lt.GUIEventMethodWrongArgs", "focusLost", FocusEvent.class);
+					throw new IllegalArgumentLtRtException("Argument '#0' has to sign a method with no argument or an argument of class '#1' to be called", "focusLost", FocusEvent.class);
 				}
 				this.focusLostWithEvent = true;
 			} else {

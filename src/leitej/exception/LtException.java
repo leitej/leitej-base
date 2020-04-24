@@ -19,7 +19,7 @@ package leitej.exception;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
-import leitej.locale.message.Messages;
+import leitej.util.StringUtil;
 
 /**
  * The class <code>LtException</code> and its subclasses are a form of
@@ -32,7 +32,6 @@ import leitej.locale.message.Messages;
 public class LtException extends Exception {
 
 	private static final long serialVersionUID = 200912212257L;
-	private static final Messages MESSAGES = Messages.getInstance();
 
 	/** The nested exception. May be null. */
 	private final Throwable mCause;
@@ -72,7 +71,7 @@ public class LtException extends Exception {
 	 * @param objects To use if needed to build the message.
 	 */
 	public LtException(final Throwable cause, final String message, final Object... objects) {
-		super(MESSAGES.get(message, objects));
+		super(StringUtil.insertObjects(message, objects));
 		this.mCause = cause;
 	}
 
@@ -97,7 +96,8 @@ public class LtException extends Exception {
 		synchronized (stream) {
 			super.printStackTrace(stream);
 			if ((this.mCause != null) && (!superClassPrintsCause())) {
-				stream.println(MESSAGES.get("lt.CausedBy", this.mCause.getMessage()));
+				stream.print("Caused by: ");
+				stream.println(this.mCause.getMessage());
 				this.mCause.printStackTrace(stream);
 			}
 		}
@@ -114,7 +114,8 @@ public class LtException extends Exception {
 		synchronized (writer) {
 			super.printStackTrace(writer);
 			if ((this.mCause != null) && (!superClassPrintsCause())) {
-				writer.println(MESSAGES.get("lt.CausedBy", this.mCause.getMessage()));
+				writer.print("Caused by: ");
+				writer.println(this.mCause.getMessage());
 				this.mCause.printStackTrace(writer);
 			}
 		}

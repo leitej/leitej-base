@@ -109,7 +109,7 @@ public final class XmlProducer {
 	 */
 	private void write(final CharSequence txt) throws IOException, XmlInvalidLtException {
 		if (this.endRootElement) {
-			throw new XmlInvalidLtException("lt.XmlInvalidElementAfterRootEnd");
+			throw new XmlInvalidLtException("Invalid XML syntax, unnexpected tag after element root end!");
 		}
 		this.outWriter.append(txt);
 	}
@@ -188,7 +188,7 @@ public final class XmlProducer {
 	private void printTagClose(final CharSequence elementName, final boolean ident)
 			throws XmlInvalidLtException, IOException {
 		if (!this.tagTrack.pop().contentEquals(elementName)) {
-			throw new XmlInvalidLtException("lt.XmlInvalidElementConstruct", elementName);
+			throw new XmlInvalidLtException("Invalid XML syntax, unnexpected end_tag_name '#0'", elementName);
 		}
 		this.sbTmp.setLength(0);
 		this.xmlProdTools.genElementTagClose(this.sbTmp, ((ident) ? ident() : 0), elementName);

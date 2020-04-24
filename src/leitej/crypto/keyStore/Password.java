@@ -172,7 +172,7 @@ public final class Password {
 	 */
 	public synchronized final void destroy() {
 		if (this.d != null) {
-			LOG.debug("lt.Init");
+			LOG.debug("initialized");
 			this.random.nextBytes(this.c);
 			this.c = null;
 			if (this.counter > 1) {

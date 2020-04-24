@@ -70,14 +70,14 @@ public final class QueueBlockingFIFO<E> implements Serializable {
 	public void offer(final E obj) throws InterruptedException, ClassCastException, NullPointerException,
 			IllegalArgumentException, ClosedLtRtException {
 		if (this.closed) {
-			throw new ClosedLtRtException("lt.QueueCloseOffer");
+			throw new ClosedLtRtException("Already closed - can't offer!");
 		}
 		boolean added = this.queue.offer(obj, TIMEOUT, TIMEOUT_UNIT);
 		while (!added && !this.closed) {
 			added = this.queue.offer(obj, TIMEOUT, TIMEOUT_UNIT);
 		}
 		if (!added) {
-			throw new ClosedLtRtException("lt.QueueCloseOffer");
+			throw new ClosedLtRtException("Already closed - can't offer!");
 		}
 	}
 
@@ -91,14 +91,14 @@ public final class QueueBlockingFIFO<E> implements Serializable {
 	 */
 	public E poll() throws InterruptedException, ClosedLtRtException {
 		if (this.closed && this.queue.size() == 0) {
-			throw new ClosedLtRtException("lt.QueueCloseOffer");
+			throw new ClosedLtRtException("Already closed - can't offer!");
 		}
 		E result = this.queue.poll(TIMEOUT, TIMEOUT_UNIT);
 		while (result == null && !this.closed) {
 			result = this.queue.poll(TIMEOUT, TIMEOUT_UNIT);
 		}
 		if (result == null) {
-			throw new ClosedLtRtException("lt.QueueCloseOffer");
+			throw new ClosedLtRtException("Already closed - can't offer!");
 		}
 		return result;
 	}

@@ -18,7 +18,6 @@ leitej.gui.exception
 leitej.gui.uniform
 leitej.gui.uniform.model
 leitej.gui.util
-leitej.locale.message
 leitej.log
 leitej.ltm
 leitej.ltm.annotation

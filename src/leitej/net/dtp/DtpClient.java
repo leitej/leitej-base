@@ -47,7 +47,7 @@ public final class DtpClient implements ConnectionClientItf {
 		XmlObjectModelling result;
 		InternalMessage internalMessage;
 		if (!this.comSession.isConnected()) {
-			throw new ConnectionLtException(new DtpLtException("lt.DTPNotConnected"));
+			throw new ConnectionLtException(new DtpLtException("Not connected"));
 		}
 		List<RawData> rawDataList;
 		RawData.initRequest();

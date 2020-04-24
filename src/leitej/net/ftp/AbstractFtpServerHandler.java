@@ -35,12 +35,12 @@ import java.util.StringTokenizer;
 import leitej.Constant;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.LtException;
-import leitej.locale.message.Messages;
 import leitej.log.Logger;
 import leitej.net.exception.FtpLtException;
 import leitej.thread.PoolAgnosticThread;
 import leitej.thread.XThreadData;
 import leitej.util.AgnosticUtil;
+import leitej.util.StringUtil;
 import leitej.util.data.Invoke;
 import leitej.util.fs.Path;
 
@@ -51,7 +51,6 @@ import leitej.util.fs.Path;
 public abstract class AbstractFtpServerHandler {
 
 	private static final Logger LOG = Logger.getInstance();
-	private static final Messages MESSAGES = Messages.getInstance();
 
 	private PoolAgnosticThread poolAThread;
 	private AbstractFtpServer<?> server;
@@ -109,7 +108,7 @@ public abstract class AbstractFtpServerHandler {
 
 	public synchronized final void deal() {
 		if (!PoolAgnosticThread.isCurrentThreadFrom(this.poolAThread)) {
-			throw new IllegalStateLtRtException("lt.FTPWrongCall");
+			throw new IllegalStateLtRtException("This method only can be called by abstract class AbstractHandler");
 		}
 		try {
 			send(CodeEnum._220);
@@ -282,19 +281,19 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	protected CodeEnum handleSpecialCMD(final String command, final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		return null;
 	}
 
 	protected CodeEnum handleUSER(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		this.sessionData.setUserName(args.toString());
 		this.sessionData.setPassword(null);
 		return send(CodeEnum._331);
 	}
 
 	protected CodeEnum handlePASS(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		if (!CodeEnum._331.equals(this.sessionData.getLastCodeSent())
 				|| !CommandEnum.USER.equals(this.sessionData.getLastCommandReceived())) {
 			throw new FtpLtException(CodeEnum._503_luf);
@@ -309,13 +308,13 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract boolean auth(SessionData session);
 
 	protected CodeEnum handleACCT(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		return null;
 	}
 
 	protected CodeEnum handleCWD(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		if (args.length() != 0 && args.charAt(args.length() - 1) != Path.SEPARATOR.charAt(0)) {
 			args.append(Path.SEPARATOR);
@@ -344,7 +343,7 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract int changeWorkingDirectory(StringBuilder args);
 
 	protected CodeEnum handleCDUP(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		if (changeToParentDirectory() != 0) {
 			throw new FtpLtException(CodeEnum._550);
@@ -361,13 +360,13 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract int changeToParentDirectory();
 
 	protected CodeEnum handleSMNT(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		return null;
 	}
 
 	protected CodeEnum handleREIN(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		if (this.sessionData.isAuth()) {
 			this.sessionData.setPassword(null);
 			this.sessionData = new SessionData();
@@ -379,7 +378,7 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract void reset();
 
 	protected CodeEnum handleQUIT(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		if (this.sessionData.isAuth()) {
 			this.sessionData.setPassword(null);
 			this.sessionData = new SessionData();
@@ -388,7 +387,7 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	protected CodeEnum handlePORT(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		final StringTokenizer tmp = new StringTokenizer(args.toString(), ",");
 		try {
@@ -408,7 +407,7 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	protected CodeEnum handlePASV(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		final String pasv = this.sessionData.setPassiv();
 		if (pasv == null) {
@@ -419,7 +418,7 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	protected CodeEnum handleTYPE(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		if (args.length() != 1) {
 			throw new FtpLtException(CodeEnum._501);
@@ -440,7 +439,7 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	protected CodeEnum handleSTRU(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		if (args.length() != 1) {
 			throw new FtpLtException(CodeEnum._501);
@@ -456,7 +455,7 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	protected CodeEnum handleMODE(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		if (args.length() != 1) {
 			throw new FtpLtException(CodeEnum._501);
@@ -472,7 +471,7 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	protected CodeEnum handleRETR(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		Socket dataSocket = null;
 		int isFile = isFile(args);
@@ -548,7 +547,7 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract int sendBinaryFile(BufferedOutputStream out, StringBuilder args, Long offset);
 
 	protected CodeEnum handleSTOR(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		Socket dataSocket = null;
 		final int isDirectory = isDirectory(args);
@@ -607,40 +606,40 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract int receiveBinaryFile(BufferedInputStream in, StringBuilder args, Long offset);
 
 	protected CodeEnum handleSTOU(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		// TODO:
 		return null;
 	}
 
 	protected CodeEnum handleAPPE(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		// TODO:
 		return null;
 	}
 
 	protected CodeEnum handleALLO(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		// TODO:
 		return null;
 	}
 
 	protected CodeEnum handleREST(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		return send(CodeEnum._350);
 	}
 
 	protected CodeEnum handleRNFR(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		return send(CodeEnum._350);
 	}
 
 	protected CodeEnum handleRNTO(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		if (!CodeEnum._350.equals(this.sessionData.getLastCodeSent())
 				|| !CommandEnum.RNFR.equals(this.sessionData.getLastCommandReceived())) {
@@ -666,14 +665,14 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract int rename(String from, StringBuilder to);
 
 	protected CodeEnum handleABOR(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		// TODO:
 		return null;
 	}
 
 	protected CodeEnum handleDELE(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		final int r = delete(args);
 		if (r == 1) {
@@ -699,7 +698,7 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract int delete(StringBuilder args);
 
 	protected CodeEnum handleRMD(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		if (args.length() != 0 && args.charAt(args.length() - 1) != Path.SEPARATOR.charAt(0)) {
 			args.append(Path.SEPARATOR);
@@ -732,7 +731,7 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract int removeDirectory(StringBuilder args);
 
 	protected CodeEnum handleMKD(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		if (args.length() != 0 && args.charAt(args.length() - 1) != Path.SEPARATOR.charAt(0)) {
 			args.append(Path.SEPARATOR);
@@ -761,7 +760,7 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract int makeDirectory(StringBuilder args);
 
 	protected CodeEnum handlePWD(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		return send(CodeEnum._257, "\"" + pwd() + "\"");
 	}
@@ -769,7 +768,7 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract String pwd();
 
 	protected CodeEnum handleLIST(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		Socket dataSocket = null;
 		if (args.length() != 0 && args.charAt(0) == '-') {
@@ -816,7 +815,7 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract void writeFileList(PrintWriter out, Object[] fileArray);
 
 	protected CodeEnum handleNLST(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		Socket dataSocket = null;
 		if (args.length() != 0 && args.charAt(args.length() - 1) != Path.SEPARATOR.charAt(0)) {
@@ -854,13 +853,13 @@ public abstract class AbstractFtpServerHandler {
 	protected abstract void writeFileNameList(PrintWriter out, Object[] fileArray);
 
 	protected CodeEnum handleSITE(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		return send(CodeEnum._202);
 	}
 
 	protected CodeEnum handleSYST(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		final String systemId = systemId();
 		return ((systemId != null) ? send(CodeEnum._215, systemId) : send(CodeEnum._502));
@@ -871,27 +870,27 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	protected CodeEnum handleSTAT(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		// TODO:
 		return null;
 	}
 
 	protected CodeEnum handleHELP(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		// TODO:
 		return null;
 	}
 
 	protected CodeEnum handleNOOP(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		checkLogin();
 		return send(CodeEnum._200);
 	}
 
 	private CodeEnum handleOPTS(final StringBuilder args) throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		final StringTokenizer st = new StringTokenizer(args.toString(), " ");
 		if (!st.hasMoreTokens()) {
 			return send(CodeEnum._501);
@@ -915,7 +914,7 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	protected final CodeEnum send(final CodeEnum code, final Object... args) {
-		final String txt = MESSAGES.get(code.getMessageKey(), args);
+		final String txt = StringUtil.insertObjects(code.getMessageKey(), args);
 		this.writer.println(txt);
 		this.writer.flush();
 		this.sessionData.setLastCodeSent(code);
@@ -933,7 +932,7 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	private void internalClose() throws IOException, FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		waitFilesTransaction();
 		if (this.socket != null) {
 			handleQUIT(null);
@@ -947,7 +946,7 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	final void close() {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		waitFilesTransaction();
 		if (this.socket != null) {
 			try {
@@ -972,7 +971,7 @@ public abstract class AbstractFtpServerHandler {
 	}
 
 	private Socket getDataSocketClient() throws FtpLtException {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		if (TransferModeEnum.ACTIVE.equals(this.sessionData.getTransferMode())) {
 			try {
 				return new Socket(InetAddress.getByName(this.sessionData.getClientDtpIp()),

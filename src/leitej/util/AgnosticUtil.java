@@ -124,7 +124,7 @@ public final class AgnosticUtil implements Serializable {
 	public static Method getMethod(final Object object, final String methodName, final Class<?>... args)
 			throws IllegalArgumentLtRtException, SecurityException, NoSuchMethodException {
 		if (object == null) {
-			throw new IllegalArgumentLtRtException("lt.AgnArgNull");
+			throw new IllegalArgumentLtRtException("object is null. if method is static then send the class!!!");
 		}
 		Method method = null;
 		if (Class.class.isInstance(object)) {

@@ -111,7 +111,7 @@ public abstract class AbstractDtpHandler {
 
 	public synchronized final void deal() {
 		if (!PoolAgnosticThread.isCurrentThreadFrom(this.server.getHandlerThreadPool())) {
-			throw new ImplementationLtRtException("lt.DTPWrongCall");
+			throw new ImplementationLtRtException("This method only can be called by abstract class AbstractHandler");
 		}
 		try {
 			XmlObjectModelling request = null;
@@ -209,7 +209,7 @@ public abstract class AbstractDtpHandler {
 
 	private final void setReceiveInputStreamAsync(final RawDataListener rawDataListener, final RawData rawData,
 			final long callNumber) {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		try {
 			this.server.getRawDataThreadPool().workOn(new XThreadData(
 					new Invoke(this, METHOD_SET_RECEIVE_INPUT_STREAM, rawDataListener, rawData, callNumber)));
@@ -223,7 +223,7 @@ public abstract class AbstractDtpHandler {
 	public final void setReceiveInputStream(final RawDataListener rawDataListener, final RawData rawData,
 			final long callNumber) {
 		if (!PoolAgnosticThread.isCurrentThreadFrom(this.server.getRawDataThreadPool())) {
-			throw new ImplementationLtRtException("lt.DTPWrongCall");
+			throw new ImplementationLtRtException("This method only can be called by abstract class AbstractHandler");
 		}
 		try {
 			rawDataListener.setReceiveInputStream(rawData, callNumber);
@@ -247,7 +247,7 @@ public abstract class AbstractDtpHandler {
 
 	private final void handleSendAsync(final RawDataListener rawDataListener, final RawData rawData,
 			final long callNumber) {
-		LOG.trace("lt.Init");
+		LOG.trace("initialized");
 		try {
 			this.server.getRawDataThreadPool().workOn(new XThreadData(
 					new Invoke(this, METHOD_HANDLE_SEND_RAW_DATA, rawDataListener, rawData, callNumber)));
@@ -260,7 +260,7 @@ public abstract class AbstractDtpHandler {
 
 	public final void handleSend(final RawDataListener rawDataListener, final RawData rawData, final long callNumber) {
 		if (!PoolAgnosticThread.isCurrentThreadFrom(this.server.getRawDataThreadPool())) {
-			throw new ImplementationLtRtException("lt.DTPWrongCall");
+			throw new ImplementationLtRtException("This method only can be called by abstract class AbstractHandler");
 		}
 		try {
 			rawDataListener.handleSend(rawData, callNumber);

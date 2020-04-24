@@ -56,7 +56,7 @@ public class XSecurityManager extends SecurityManager {
 		super();
 		synchronized (SecurityManager.class) {
 			if (EXTENSION_ACTIVE) {
-				throw new IllegalStateLtRtException("lt.OtherInstanceActive");
+				throw new IllegalStateLtRtException("There are already an instance active");
 			}
 			this.securityManager = System.getSecurityManager();
 			System.setSecurityManager(this);

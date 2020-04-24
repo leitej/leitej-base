@@ -106,7 +106,7 @@ public final class DtpServer {
 	public final void startServer() {
 		if (Thread.currentThread().getId() == this.aThread.getId()) {
 			if (!this.closed) {
-				LOG.info("lt.CommStart", this.comServer.getLocalSocketAddress());
+				LOG.info("Start server at #0", this.comServer.getLocalSocketAddress());
 				AbstractDtpHandler handler;
 				try {
 					while (!this.closed) {
@@ -148,7 +148,7 @@ public final class DtpServer {
 				}
 			} else {
 				if (this.closed) {
-					LOG.warn("lt.CommAlreadyClosed");
+					LOG.warn("Already closed");
 				}
 			}
 		} else {
@@ -200,7 +200,7 @@ public final class DtpServer {
 			removeCloseAsyncInvokeFromShutdownHook();
 		}
 		if (!this.comServer.isClosed()) {
-			LOG.debug("lt.CSLDTPClosing");
+			LOG.debug("Closing DTP server");
 			try {
 				this.comServer.close();
 			} catch (final ConnectionLtException e) {

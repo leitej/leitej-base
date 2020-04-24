@@ -42,7 +42,7 @@ public final class MathUtil {
 	 */
 	public static BigInteger factorial(final long n) throws IllegalArgumentLtRtException {
 		if (n < 0) {
-			throw new IllegalArgumentLtRtException("lt.IllegalNegativeArg");
+			throw new IllegalArgumentLtRtException("Can't calculate with negative argument");
 		}
 		BigInteger result = BigInteger.ONE;
 		for (long i = 2L; i <= n; i++) {
@@ -60,7 +60,7 @@ public final class MathUtil {
 	 */
 	public static BigInteger factorial(final BigInteger n) throws IllegalArgumentLtRtException {
 		if (n.compareTo(BigInteger.ZERO) < 0) {
-			throw new IllegalArgumentLtRtException("lt.IllegalNegativeArg");
+			throw new IllegalArgumentLtRtException("Can't calculate with negative argument");
 		}
 		BigInteger result = BigInteger.ONE;
 		for (BigInteger i = BigInteger.valueOf(2); i.compareTo(n) <= 0; i = i.add(BigInteger.ONE)) {

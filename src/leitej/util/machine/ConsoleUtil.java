@@ -46,9 +46,9 @@ public class ConsoleUtil {
 	 */
 	public static void pause() throws IOError, IllegalStateLtRtException {
 		if (!hasConsole()) {
-			throw new IllegalStateLtRtException("lt.ConsoleNull");
+			throw new IllegalStateLtRtException("The system did not give me a console");
 		}
-		LOG.warn("lt.ConsolePause");
+		LOG.warn("Paused. Hit Enter to continue ...");
 		System.console().readLine();
 		// while(System.in.available()>0){
 		// System.in.skip(System.in.available());
@@ -81,7 +81,7 @@ public class ConsoleUtil {
 	 */
 	public static void write(final String msg, final Object... args) {
 		if (!hasConsole()) {
-			throw new IllegalStateLtRtException("lt.ConsoleNull");
+			throw new IllegalStateLtRtException("The system did not give me a console");
 		}
 		System.console().printf("%1$s", StringUtil.insertObjects(msg, args));
 	}
@@ -95,7 +95,7 @@ public class ConsoleUtil {
 	 */
 	public static char[] readPassword() throws IOError, IllegalStateException {
 		if (!hasConsole()) {
-			throw new IllegalStateLtRtException("lt.ConsoleNull");
+			throw new IllegalStateLtRtException("The system did not give me a console");
 		}
 		return System.console().readPassword();
 	}
@@ -112,7 +112,7 @@ public class ConsoleUtil {
 	public static char[] readPassword(final String msgPrompt, final Object... args)
 			throws IOError, IllegalStateException {
 		if (!hasConsole()) {
-			throw new IllegalStateLtRtException("lt.ConsoleNull");
+			throw new IllegalStateLtRtException("The system did not give me a console");
 		}
 		return System.console().readPassword("%1$s", StringUtil.insertObjects(msgPrompt, args));
 	}
@@ -126,7 +126,7 @@ public class ConsoleUtil {
 	 */
 	public static String readLine() throws IOError, IllegalStateException {
 		if (!hasConsole()) {
-			throw new IllegalStateLtRtException("lt.ConsoleNull");
+			throw new IllegalStateLtRtException("The system did not give me a console");
 		}
 		return System.console().readLine();
 	}

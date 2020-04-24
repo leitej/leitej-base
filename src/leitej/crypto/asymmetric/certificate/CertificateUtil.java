@@ -346,7 +346,7 @@ public final class CertificateUtil {
 	 */
 	static void verifyTypeX509(final Certificate certificate) throws CertificateLtException {
 		if (!X509Certificate.class.isInstance(certificate) || !TypeEnum.X509.getName().equals(certificate.getType())) {
-			throw new CertificateLtException(new CertificateException(), "lt.CryptoCertInvalidType",
+			throw new CertificateLtException(new CertificateException(), "Invalid type: #0",
 					certificate.getType());
 		}
 	}

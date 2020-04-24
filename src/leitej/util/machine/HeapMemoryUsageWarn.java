@@ -66,7 +66,7 @@ public final class HeapMemoryUsageWarn {
 				return pool;
 			}
 		}
-		throw new ImplementationLtRtException("lt.CNFTenuredSpace");
+		throw new ImplementationLtRtException("Could not find tenured space");
 	}
 
 	/**
@@ -76,14 +76,14 @@ public final class HeapMemoryUsageWarn {
 	 */
 	public static void setPercentageUsageThreshold(final double percentage) {
 		if (percentage <= 0.0 || percentage > 1.0) {
-			throw new IllegalArgumentLtRtException("lt.HMUWWrongPercentage", percentage);
+			throw new IllegalArgumentLtRtException("Percentage not in range (0.0 < x=#0 <= 1.0)", percentage);
 		}
 		tenuredGenPool.setUsageThreshold((long) (tenuredGenPool.getUsage().getMax() * percentage));
-		LOG.debug("lt.CNFTenuredSpaceSet", percentage);
+		LOG.debug("Percentage: #0", percentage);
 	}
 
 	private static void notifyMemoryUsageLow(final long usedMemory, final long maxMemory) {
-		LOG.debug("lt.CNFTenuredSpaceWarn", listeners.size());
+		LOG.debug("Notify #0 listeners", listeners.size());
 		for (final Listener listener : listeners) {
 			listener.memoryUsageLow(usedMemory, maxMemory);
 		}
