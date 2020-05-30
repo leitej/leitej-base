@@ -35,10 +35,10 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import leitej.exception.ClosedLtRtException;
+import leitej.exception.GuiLtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.gui.event.LtMouseListener;
 import leitej.gui.event.LtMouseMotionAdapter;
-import leitej.gui.exception.GuiLtException;
 import leitej.gui.uniform.model.ActionInput;
 import leitej.gui.uniform.model.Data;
 import leitej.gui.uniform.model.ElementUpdate;

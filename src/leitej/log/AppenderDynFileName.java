@@ -26,8 +26,8 @@ import java.util.Date;
 import leitej.Constant;
 import leitej.util.DateUtil;
 import leitej.util.data.DateFieldEnum;
-import leitej.util.data.DateTimer;
-import leitej.util.data.DateTimerItf;
+import leitej.util.data.TimeTrigger;
+import leitej.util.data.TimeTriggerImpl;
 
 /**
  * AppenderDynFileName
@@ -42,7 +42,7 @@ class AppenderDynFileName extends AbstractAppender {
 	private final boolean appendFile;
 	private final String charsetName;
 
-	private final DateTimerItf dateTimer;
+	private final TimeTrigger dateTimer;
 	private String lastError = null;
 	private Date expireDate = null;
 	private PrintStream out = null;
@@ -60,14 +60,14 @@ class AppenderDynFileName extends AbstractAppender {
 		if (lp.getFile().getCharsetName() != null) {
 			this.charsetName = lp.getFile().getCharsetName();
 		} else {
-			this.charsetName = Constant.DEFAULT_CHARSET_NAME;
+			this.charsetName = Constant.UTF8_CHARSET_NAME;
 		}
 		this.staticFileName = lp.getFile().getFileName();
 		this.pathFile = lp.getFile().getPath();
 		this.dynamicFileNameFormat = lp.getFile().getDynName().getDateFormat();
 		final DateFieldEnum dateField = lp.getFile().getDynName().getDatePeriodType();
 		this.expireDate = DateUtil.zeroTill(DateUtil.now(), dateField);
-		this.dateTimer = new DateTimer(dateField, 1);
+		this.dateTimer = new TimeTriggerImpl(dateField, 1);
 	}
 
 	@Override
@@ -97,7 +97,7 @@ class AppenderDynFileName extends AbstractAppender {
 			try {
 				this.out = new PrintStream(new FileOutputStream(new File(this.pathFile, fileName), this.appendFile),
 						false, this.charsetName);
-				this.expireDate = this.dateTimer.nextStepTimer();
+				this.expireDate = this.dateTimer.nextTrigger();
 			} catch (final UnsupportedEncodingException e) {
 				if (this.lastError == null || !this.lastError.equals(fileName)) {
 					e.printStackTrace();

@@ -52,7 +52,6 @@ import leitej.crypto.asymmetric.CipherAsymEnum;
 import leitej.crypto.asymmetric.ModeAsymEnum;
 import leitej.crypto.asymmetric.PaddingAsymEnum;
 import leitej.crypto.asymmetric.signature.SignatureEnum;
-import leitej.crypto.exception.KeyStoreLtException;
 import leitej.crypto.hash.HMacEnum;
 import leitej.crypto.hash.MessageDigestEnum;
 import leitej.crypto.keyStore.KeyStoreEnum;
@@ -64,6 +63,7 @@ import leitej.crypto.symmetric.PaddingEnum;
 import leitej.crypto.symmetric.StreamCipherEnum;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.ImplementationLtRtException;
+import leitej.exception.KeyStoreLtException;
 import leitej.log.Logger;
 
 /**

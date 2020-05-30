@@ -53,7 +53,7 @@ public final class Log4JUtil {
 			try {
 				final BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
 						new FileOutputStream(new File(DEFAULT_LOG4J_PROPERTIES_FILE_NAME), false),
-						Constant.DEFAULT_CHARSET_NAME));
+						Constant.UTF8_CHARSET_NAME));
 				bw.write(SILENT_LOG4J_PROPERTIES);
 				bw.flush();
 				bw.close();

@@ -18,10 +18,10 @@ package leitej.net.dtp;
 
 import java.util.List;
 
+import leitej.exception.ConnectionLtException;
+import leitej.exception.DtpLtException;
 import leitej.net.ConnectionClientItf;
 import leitej.net.csl.AbstractCommunicationSession;
-import leitej.net.exception.ConnectionLtException;
-import leitej.net.exception.DtpLtException;
 import leitej.thread.PoolAgnosticThread;
 import leitej.xml.om.XmlObjectModelling;
 

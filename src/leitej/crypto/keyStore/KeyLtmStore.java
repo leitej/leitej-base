@@ -16,10 +16,10 @@
 
 package leitej.crypto.keyStore;
 
-import leitej.ltm.LtmBinary;
 import leitej.ltm.LtmObjectModelling;
 import leitej.ltm.annotation.Column;
 import leitej.ltm.annotation.LongTermMemory;
+import leitej.ltm.lixo.LtmBinary;
 
 /**
  *

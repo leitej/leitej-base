@@ -21,7 +21,7 @@ import java.security.cert.X509Certificate;
 
 import leitej.crypto.asymmetric.certificate.CertificateIoUtil;
 import leitej.crypto.asymmetric.certificate.CertificateUtil;
-import leitej.crypto.exception.CertificateLtException;
+import leitej.exception.CertificateLtException;
 import leitej.exception.ImplementationLtRtException;
 
 /**

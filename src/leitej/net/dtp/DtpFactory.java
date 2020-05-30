@@ -20,9 +20,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
+import leitej.exception.ConnectionLtException;
 import leitej.net.ConstantNet;
 import leitej.net.csl.AbstractCommunicationFactory;
-import leitej.net.exception.ConnectionLtException;
 import leitej.thread.PoolAgnosticThread;
 
 /**

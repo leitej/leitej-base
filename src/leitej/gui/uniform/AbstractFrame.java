@@ -31,9 +31,9 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import leitej.LtIcon;
+import leitej.exception.GuiLtException;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.ImplementationLtRtException;
-import leitej.gui.exception.GuiLtException;
 import leitej.gui.uniform.model.Dimension;
 import leitej.gui.util.GraphicsUtil;
 import leitej.log.Logger;

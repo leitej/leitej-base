@@ -19,7 +19,7 @@ package leitej.net.csl;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 
-import leitej.net.exception.ConnectionLtException;
+import leitej.exception.ConnectionLtException;
 
 /**
  * Factory - Communication Session Layer

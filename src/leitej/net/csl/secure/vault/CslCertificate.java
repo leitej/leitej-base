@@ -19,7 +19,7 @@ package leitej.net.csl.secure.vault;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 
-import leitej.crypto.exception.CertificateLtException;
+import leitej.exception.CertificateLtException;
 import leitej.util.DateUtil;
 
 /**

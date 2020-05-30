@@ -34,7 +34,7 @@ import leitej.log.Logger;
 import leitej.util.AgnosticUtil;
 import leitej.util.DateUtil;
 import leitej.util.data.DateFieldEnum;
-import leitej.util.data.DateTimer;
+import leitej.util.data.TimeTriggerImpl;
 import leitej.util.data.Invoke;
 import leitej.util.data.InvokeItf;
 import leitej.util.data.QueueBlockingFIFO;
@@ -209,7 +209,7 @@ public final class PoolAgnosticThread {
 		try {
 			final XThreadData tdata = new XThreadData(
 					new Invoke(this, AgnosticUtil.getMethod(this, METHOD_NORMALIZER_JOB)),
-					new DateTimer(DateFieldEnum.MINUTE, NORMALIZER_RUN_IN_MINUTELY_INTERVAL), this.normalizerThreadName,
+					new TimeTriggerImpl(DateFieldEnum.MINUTE, NORMALIZER_RUN_IN_MINUTELY_INTERVAL), this.normalizerThreadName,
 					ThreadPriorityEnum.MAXIMUM);
 			this.normalizer.workOn(tdata);
 		} catch (final IllegalArgumentLtRtException e) {

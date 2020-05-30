@@ -72,8 +72,10 @@ public abstract class AbstractObjectPool<E> implements Serializable {
 	 * Deactivate the <code>obj</code>.
 	 *
 	 * @param obj to deactivate
+	 * @throws ObjectPoolLtException if is there any reason to abort the deactivate
+	 *                               of an element
 	 */
-	protected abstract void deactivate(E obj);
+	protected abstract void deactivate(E obj) throws ObjectPoolLtException;
 
 	/**
 	 * Polls element.
@@ -166,17 +168,20 @@ public abstract class AbstractObjectPool<E> implements Serializable {
 
 	/**
 	 * Closes the pool and deactivate all registered element.
+	 *
+	 * @throws ObjectPoolLtException if is there any reason to abort the deactivate
+	 *                               of an element
 	 */
-	protected synchronized void close() {
+	protected synchronized void close() throws ObjectPoolLtException {
 		if (!this.closed) {
-			this.closed = true;
-			this.queue.close();
 			synchronized (this.objectList) {
 				for (final E obj : this.objectList) {
 					deactivate(obj);
 				}
 				this.objectList.clear();
 			}
+			this.queue.close();
+			this.closed = true;
 		}
 	}
 

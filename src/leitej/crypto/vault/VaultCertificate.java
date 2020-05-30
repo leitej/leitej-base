@@ -16,13 +16,13 @@
 
 package leitej.crypto.vault;
 
-import leitej.ltm.LtmBinary;
 import leitej.ltm.LtmObjectModelling;
 import leitej.ltm.annotation.CascadeTypeEnum;
 import leitej.ltm.annotation.Column;
 import leitej.ltm.annotation.JoinColumn;
 import leitej.ltm.annotation.LongTermMemory;
 import leitej.ltm.annotation.ManyToOne;
+import leitej.ltm.lixo.LtmBinary;
 
 /**
  *

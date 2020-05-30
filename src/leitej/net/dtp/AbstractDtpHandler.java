@@ -23,6 +23,7 @@ import java.net.SocketTimeoutException;
 import java.util.List;
 
 import leitej.exception.ClosedLtRtException;
+import leitej.exception.ConnectionLtException;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.exception.LtException;
@@ -30,7 +31,6 @@ import leitej.exception.PoolAgnosticThreadLtException;
 import leitej.log.Logger;
 import leitej.net.ConstantNet;
 import leitej.net.csl.AbstractCommunicationSession;
-import leitej.net.exception.ConnectionLtException;
 import leitej.thread.PoolAgnosticThread;
 import leitej.thread.XThreadData;
 import leitej.util.AgnosticUtil;

@@ -20,7 +20,7 @@ import java.awt.GraphicsConfiguration;
 import java.awt.Point;
 
 import leitej.exception.ClosedLtRtException;
-import leitej.gui.exception.GuiLtException;
+import leitej.exception.GuiLtException;
 import leitej.gui.uniform.model.Action;
 import leitej.gui.uniform.model.ActionEnum;
 import leitej.gui.uniform.model.ActionInput;

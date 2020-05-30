@@ -27,8 +27,8 @@ import java.util.Enumeration;
 import javax.crypto.SecretKey;
 
 import leitej.crypto.ProviderEnum;
-import leitej.crypto.exception.KeyStoreLtException;
 import leitej.exception.ImplementationLtRtException;
+import leitej.exception.KeyStoreLtException;
 import leitej.util.data.Cache;
 import leitej.util.data.CacheWeak;
 

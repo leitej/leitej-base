@@ -50,8 +50,7 @@ public final class Constant {
 	public static final BigInteger BIGINTEGER_MAX_LONG_VALUE = BigInteger.valueOf(Long.MAX_VALUE);
 
 	public static final String UTF8_CHARSET_NAME = "UTF-8";
-	public static final String DEFAULT_CHARSET_NAME = UTF8_CHARSET_NAME;
-	public static final Charset DEFAULT_CHARSET = Charset.forName(DEFAULT_CHARSET_NAME);
+	public static final Charset UTF8_CHARSET = Charset.forName(UTF8_CHARSET_NAME);
 
 	public static final String DEFAULT_FILE_SEPARATOR = System.getProperties().getProperty("file.separator", "/");
 	public final static String DEFAULT_LINE_SEPARATOR = System.getProperties().getProperty("line.separator", "\n");
@@ -73,5 +72,9 @@ public final class Constant {
 			+ DEFAULT_FILE_SEPARATOR;
 	public static final int FRACTION_INPUT_STREAM_REFRESH_WAIT_IO = 2000; // 2 seconds
 	public static final int IO_BUFFER_SIZE = 2 * KILO; // 2 KB
+
+	public static final String LTM_DIR = DEFAULT_DATA_FILE_DIR + "/ltm"; // long term memory
+	public static final String LTM_DBNAME_DIR = LTM_DIR + "/rdb"; // relational data base
+	public static final String LTM_STREAM_DIR = LTM_DIR + "/jbs"; // leitej binary stream
 
 }

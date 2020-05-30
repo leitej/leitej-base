@@ -43,7 +43,7 @@ import org.bouncycastle.x509.X509V3CertificateGenerator;
 
 import leitej.crypto.ProviderEnum;
 import leitej.crypto.asymmetric.signature.SignatureEnum;
-import leitej.crypto.exception.CertificateLtException;
+import leitej.exception.CertificateLtException;
 import leitej.util.DateUtil;
 
 /**

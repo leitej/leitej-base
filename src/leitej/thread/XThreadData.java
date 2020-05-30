@@ -21,12 +21,12 @@ import java.util.Date;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.util.DateUtil;
-import leitej.util.data.DateTimer;
-import leitej.util.data.DateTimerItf;
+import leitej.util.data.TimeTriggerImpl;
+import leitej.util.data.TimeTrigger;
 import leitej.util.data.InvokeItf;
 
 /**
- * This class uses {@link leitej.util.data.DateTimerItf DateTimerItf} to give
+ * This class uses {@link leitej.util.data.TimeTrigger DateTimerItf} to give
  * the steps of execution.
  *
  * @author Julio Leite
@@ -37,7 +37,7 @@ public final class XThreadData extends ThreadData {
 
 	private static final long serialVersionUID = -6506827797853778130L;
 
-	private DateTimerItf dateTimer = null;
+	private TimeTrigger dateTimer = null;
 	private Date doneDate = null;
 	private boolean executed = true;
 
@@ -48,7 +48,7 @@ public final class XThreadData extends ThreadData {
 	 * @throws IllegalArgumentLtRtException if <code>invokeData</code> is null
 	 */
 	public XThreadData(final InvokeItf invokeData) {
-		this(invokeData, DateTimer.getUniqueImmediateTimer(), null, null); // Execute only once
+		this(invokeData, TimeTriggerImpl.getSingleImmediateTrigger(), null, null); // Execute only once
 	}
 
 	/**
@@ -58,7 +58,7 @@ public final class XThreadData extends ThreadData {
 	 * @param dateTimer  with the steps of execution
 	 * @throws IllegalArgumentLtRtException if <code>invokeData</code> is null
 	 */
-	public XThreadData(final InvokeItf invokeData, final DateTimerItf dateTimer) throws IllegalArgumentLtRtException {
+	public XThreadData(final InvokeItf invokeData, final TimeTrigger dateTimer) throws IllegalArgumentLtRtException {
 		this(invokeData, dateTimer, null, null);
 	}
 
@@ -71,7 +71,7 @@ public final class XThreadData extends ThreadData {
 	 * @throws IllegalArgumentLtRtException if <code>invokeData</code> is null
 	 */
 	public XThreadData(final InvokeItf invokeData, final String threadName) throws IllegalArgumentLtRtException {
-		this(invokeData, DateTimer.getUniqueImmediateTimer(), threadName, null); // Execute only once
+		this(invokeData, TimeTriggerImpl.getSingleImmediateTrigger(), threadName, null); // Execute only once
 	}
 
 	/**
@@ -83,7 +83,7 @@ public final class XThreadData extends ThreadData {
 	 */
 	public XThreadData(final InvokeItf invokeData, final ThreadPriorityEnum priority)
 			throws IllegalArgumentLtRtException {
-		this(invokeData, DateTimer.getUniqueImmediateTimer(), null, priority); // Execute only once
+		this(invokeData, TimeTriggerImpl.getSingleImmediateTrigger(), null, priority); // Execute only once
 	}
 
 	/**
@@ -96,11 +96,11 @@ public final class XThreadData extends ThreadData {
 	 * @param priority   of thread execution
 	 * @throws IllegalArgumentLtRtException if <code>invokeData</code> is null
 	 */
-	public XThreadData(final InvokeItf invokeData, final DateTimerItf dateTimer, final String threadName,
+	public XThreadData(final InvokeItf invokeData, final TimeTrigger dateTimer, final String threadName,
 			final ThreadPriorityEnum priority) throws IllegalArgumentLtRtException {
 		super(invokeData, threadName, priority);
 		if (dateTimer == null) {
-			this.dateTimer = new DateTimer();
+			this.dateTimer = new TimeTriggerImpl();
 		} else {
 			this.dateTimer = dateTimer;
 		}
@@ -152,7 +152,7 @@ public final class XThreadData extends ThreadData {
 	synchronized Date nextExecTime() {
 		if (this.executed) {
 			if (this.dateTimer != null) {
-				final Date nextStepTimer = this.dateTimer.nextStepTimer();
+				final Date nextStepTimer = this.dateTimer.nextTrigger();
 				if (this.doneDate != null && this.doneDate == nextStepTimer) {
 					new ImplementationLtRtException();
 				}

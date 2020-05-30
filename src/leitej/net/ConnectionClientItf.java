@@ -16,7 +16,7 @@
 
 package leitej.net;
 
-import leitej.net.exception.ConnectionLtException;
+import leitej.exception.ConnectionLtException;
 import leitej.xml.om.XmlObjectModelling;
 
 /**

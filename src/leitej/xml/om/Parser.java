@@ -194,7 +194,8 @@ final class Parser {
 			} else {
 				// there is no next object
 				if (comments != null) {
-					throw new XmlomInvalidLtException("Invalid XMLOM, expected open element for the comments '#0'", comments);
+					throw new XmlomInvalidLtException("Invalid XMLOM, expected open element for the comments '#0'",
+							comments);
 				}
 				this.consumer.nextElement();
 				if (this.consumer.isEnded()) {
@@ -403,8 +404,8 @@ final class Parser {
 					| IllegalArgumentLtRtException | IllegalAccessException e) {
 				throw new XmlomInvalidLtException(e);
 			} catch (final InvocationTargetException e) {
-				throw new XmlomInvalidLtException(e, "Invalid call '#0' from class '#1' with arg '#2'", Constant.VALUEOF_METHOD_NAME,
-						classValue.getSimpleName(), valueSb.toString());
+				throw new XmlomInvalidLtException(e, "Invalid call '#0' from class '#1' with arg '#2'",
+						Constant.VALUEOF_METHOD_NAME, classValue.getSimpleName(), valueSb.toString());
 			}
 		}
 		return result;
@@ -412,7 +413,7 @@ final class Parser {
 
 	private <I extends XmlObjectModelling> void readObjectData(final I object)
 			throws XmlomInvalidLtException, XmlInvalidLtException, IOException {
-		final DataProxyHandler dph = DATA_PROXY.getInvocationHandler(object);
+		final DataProxyHandler dph = DATA_PROXY.getHandler(object);
 		final Map<String, Object> dphData = dph.getDataMap();
 		String dataName;
 		boolean isElementTagOpenClose;
@@ -438,7 +439,8 @@ final class Parser {
 			isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
 			dataName = this.consumer.getElementName().toString();
 			if (!dph.existsDataName(dataName)) {
-				throw new XmlomInvalidLtException("Invalid XMLOM, data parser, fail to set '#0' in object '#1'", dataName, dph.getInterface().getName());
+				throw new XmlomInvalidLtException("Invalid XMLOM, data parser, fail to set '#0' in object '#1'",
+						dataName, dph.getInterface().getName());
 			}
 			dphData.put(dataName, readObjectAux(comments));
 			if (!isElementTagOpenClose) {
@@ -523,7 +525,8 @@ final class Parser {
 				}
 				if (XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
 					this.consumer.nextElement();
-					throw new XmlomInvalidLtException("Invalid XMLOM syntax, map element can't be null '#0'", this.consumer);
+					throw new XmlomInvalidLtException("Invalid XMLOM syntax, map element can't be null '#0'",
+							this.consumer);
 				}
 				this.consumer.nextElement();// open element 'element' (only to structure)
 				while (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
@@ -541,7 +544,8 @@ final class Parser {
 					} else if (StringUtil.isEquals(Producer.ELEMENT_NAME_MAP_VALUE, this.sbTmpElmName)) {
 						value = readObjectAux(null);
 					} else {
-						new IOException(new XmlomInvalidLtException("read map elements -> ignore tag '#0'", this.consumer));
+						new IOException(
+								new XmlomInvalidLtException("read map elements -> ignore tag '#0'", this.consumer));
 					}
 					if (!isElementTagOpenClose) {
 						this.consumer.nextElement();// close element
@@ -554,7 +558,8 @@ final class Parser {
 			}
 			object = map;
 		} else {
-			throw new ImplementationLtRtException("Something wrong (Defined an array in 'ArrayElement.ARRAY_CLASS' element which isn't implemented!)");
+			throw new ImplementationLtRtException(
+					"Something wrong (Defined an array in 'ArrayElement.ARRAY_CLASS' element which isn't implemented!)");
 		}
 		return object;
 	}

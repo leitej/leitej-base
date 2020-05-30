@@ -26,7 +26,7 @@ import java.io.RandomAccessFile;
  *
  * @author Julio Leite
  */
-public final class BinaryFile implements RandomAccessBinaryItf {
+public final class BinaryFile implements RandomAccessBinary {
 
 	private final String filename;
 	private final RandomAccessFile raFile;

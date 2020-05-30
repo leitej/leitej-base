@@ -37,8 +37,8 @@ import org.bouncycastle.openssl.PEMReader;
 import org.bouncycastle.openssl.PEMWriter;
 
 import leitej.crypto.ProviderEnum;
-import leitej.crypto.exception.CertificateLtException;
-import leitej.crypto.exception.CertificationRequestLtException;
+import leitej.exception.CertificateLtException;
+import leitej.exception.CertificationRequestLtException;
 import leitej.log.Logger;
 import leitej.util.stream.FileUtil;
 

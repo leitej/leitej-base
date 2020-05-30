@@ -22,13 +22,13 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import leitej.crypto.exception.KeyStoreLtException;
+import leitej.exception.KeyStoreLtException;
+import leitej.exception.LtmLtRtException;
 import leitej.ltm.LongTermMemory;
-import leitej.ltm.LtmBinary;
 import leitej.ltm.Query;
 import leitej.ltm.QueryEntrance;
 import leitej.ltm.QueryResult;
-import leitej.ltm.exception.LtmLtRtException;
+import leitej.ltm.lixo.LtmBinary;
 
 /**
  *

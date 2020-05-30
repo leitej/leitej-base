@@ -26,10 +26,10 @@ import java.security.cert.X509Certificate;
 
 import leitej.crypto.asymmetric.CipherRSA;
 import leitej.crypto.asymmetric.PaddingAsymEnum;
-import leitej.crypto.exception.KeyStoreLtException;
+import leitej.exception.ConnectionLtException;
 import leitej.exception.IllegalStateLtRtException;
+import leitej.exception.KeyStoreLtException;
 import leitej.log.Logger;
-import leitej.net.exception.ConnectionLtException;
 
 /**
  *

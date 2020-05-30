@@ -21,9 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import leitej.exception.ClosedLtRtException;
+import leitej.exception.GuiLtException;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.ImplementationLtRtException;
-import leitej.gui.exception.GuiLtException;
 import leitej.gui.uniform.model.Action;
 import leitej.gui.uniform.model.ActionEnum;
 import leitej.gui.uniform.model.ActionInput;
