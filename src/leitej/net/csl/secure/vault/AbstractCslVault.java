@@ -21,25 +21,23 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import leitej.crypto.ConstantCrypto;
 import leitej.crypto.asymmetric.certificate.CertificateChainUtil;
 import leitej.crypto.asymmetric.certificate.CertificateUtil;
-import leitej.crypto.exception.CertificateChainLtException;
-import leitej.crypto.exception.CertificateLtException;
-import leitej.crypto.exception.KeyStoreLtException;
 import leitej.crypto.keyStore.Password;
 import leitej.crypto.vault.LtVault;
+import leitej.exception.CertificateChainLtException;
+import leitej.exception.CertificateLtException;
 import leitej.exception.ExpiredDataLtException;
 import leitej.exception.ImplementationLtRtException;
+import leitej.exception.KeyStoreLtException;
+import leitej.exception.LtmLtRtException;
 import leitej.log.Logger;
+import leitej.ltm.LtmFilter;
 import leitej.ltm.LongTermMemory;
-import leitej.ltm.Query;
-import leitej.ltm.QueryEntrance;
-import leitej.ltm.QueryResult;
-import leitej.ltm.exception.LtmLtRtException;
 import leitej.net.csl.secure.rooter.OffRoot;
-import leitej.util.BinaryUtil;
 import leitej.util.data.Cache;
 import leitej.util.data.CacheSoft;
 import leitej.util.data.CacheWeak;
@@ -57,13 +55,7 @@ public abstract class AbstractCslVault implements CslVaultItf {
 	private static final String CSL_PRIVATE_KEY_ENTRY_ALIAS = "__CSL_PRIVATE_KEY_ENTRY_ALIAS__";
 
 	private static final LongTermMemory LTM = LongTermMemory.getInstance();
-	static {
-		LTM.registry(Cadastre.class);
-		LTM.registry(CadastreIssuer.class);
-	}
 
-	private final QueryResult<Cadastre> findCadastre;
-	private final QueryResult<CadastreIssuer> findCadastreIssuer;
 	private final Map<String, CslCertificate> cslCertificateIssuerMap;
 	private final Cache<String, Cadastre> cadastreCache;
 	private final Cache<String, CslCertificate> endPointCslCertificateMap;
@@ -93,18 +85,6 @@ public abstract class AbstractCslVault implements CslVaultItf {
 		} else {
 			this.vault = LtVault.create(CSL_VAULT_ALAIS, password);
 		}
-		// prepare cadastre fetch
-		final QueryEntrance<Cadastre> entranceCadastre = Query.newTableEntrance(Cadastre.class);
-		this.findCadastre = Query.find(entranceCadastre,
-				Query.filterBy(Query.expression(Query.field(entranceCadastre, Cadastre.FIELD_ALIAS), Query.equal(),
-						Query.dynamicParameter())));
-		this.findCadastre.setFetchScale(1);
-		// prepare cadastre issuer fetch
-		final QueryEntrance<CadastreIssuer> entranceCadastreIssuer = Query.newTableEntrance(CadastreIssuer.class);
-		this.findCadastreIssuer = Query.find(entranceCadastreIssuer,
-				Query.filterBy(Query.expression(Query.field(entranceCadastreIssuer, CadastreIssuer.FIELD_ALIAS),
-						Query.equal(), Query.dynamicParameter())));
-		this.findCadastreIssuer.setFetchScale(1);
 		// initialise maps
 		this.cslCertificateIssuerMap = new HashMap<>();
 		this.cadastreCache = new CacheWeak<>();
@@ -266,13 +246,12 @@ public abstract class AbstractCslVault implements CslVaultItf {
 				cadastre = getEndPointCadastre(alias);
 			} catch (final CertificateLtException e) {
 				this.vault.setCertificateChain(alias, chain);
-				cadastre = LTM.newObject(Cadastre.class);
+				cadastre = LTM.newRecord(Cadastre.class);
 				synchronized (cadastre) {
 					cadastre.setAlias(alias);
-					cadastre.setSaltIn(BinaryUtil.convert(new byte[48]));
-					cadastre.setSaltOut(BinaryUtil.convert(new byte[48]));
+					cadastre.setSaltIn(new byte[48]);
+					cadastre.setSaltOut(new byte[48]);
 					cadastre.setIssuer(addCadastreIssuer(chain, 1));
-					cadastre.save();
 					synchronized (this.cadastreCache) {
 						this.cadastreCache.set(alias, cadastre);
 					}
@@ -288,16 +267,15 @@ public abstract class AbstractCslVault implements CslVaultItf {
 		}
 		final String alias = CertificateUtil.getAliasFrom(chain[position]);
 		CadastreIssuer result;
-		synchronized (this.findCadastreIssuer) {
-			this.findCadastreIssuer.setParams(alias);
-			if (this.findCadastreIssuer.size() == 1) {
-				result = this.findCadastreIssuer.get(0);
-			} else {
-				result = LTM.newObject(CadastreIssuer.class);
-				result.setAlias(alias);
-				result.setIssuer(addCadastreIssuer(chain, position + 1));
-				result.save();
-			}
+		final LtmFilter<CadastreIssuer> filter = LTM.newFilter(CadastreIssuer.class);
+		filter.setOperandEqual().setAlias(alias);
+		final Set<CadastreIssuer> found = LTM.find(filter);
+		if (found.size() == 1) {
+			result = found.iterator().next();
+		} else {
+			result = LTM.newRecord(CadastreIssuer.class);
+			result.setAlias(alias);
+			result.setIssuer(addCadastreIssuer(chain, position + 1));
 		}
 		return result;
 	}
@@ -308,7 +286,7 @@ public abstract class AbstractCslVault implements CslVaultItf {
 			final Cadastre cadastre = getEndPointCadastre(clientCertificate);
 			byte[] salt;
 			synchronized (cadastre) {
-				salt = BinaryUtil.convert(cadastre.getSaltIn());
+				salt = cadastre.getSaltIn();
 			}
 			for (int i = 0; i < salt.length; i++) {
 				remoteHalfStateKeyBlock[i] = (byte) ((remoteHalfStateKeyBlock[i] ^ salt[i]) & 0xff);
@@ -324,7 +302,7 @@ public abstract class AbstractCslVault implements CslVaultItf {
 			final Cadastre cadastre = getEndPointCadastre(clientCertificate);
 			byte[] salt;
 			synchronized (cadastre) {
-				salt = BinaryUtil.convert(cadastre.getSaltOut());
+				salt = cadastre.getSaltOut();
 			}
 			for (int i = 0; i < salt.length; i++) {
 				myHalfStateKeyBlock[i] = (byte) ((myHalfStateKeyBlock[i] ^ salt[i]) & 0xff);
@@ -340,9 +318,8 @@ public abstract class AbstractCslVault implements CslVaultItf {
 		try {
 			final Cadastre cadastre = getEndPointCadastre(clientCertificate);
 			synchronized (cadastre) {
-				cadastre.setSaltIn(BinaryUtil.convert(remoteKeyBlock));
-				cadastre.setSaltOut(BinaryUtil.convert(myKeyBlock));
-				cadastre.save();
+				cadastre.setSaltIn(remoteKeyBlock);
+				cadastre.setSaltOut(myKeyBlock);
 			}
 		} catch (final CertificateLtException e) {
 			throw new ImplementationLtRtException(e);
@@ -363,14 +340,14 @@ public abstract class AbstractCslVault implements CslVaultItf {
 		synchronized (this.cadastreCache) {
 			Cadastre result = this.cadastreCache.get(aliasClientCertificate);
 			if (result == null) {
-				synchronized (this.findCadastre) {
-					this.findCadastre.setParams(aliasClientCertificate);
-					if (this.findCadastre.size() != 1) {
-						throw new CertificateLtException();
-					}
-					result = this.findCadastre.get(0);
-					this.cadastreCache.set(aliasClientCertificate, result);
+				final LtmFilter<Cadastre> filter = LTM.newFilter(Cadastre.class);
+				filter.setOperandEqual().setAlias(aliasClientCertificate);
+				final Set<Cadastre> found = LTM.find(filter);
+				if (found.size() != 1) {
+					throw new CertificateLtException();
 				}
+				result = found.iterator().next();
+				this.cadastreCache.set(aliasClientCertificate, result);
 			}
 			return result;
 		}

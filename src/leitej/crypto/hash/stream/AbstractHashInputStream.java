@@ -23,10 +23,10 @@ import java.security.DigestException;
 import javax.crypto.ShortBufferException;
 
 import leitej.Constant;
-import leitej.crypto.exception.TamperproofLtException;
 import leitej.exception.DataOverflowLtException;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.ImplementationLtRtException;
+import leitej.exception.TamperproofLtException;
 
 /**
  *

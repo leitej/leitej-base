@@ -23,7 +23,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 
-import leitej.net.exception.ConnectionLtException;
+import leitej.exception.ConnectionLtException;
 
 /**
  * Server - Communication Session Layer

@@ -36,12 +36,12 @@ import java.util.Map;
 import javax.swing.SwingUtilities;
 
 import leitej.LtIcon;
+import leitej.exception.GuiLtException;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.ImplementationLtRtException;
+import leitej.exception.TrayIconGuiLtRtException;
 import leitej.gui.event.LtActionListener;
 import leitej.gui.event.LtMouseListener;
-import leitej.gui.exception.GuiLtException;
-import leitej.gui.exception.TrayIconGuiLtRtException;
 import leitej.gui.util.GraphicsUtil;
 import leitej.log.Logger;
 import leitej.util.AgnosticUtil;

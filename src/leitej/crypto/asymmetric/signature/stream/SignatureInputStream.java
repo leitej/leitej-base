@@ -28,10 +28,10 @@ import java.security.SignatureException;
 import leitej.Constant;
 import leitej.crypto.Cryptography;
 import leitej.crypto.asymmetric.signature.SignatureEnum;
-import leitej.crypto.exception.TamperproofLtException;
 import leitej.exception.DataOverflowLtException;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.ImplementationLtRtException;
+import leitej.exception.TamperproofLtException;
 import leitej.util.data.BinaryConcat;
 
 /**

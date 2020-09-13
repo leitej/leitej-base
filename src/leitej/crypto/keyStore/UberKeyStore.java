@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import leitej.crypto.exception.KeyStoreLtException;
 import leitej.exception.ImplementationLtRtException;
+import leitej.exception.KeyStoreLtException;
 import leitej.util.stream.FileUtil;
 
 /**

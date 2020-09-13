@@ -54,7 +54,7 @@ final class RawDataListenerBindedPool extends AbstractObjectPool<RawDataListener
 	}
 
 	@Override
-	protected void deactivate(final RawDataListener obj) {
+	protected void deactivate(final RawDataListener obj) throws ObjectPoolLtException {
 		obj.close();
 	}
 
@@ -74,7 +74,7 @@ final class RawDataListenerBindedPool extends AbstractObjectPool<RawDataListener
 	}
 
 	@Override
-	protected void close() {
+	protected void close() throws ObjectPoolLtException {
 		super.close();
 	}
 

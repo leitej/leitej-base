@@ -47,7 +47,10 @@ final class AppenderManager {
 		final Config pl = XmlomUtil.newXmlObjectModelling(Config.class);
 		final ConfigFile plf = XmlomUtil.newXmlObjectModelling(ConfigFile.class);
 		plf.setFileName("app.log");
-		plf.setAppendFile(Boolean.FALSE);
+		plf.setAppendFile(Boolean.TRUE);
+		plf.setDynName(ConfigDynFileName.DAILY);
+		plf.setPath(".");
+		plf.setCharsetName(Constant.UTF8_CHARSET_NAME);
 		pl.setFile(plf);
 		pl.setConsole(true);
 		pl.setLogLevel(Constant.DEFAULT_LOG_LEVEL);

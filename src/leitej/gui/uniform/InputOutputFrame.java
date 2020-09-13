@@ -19,7 +19,7 @@ package leitej.gui.uniform;
 import java.awt.GraphicsConfiguration;
 
 import leitej.exception.ClosedLtRtException;
-import leitej.gui.exception.GuiLtException;
+import leitej.exception.GuiLtException;
 import leitej.gui.uniform.model.Action;
 import leitej.gui.uniform.model.ActionEnum;
 import leitej.gui.uniform.model.ActionInput;

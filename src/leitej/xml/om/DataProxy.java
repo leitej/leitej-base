@@ -48,4 +48,8 @@ final class DataProxy extends AbstractDataProxy<XmlObjectModelling, DataProxyHan
 		return newProxyInstance(iClass, new DataProxyHandler(iClass));
 	}
 
+	<I extends XmlObjectModelling> DataProxyHandler getHandler(final I proxy) {
+		return super.getInvocationHandler(proxy);
+	}
+
 }

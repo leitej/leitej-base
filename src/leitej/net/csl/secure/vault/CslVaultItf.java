@@ -20,10 +20,10 @@ import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
-import leitej.crypto.exception.CertificateChainLtException;
-import leitej.crypto.exception.CertificateLtException;
-import leitej.crypto.exception.KeyStoreLtException;
-import leitej.ltm.exception.LtmLtRtException;
+import leitej.exception.CertificateChainLtException;
+import leitej.exception.CertificateLtException;
+import leitej.exception.KeyStoreLtException;
+import leitej.exception.LtmLtRtException;
 
 /**
  *

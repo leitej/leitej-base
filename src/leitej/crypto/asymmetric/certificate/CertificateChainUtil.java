@@ -57,10 +57,10 @@ import org.bouncycastle.x509.X509V3CertificateGenerator;
 import leitej.crypto.ConstantCrypto;
 import leitej.crypto.ProviderEnum;
 import leitej.crypto.asymmetric.signature.SignatureEnum;
-import leitej.crypto.exception.CertificateAuthorityLtException;
-import leitej.crypto.exception.CertificateChainLtException;
-import leitej.crypto.exception.CertificateLtException;
-import leitej.crypto.exception.CertificationRequestLtException;
+import leitej.exception.CertificateAuthorityLtException;
+import leitej.exception.CertificateChainLtException;
+import leitej.exception.CertificateLtException;
+import leitej.exception.CertificationRequestLtException;
 
 /**
  *

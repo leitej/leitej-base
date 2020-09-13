@@ -16,11 +16,12 @@
 
 package leitej.util.stream;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
- * 
+ *
  *
  * @author Julio Leite
  */
@@ -30,27 +31,27 @@ public final class BinaryFileFractionOutputStream extends FractionOutputStream {
 	private final RandomAccessFile raFile;
 	private final long endFilePointer;
 
-	public BinaryFileFractionOutputStream(final String filename, final long offset, final boolean syncWrite)
+	public BinaryFileFractionOutputStream(final File file, final long offset, final boolean syncWrite)
 			throws IOException {
-		this(filename, -1, offset, -1, syncWrite, null);
+		this(file, -1, offset, -1, syncWrite, null);
 	}
 
-	public BinaryFileFractionOutputStream(final String filename, final long offset, final long length,
+	public BinaryFileFractionOutputStream(final File file, final long offset, final long length,
 			final boolean syncWrite) throws IOException {
-		this(filename, -1, offset, length, syncWrite, null);
+		this(file, -1, offset, length, syncWrite, null);
 	}
 
-	public BinaryFileFractionOutputStream(final String filename, final long filesize, final long offset,
-			final long length, final boolean syncWrite) throws IOException {
-		this(filename, filesize, offset, length, syncWrite, null);
+	public BinaryFileFractionOutputStream(final File file, final long filesize, final long offset, final long length,
+			final boolean syncWrite) throws IOException {
+		this(file, filesize, offset, length, syncWrite, null);
 	}
 
-	BinaryFileFractionOutputStream(final String filename, final long filesize, long offset, final long length,
+	BinaryFileFractionOutputStream(final File file, final long filesize, long offset, final long length,
 			final boolean syncWrite, final Object mutex) throws IOException {
 		if (offset < 0) {
 			offset = 0;
 		}
-		this.raFile = new RandomAccessFile(filename, ((syncWrite) ? RandomAccessModeEnum.RWS.getRandomAccessFileMode()
+		this.raFile = new RandomAccessFile(file, ((syncWrite) ? RandomAccessModeEnum.RWS.getRandomAccessFileMode()
 				: RandomAccessModeEnum.RW.getRandomAccessFileMode()));
 		try {
 			if (filesize >= 0) {

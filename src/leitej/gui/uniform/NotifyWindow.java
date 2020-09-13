@@ -20,8 +20,8 @@ import java.awt.GraphicsConfiguration;
 import java.util.ArrayList;
 import java.util.List;
 
-import leitej.gui.exception.GuiLtException;
-import leitej.gui.exception.NotifyGuiLtRtException;
+import leitej.exception.GuiLtException;
+import leitej.exception.NotifyGuiLtRtException;
 import leitej.gui.uniform.model.Background;
 import leitej.gui.uniform.model.Border;
 import leitej.gui.uniform.model.BorderLayoutConstraintsEnum;

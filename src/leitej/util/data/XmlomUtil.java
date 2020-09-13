@@ -251,6 +251,7 @@ public final class XmlomUtil {
 		final XmlomWriter out = new XmlomWriter(os, charset, minified);
 		try {
 			out.write(obj);
+			out.flush();
 		} finally {
 			if (withClose) {
 				out.close();
@@ -274,6 +275,7 @@ public final class XmlomUtil {
 		final XmlomWriter out = new XmlomWriter(os, charset, minified);
 		try {
 			out.write(objs);
+			out.flush();
 		} finally {
 			if (withClose) {
 				out.close();

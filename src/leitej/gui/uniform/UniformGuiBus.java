@@ -34,11 +34,11 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
 import leitej.exception.ImplementationLtRtException;
+import leitej.exception.UniformGuiLtRtException;
 import leitej.gui.LtPictureComponent;
 import leitej.gui.event.LtFocusListener;
 import leitej.gui.event.LtKeyListener;
 import leitej.gui.event.LtMouseListener;
-import leitej.gui.exception.UniformGuiLtRtException;
 import leitej.gui.uniform.model.Action;
 import leitej.gui.uniform.model.ActionEnum;
 import leitej.gui.uniform.model.ActionInput;

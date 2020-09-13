@@ -16,8 +16,6 @@
 
 package leitej.log;
 
-import java.util.Locale;
-
 import leitej.exception.ImplementationLtRtException;
 import leitej.exception.SeppukuLtRtException;
 import leitej.util.AgnosticUtil;
@@ -66,24 +64,36 @@ public final class Logger {
 	static {
 		ISTANCES = new CacheWeak<>();
 		LOG = new Logger(Logger.class.getCanonicalName());
-		LOG.info("osArch: #0", VMMonitor.osArch());
-		LOG.info("osName: #0", VMMonitor.osName());
-		LOG.info("osVersion: #0", VMMonitor.osVersion());
-		LOG.info("vmName: #0", VMMonitor.vmName());
-		LOG.info("vmVendor: #0", VMMonitor.vmVendor());
-		LOG.info("vmVersion: #0", VMMonitor.vmVersion());
-		LOG.info("time: #0", DateUtil.format(DateUtil.now(), "yyyy-MM-dd HH:mm:ss.SSS 'GMT' Z z (zzzz)"));
-		LOG.info("locale: #0", Locale.getDefault());
-		LOG.debug("javaArguments: #0", VMMonitor.javaArguments());
-		LOG.debug("availableProcessors: #0", VMMonitor.availableProcessors());
-		LOG.debug("threadCount: #0", VMMonitor.threadCount());
-		LOG.debug("heapMemoryUsage: #0", VMMonitor.heapMemoryUsage());
-		LOG.debug("nonHeapMemoryUsage: #0", VMMonitor.nonHeapMemoryUsage());
 		try {
 			CLOSE_AT_JVM_SHUTDOWN = new Invoke(Logger.class, AgnosticUtil.getMethod(Logger.class, METHOD_CLOSE));
 			ShutdownHookUtil.addToLast(CLOSE_AT_JVM_SHUTDOWN);
 		} catch (final NoSuchMethodException e) {
 			throw new ImplementationLtRtException(e);
+		}
+		try {
+			LOG.info("osArch: #0", VMMonitor.osArch());
+			LOG.info("osName: #0", VMMonitor.osName());
+			LOG.info("osVersion: #0", VMMonitor.osVersion());
+			LOG.info("vmName: #0", VMMonitor.vmName());
+			LOG.info("vmVendor: #0", VMMonitor.vmVendor());
+			LOG.info("vmVersion: #0", VMMonitor.vmVersion());
+			LOG.trace("startTime: #0", VMMonitor.startTime());
+			LOG.info("time: #0", DateUtil.format(DateUtil.now(), "yyyy-MM-dd HH:mm:ss.SSS 'GMT' Z z (zzzz)"));
+			LOG.info("locale: #0", VMMonitor.locale());
+			LOG.info("fileEncoding: #0", VMMonitor.fileEncoding());
+			LOG.trace("bootClassPath: #0", VMMonitor.bootClassPath());
+			LOG.trace("classPath: #0", VMMonitor.classPath());
+			LOG.info("javaArguments: #0", VMMonitor.javaArguments());
+			LOG.trace("libraryPath: #0", VMMonitor.libraryPath());
+			LOG.debug("systemProperties: #0", VMMonitor.systemProperties());
+			LOG.debug("availableProcessors: #0", VMMonitor.availableProcessors());
+			LOG.debug("threadCount: #0", VMMonitor.threadCount());
+			LOG.debug("heapMemoryUsage: #0", VMMonitor.heapMemoryUsage());
+			LOG.debug("nonHeapMemoryUsage: #0", VMMonitor.nonHeapMemoryUsage());
+			LOG.trace("totalSpace: #0", VMMonitor.totalSpace());
+			LOG.trace("freeSpace: #0", VMMonitor.freeSpace());
+		} catch (final Exception e) {
+			LOG.debug("when trying to show some info, received an exception: #0", e.getMessage());
 		}
 	}
 

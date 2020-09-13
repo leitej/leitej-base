@@ -261,8 +261,7 @@ public final class StreamUtil {
 	}
 
 	/**
-	 * Calculates the MD5 of a input stream.<br/>
-	 * Closes input stream at the end of read.
+	 * Calculates the MD5 of a input stream.
 	 *
 	 * @param in input stream
 	 * @return the array of bytes for the resulting hash value
@@ -277,15 +276,11 @@ public final class StreamUtil {
 		final MessageDigest md = MessageDigest.getInstance("MD5");
 		final byte[] buffer = new byte[BUFFER_SIZE];
 		int tmp = 0;
-		try {
-			while (tmp != -1) {
-				tmp = in.read(buffer);
-				if (tmp != -1) {
-					md.update(buffer, 0, tmp);
-				}
+		while (tmp != -1) {
+			tmp = in.read(buffer);
+			if (tmp != -1) {
+				md.update(buffer, 0, tmp);
 			}
-		} finally {
-			in.close();
 		}
 		return md.digest();
 	}

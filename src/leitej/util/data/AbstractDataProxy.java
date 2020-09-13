@@ -122,7 +122,7 @@ public abstract class AbstractDataProxy<I, H extends AbstractDataProxyHandler<I>
 	 *                                  invocation handler is not from type I
 	 */
 	@SuppressWarnings("unchecked")
-	public final <T extends I> H getInvocationHandler(final T proxy) throws IllegalArgumentException {
+	protected final <T extends I> H getInvocationHandler(final T proxy) throws IllegalArgumentException {
 		try {
 			return (H) Proxy.getInvocationHandler(proxy);
 		} catch (final IllegalArgumentException e) {
@@ -132,7 +132,7 @@ public abstract class AbstractDataProxy<I, H extends AbstractDataProxyHandler<I>
 		}
 	}
 
-	public static boolean isProxyClass(final Class<?> cl) {
+	protected static boolean isProxyClass(final Class<?> cl) {
 		return Proxy.isProxyClass(cl);
 	}
 

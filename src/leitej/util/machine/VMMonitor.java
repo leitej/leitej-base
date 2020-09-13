@@ -24,6 +24,7 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadMXBean;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -180,6 +181,14 @@ public final class VMMonitor {
 
 	public static long usableSpace() {
 		return INSTANCE.f.getUsableSpace();
+	}
+
+	public static String locale() {
+		return Locale.getDefault().toString();
+	}
+
+	public static String fileEncoding() {
+		return System.getProperty("file.encoding");
 	}
 
 }

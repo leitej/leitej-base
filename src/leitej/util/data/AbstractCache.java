@@ -42,11 +42,12 @@ abstract class AbstractCache<K, V, R extends Reference<V>> implements Cache<K, V
 	private static final List<WeakReference<AbstractCache<?, ?, ?>>> AUTO_REINDEX_LIST = new ArrayList<>();
 	private static final XAgnosticThread AUTO_REINDEX_EXEC = new XAgnosticThread("cache_reindex_auto", true);
 	static {
+		AUTO_REINDEX_EXEC.setDaemon(true);
 		AUTO_REINDEX_EXEC.start();
 		try {
 			AUTO_REINDEX_EXEC.workOn(new XThreadData(
 					new Invoke(AbstractCache.class, AgnosticUtil.getMethod(AbstractCache.class, "autoReIndex")),
-					new DateTimer(DateFieldEnum.HOUR_OF_DAY, 1)));
+					new TimeTriggerImpl(DateFieldEnum.HOUR_OF_DAY, 1)));
 		} catch (AgnosticThreadLtException | NoSuchMethodException e) {
 			throw new ImplementationLtRtException(e);
 		}

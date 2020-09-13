@@ -149,7 +149,7 @@ final class Producer {
 				if (!this.objectSet.remove(o)) {
 					throw new XmlomInvalidLtException("Can not remove object after write to stream");
 				}
-				typeClass = DATA_PROXY.getInvocationHandler((I) o).getInterface();
+				typeClass = DATA_PROXY.getHandler((I) o).getInterface();
 				this.sbTmpElmName.setLength(0);
 				this.sbTmpElmName.append(typeClass.getSimpleName());
 				printObject(o, this.sbTmpElmName);
@@ -180,7 +180,7 @@ final class Producer {
 		} else {
 			final Class<?> typeClass;
 			if (XmlObjectModelling.class.isInstance(obj)) {
-				typeClass = DATA_PROXY.getInvocationHandler((I) obj).getInterface();
+				typeClass = DATA_PROXY.getHandler((I) obj).getInterface();
 			} else {
 				typeClass = obj.getClass();
 			}
@@ -232,7 +232,7 @@ final class Producer {
 
 	private <I extends XmlObjectModelling> void printMethods(final I o) throws IOException, XmlInvalidLtException {
 		LtSystemOut.debug("processing object: #0", o.getClass().getSimpleName());
-		final DataProxyHandler dph = DATA_PROXY.getInvocationHandler(o);
+		final DataProxyHandler dph = DATA_PROXY.getHandler(o);
 		final Map<String, Object> dphData = dph.getDataMap();
 		Object data;
 		for (final String dataName : dph.getDataNames()) {
@@ -287,7 +287,8 @@ final class Producer {
 				this.producer.printTagClose(this.sbTmpElmName);
 			}
 		} else {
-			throw new ImplementationLtRtException("Something wrong (Defined an array in 'ArrayElement.ARRAY_CLASS' element which isn't implemented!)");
+			throw new ImplementationLtRtException(
+					"Something wrong (Defined an array in 'ArrayElement.ARRAY_CLASS' element which isn't implemented!)");
 		}
 	}
 

@@ -31,6 +31,7 @@ hs_err_pid*
 /meta-inf/
 /classes/
 /lib/
+/lib_old/
 /data/
 /src-test/
 /src/leitej/sound/

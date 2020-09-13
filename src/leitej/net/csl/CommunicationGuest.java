@@ -21,8 +21,8 @@ import java.io.OutputStream;
 import java.net.SocketAddress;
 import java.net.SocketException;
 
+import leitej.exception.ConnectionLtException;
 import leitej.exception.IllegalArgumentLtRtException;
-import leitej.net.exception.ConnectionLtException;
 
 /**
  *

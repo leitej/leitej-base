@@ -40,7 +40,7 @@ class AppenderFile extends AbstractAppender {
 		} else {
 			final boolean appendFile = (lp.getFile().getAppendFile() == null) ? true : lp.getFile().getAppendFile();
 			final String charsetName = (lp.getFile().getCharsetName() != null) ? lp.getFile().getCharsetName()
-					: Constant.DEFAULT_CHARSET_NAME;
+					: Constant.UTF8_CHARSET_NAME;
 			final String fileName = lp.getFile().getFileName();
 			final String pathFile = lp.getFile().getPath();
 			this.out = new PrintStream(new FileOutputStream(new File(pathFile, fileName), appendFile), false,

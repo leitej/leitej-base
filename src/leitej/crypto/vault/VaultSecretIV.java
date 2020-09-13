@@ -17,37 +17,29 @@
 package leitej.crypto.vault;
 
 import leitej.ltm.LtmObjectModelling;
-import leitej.ltm.annotation.Column;
-import leitej.ltm.annotation.LongTermMemory;
 
 /**
  *
  * @author Julio Leite
  */
-@LongTermMemory(name = "lt_vault_secret_iv")
 public interface VaultSecretIV extends LtmObjectModelling {
 
 	public static final String FIELD_KEY_LTM_STORE_ALIAS = "keyLtmStoreAlias";
 
-	@Column(updatable = false, nullable = false)
 	public String getKeyLtmStoreAlias();
 
 	public void setKeyLtmStoreAlias(String keyLtmStoreAlias);
 
-	// TODO: index keyLtmStoreAlias + alias
-
 	public static final String FIELD_ALIAS = "alias";
 
-	@Column(updatable = false, nullable = false)
 	public String getAlias();
 
 	public void setAlias(String alias);
 
 	public static final String FIELD_IV = "iv";
 
-	@Column(nullable = false)
-	public Byte[] getIv();
+	public byte[] getIv();
 
-	public void setIv(Byte[] iv);
+	public void setIv(byte[] iv);
 
 }

@@ -21,7 +21,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-import leitej.gui.exception.GuiLtException;
+import leitej.exception.GuiLtException;
 import leitej.gui.uniform.model.BorderLayoutConstraintsEnum;
 import leitej.gui.uniform.model.Data;
 import leitej.gui.uniform.model.Element;

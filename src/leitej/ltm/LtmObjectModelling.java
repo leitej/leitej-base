@@ -16,72 +16,15 @@
 
 package leitej.ltm;
 
-import leitej.ltm.annotation.LongTermMemory;
-import leitej.ltm.exception.LtmLtRtException;
-
 /**
  *
  *
  * @author Julio Leite
  */
-@LongTermMemory
 public abstract interface LtmObjectModelling {
 
-	static final String GET_ID_METHOD_NAME = "getId";
-	static final String SET_ID_METHOD_NAME = "setId";
-	static final String ID_DATA_NAME = "id";
-	static final Class<?> GET_ID_RETURN_CLASS = Long.class;
+	public abstract long getId();
 
-	public abstract Long getId();
+	public abstract void setId(long id);
 
-	public abstract void setId(Long id);
-
-	abstract boolean isNew();
-
-	/**
-	 *
-	 * @throws LtmLtRtException <br/>
-	 *                          +Cause ClosedLtRtException if long term memory
-	 *                          already close <br/>
-	 *                          +Cause ObjectPoolLtException if can't instantiate a
-	 *                          new connection <br/>
-	 *                          +Cause InterruptedException if interrupted while
-	 *                          waiting for lock or waiting for the connection <br/>
-	 *                          +Cause SQLException if a database access error
-	 *                          occurs, or this method is called on a closed
-	 *                          connection <br/>
-	 */
-	public abstract void save() throws LtmLtRtException;
-
-	/**
-	 *
-	 * @throws LtmLtRtException <br/>
-	 *                          +Cause ClosedLtRtException if long term memory
-	 *                          already close <br/>
-	 *                          +Cause ObjectPoolLtException if can't instantiate a
-	 *                          new connection <br/>
-	 *                          +Cause InterruptedException if interrupted while
-	 *                          waiting for lock or waiting for the connection <br/>
-	 *                          +Cause SQLException if a database access error
-	 *                          occurs, or this method is called on a closed
-	 *                          connection <br/>
-	 */
-	public abstract void remove() throws LtmLtRtException;
-
-	/**
-	 *
-	 * @throws LtmLtRtException <br/>
-	 *                          +Cause ClosedLtRtException if long term memory
-	 *                          already close <br/>
-	 *                          +Cause ObjectPoolLtException if can't instantiate a
-	 *                          new connection <br/>
-	 *                          +Cause InterruptedException if interrupted while
-	 *                          waiting for lock or waiting for the connection <br/>
-	 *                          +Cause SQLException if a database access error
-	 *                          occurs, or this method is called on a closed
-	 *                          connection <br/>
-	 */
-	public abstract void refresh() throws LtmLtRtException;
-
-	public abstract int compareTo(LtmObjectModelling o);
 }

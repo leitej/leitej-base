@@ -33,10 +33,10 @@ import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 
 import leitej.Constant;
+import leitej.exception.FtpLtException;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.LtException;
 import leitej.log.Logger;
-import leitej.net.exception.FtpLtException;
 import leitej.thread.PoolAgnosticThread;
 import leitej.thread.XThreadData;
 import leitej.util.AgnosticUtil;

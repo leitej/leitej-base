@@ -199,9 +199,9 @@ public final class HostFileSystemNode extends AbstractNode<HostFileSystem, HostF
 		final long offsetPrimitive = (offset == null) ? 0 : offset;
 		try {
 			if (length != null) {
-				result = new BinaryFileFractionInputStream(this.hostFileName, offsetPrimitive, length);
+				result = new BinaryFileFractionInputStream(this.hostFile, offsetPrimitive, length);
 			} else {
-				result = new BinaryFileFractionInputStream(this.hostFileName, offsetPrimitive);
+				result = new BinaryFileFractionInputStream(this.hostFile, offsetPrimitive);
 			}
 		} catch (final IOException e) {
 			throw new FileSystemLtRtException(e);
@@ -219,9 +219,9 @@ public final class HostFileSystemNode extends AbstractNode<HostFileSystem, HostF
 		try {
 			final long offsetPrimitive = (offset == null) ? 0 : offset;
 			if (length != null) {
-				os = new BinaryFileFractionOutputStream(this.hostFileName, offsetPrimitive, length, false);
+				os = new BinaryFileFractionOutputStream(this.hostFile, offsetPrimitive, length, false);
 			} else {
-				os = new BinaryFileFractionOutputStream(this.hostFileName, offsetPrimitive, false);
+				os = new BinaryFileFractionOutputStream(this.hostFile, offsetPrimitive, false);
 			}
 			StreamUtil.pipe(in, os, true);
 		} catch (final IOException e) {

@@ -29,12 +29,12 @@ import java.net.SocketException;
 import java.nio.charset.Charset;
 
 import leitej.Constant;
+import leitej.exception.ConnectionLtException;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.XmlInvalidLtException;
 import leitej.exception.XmlomInvalidLtException;
 import leitej.log.Logger;
 import leitej.net.ConstantNet;
-import leitej.net.exception.ConnectionLtException;
 import leitej.util.stream.ControlDataInputStream;
 import leitej.util.stream.ControlDataOutputStream;
 import leitej.xml.om.XmlObjectModelling;

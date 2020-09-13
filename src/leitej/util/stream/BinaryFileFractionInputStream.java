@@ -16,13 +16,14 @@
 
 package leitej.util.stream;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import leitej.Constant;
 
 /**
- * 
+ *
  *
  * @author Julio Leite
  */
@@ -32,21 +33,20 @@ public final class BinaryFileFractionInputStream extends FractionInputStream {
 	private final RandomAccessFile raFile;
 	private final long endFilePointer;
 
-	public BinaryFileFractionInputStream(final String filename, final long offset) throws IOException {
-		this(filename, offset, -1, null);
+	public BinaryFileFractionInputStream(final File file, final long offset) throws IOException {
+		this(file, offset, -1, null);
 	}
 
-	public BinaryFileFractionInputStream(final String filename, final long offset, final long length)
-			throws IOException {
-		this(filename, offset, length, null);
+	public BinaryFileFractionInputStream(final File file, final long offset, final long length) throws IOException {
+		this(file, offset, length, null);
 	}
 
-	BinaryFileFractionInputStream(final String filename, long offset, final long length, final Object mutex)
+	BinaryFileFractionInputStream(final File file, long offset, final long length, final Object mutex)
 			throws IOException {
 		if (offset < 0) {
 			offset = 0;
 		}
-		this.raFile = new RandomAccessFile(filename, RandomAccessModeEnum.R.getRandomAccessFileMode());
+		this.raFile = new RandomAccessFile(file, RandomAccessModeEnum.R.getRandomAccessFileMode());
 		try {
 			this.raFile.seek(offset);
 		} catch (final IOException e) {

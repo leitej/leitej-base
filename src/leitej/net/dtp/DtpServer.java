@@ -23,13 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import leitej.exception.AgnosticThreadLtException;
+import leitej.exception.ConnectionLtException;
 import leitej.exception.DataOverflowLtException;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.log.Logger;
 import leitej.net.ConstantNet;
 import leitej.net.csl.AbstractCommunicationListener;
-import leitej.net.exception.ConnectionLtException;
 import leitej.thread.AgnosticThread;
 import leitej.thread.PoolAgnosticThread;
 import leitej.thread.ThreadData;

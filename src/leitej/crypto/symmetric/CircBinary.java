@@ -33,17 +33,17 @@ import leitej.util.MathUtil;
 import leitej.util.data.BinaryConcat;
 import leitej.util.stream.FractionInputStream;
 import leitej.util.stream.FractionOutputStream;
-import leitej.util.stream.RandomAccessBinaryItf;
+import leitej.util.stream.RandomAccessBinary;
 
 /**
  *
  * @author Julio Leite
  */
-public final class CircBinary implements RandomAccessBinaryItf {
+public final class CircBinary implements RandomAccessBinary {
 
 	private static final int ENCRYPTED_IO_BUFFER_SIZE = Constant.IO_BUFFER_SIZE;
 
-	private final RandomAccessBinaryItf encryptedBinary;
+	private final RandomAccessBinary encryptedBinary;
 	private final CircBlockCipher circDecrypt;
 	private final byte[] readSeekBlockBuffer;
 	private final byte[] readEncryptedDataBuffer;
@@ -63,7 +63,7 @@ public final class CircBinary implements RandomAccessBinaryItf {
 
 	private volatile boolean initialized;
 
-	public CircBinary(final RandomAccessBinaryItf encryptedBinary, final CipherEnum cipher) {
+	public CircBinary(final RandomAccessBinary encryptedBinary, final CipherEnum cipher) {
 		this.encryptedBinary = encryptedBinary;
 		this.circDecrypt = new CircBlockCipher(cipher);
 		this.circEncrypt = new CircBlockCipher(cipher);

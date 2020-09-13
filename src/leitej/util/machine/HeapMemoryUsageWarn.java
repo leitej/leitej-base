@@ -79,7 +79,7 @@ public final class HeapMemoryUsageWarn {
 			throw new IllegalArgumentLtRtException("Percentage not in range (0.0 < x=#0 <= 1.0)", percentage);
 		}
 		tenuredGenPool.setUsageThreshold((long) (tenuredGenPool.getUsage().getMax() * percentage));
-		LOG.debug("Percentage: #0", percentage);
+		LOG.warn("Percentage: #0", percentage);
 	}
 
 	private static void notifyMemoryUsageLow(final long usedMemory, final long maxMemory) {

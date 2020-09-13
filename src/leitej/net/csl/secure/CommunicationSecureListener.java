@@ -21,8 +21,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 
+import leitej.exception.ConnectionLtException;
 import leitej.net.csl.AbstractCommunicationListener;
-import leitej.net.exception.ConnectionLtException;
 
 /**
  *
