@@ -208,10 +208,11 @@ public final class FileUtil {
 	 *                           method does not permit the named directory and all
 	 *                           necessary parent directories to be created
 	 */
-	public static boolean createPathFromFile(final File file) throws SecurityException {
+	public static boolean createPathForFile(final File file) throws SecurityException {
 		boolean result = true;
-		if (file.getParentFile() != null && !file.getParentFile().exists()) {
-			result = file.getParentFile().mkdirs();
+		final File parentFile = file.getParentFile();
+		if (parentFile != null && !parentFile.exists()) {
+			result = parentFile.mkdirs();
 		}
 		return result;
 	}
@@ -330,7 +331,8 @@ public final class FileUtil {
 	 */
 	public static byte[] readAllAtOnce(final File file) throws FileNotFoundException, SecurityException, IOException {
 		if (file.length() > Integer.MAX_VALUE) {
-			throw new IllegalArgumentLtRtException("File(#0) length too big for an array of bytes", file.getAbsoluteFile());
+			throw new IllegalArgumentLtRtException("File(#0) length too big for an array of bytes",
+					file.getAbsoluteFile());
 		}
 		final InputStream is = new FileInputStream(file);
 		byte[] result;
@@ -346,7 +348,8 @@ public final class FileUtil {
 			}
 			// Ensure all the bytes have been read in
 			if (offset < arrayLength) {
-				throw new IOException(new IllegalStateLtRtException("Could not completely read file(#0)", file.getAbsoluteFile()));
+				throw new IOException(
+						new IllegalStateLtRtException("Could not completely read file(#0)", file.getAbsoluteFile()));
 			}
 		} finally {
 			is.close();
@@ -481,7 +484,17 @@ public final class FileUtil {
 	 */
 	public static byte[] md5(final File file)
 			throws SecurityException, NoSuchAlgorithmException, FileNotFoundException, IOException {
-		return StreamUtil.md5(new BufferedInputStream(new FileInputStream(file)));
+		final byte[] result;
+		InputStream is = null;
+		try {
+			is = new BufferedInputStream(new FileInputStream(file));
+			result = StreamUtil.md5(is);
+		} finally {
+			if (is != null) {
+				is.close();
+			}
+		}
+		return result;
 	}
 
 	/**
@@ -636,6 +649,44 @@ public final class FileUtil {
 	 */
 	public static boolean delete(final String filename) throws NullPointerException, SecurityException {
 		return delete(new File(filename));
+	}
+
+	/**
+	 * Creates a File, which is a sub directory of <code>path</code> with the patern
+	 * ./directory/filename.ext from the long <code>number</code>.<br/>
+	 * <br/>
+	 * 2..2'333'1111<br/>
+	 * <br/>
+	 * 1111 - directory / 2..2 - filename . 333 - extension<br/>
+	 *
+	 * @param number
+	 * @return path
+	 */
+	public static File generateFileFrom(final File path, final long number) {
+		final long ensureLengh = 10000000;
+		final boolean isNegative;
+		final boolean isZerofile;
+		final String numberString;
+		long modNumber;
+		if (number < 0) {
+			isNegative = true;
+			modNumber = -number;
+		} else {
+			isNegative = false;
+			modNumber = number;
+		}
+		if (modNumber < ensureLengh) {
+			isZerofile = true;
+			numberString = String.valueOf(ensureLengh + modNumber);
+		} else {
+			isZerofile = false;
+			numberString = String.valueOf(modNumber);
+		}
+		return (new File(path, // base directory
+				numberString.substring(numberString.length() - 4, numberString.length()) + // directory
+						FileUtil.FILE_SEPARATOR + ((isNegative) ? "." : "") //
+						+ ((isZerofile) ? "0" : numberString.substring(0, numberString.length() - 7)) + "." + // filename
+						numberString.substring(numberString.length() - 7, numberString.length() - 4))); // extension
 	}
 
 }

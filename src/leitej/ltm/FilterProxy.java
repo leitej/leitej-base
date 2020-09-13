@@ -14,32 +14,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package leitej.crypto.vault;
+package leitej.ltm;
 
-import leitej.ltm.LtmObjectModelling;
+import leitej.util.data.AbstractDataProxy;
 
 /**
- *
  * @author Julio Leite
+ *
  */
-public interface VaultSecretIV extends LtmObjectModelling {
+final class FilterProxy extends AbstractDataProxy<LtmObjectModelling, FilterHandler> {
 
-	public static final String FIELD_KEY_LTM_STORE_ALIAS = "keyLtmStoreAlias";
+	private static final long serialVersionUID = -7578587610182683780L;
 
-	public String getKeyLtmStoreAlias();
+	FilterProxy() {
+	}
 
-	public void setKeyLtmStoreAlias(String keyLtmStoreAlias);
+	<T extends LtmObjectModelling> T newProxyInstance(final Class<T> ltmFilterClass, final LtmFilter<T> ltmFilter) {
+		final T result = newProxyInstance(ltmFilterClass, new FilterHandler(ltmFilterClass));
+		getInvocationHandler(result).setFilter(ltmFilter);
+		return result;
+	}
 
-	public static final String FIELD_ALIAS = "alias";
-
-	public String getAlias();
-
-	public void setAlias(String alias);
-
-	public static final String FIELD_IV = "iv";
-
-	public byte[] getIv();
-
-	public void setIv(byte[] iv);
+	<T extends LtmObjectModelling> FilterHandler getHandler(final T filter) {
+		return getInvocationHandler(filter);
+	}
 
 }

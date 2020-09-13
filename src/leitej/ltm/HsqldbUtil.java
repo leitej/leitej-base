@@ -16,7 +16,6 @@
 
 package leitej.ltm;
 
-import java.math.BigDecimal;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
@@ -24,7 +23,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLSyntaxErrorException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
@@ -34,7 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import leitej.Constant;
-import leitej.exception.ImplementationLtRtException;
 import leitej.exception.UnsupportedDataTypeLtRtException;
 import leitej.log.Logger;
 import leitej.util.HexaUtil;
@@ -47,7 +44,11 @@ final class HsqldbUtil {
 
 	private static final Logger LOG = Logger.getInstance();
 
-	private static final String SCHEMA = "ltm";
+	private static final char TABLE_LTM_PREFIX = 'L';
+	private static final char TABLE_SET_PREFIX = 'S';
+	private static final char TABLE_MAP_PREFIX = 'M';
+
+	static final String SCHEMA = "ltm";
 	private static final MessageDigest CREATE_TABLENAME;
 
 	private static final Map<String, String> TABLE_COMMENT_MAP = new HashMap<>();
@@ -68,21 +69,22 @@ final class HsqldbUtil {
 
 	static <I extends LtmObjectModelling> String getTablename(final Class<I> ltmClass) {
 		synchronized (CREATE_TABLENAME) {
-			return "O" + HexaUtil.toHex(CREATE_TABLENAME.digest(ltmClass.getName().getBytes(Constant.UTF8_CHARSET)));
+			return TABLE_LTM_PREFIX
+					+ HexaUtil.toHex(CREATE_TABLENAME.digest(ltmClass.getName().getBytes(Constant.UTF8_CHARSET)));
 		}
 	}
 
 	static <I extends LtmObjectModelling> String getTablenameSet(final Class<I> ltmClass, final String setDataname) {
 		synchronized (CREATE_TABLENAME) {
-			return "S" + HexaUtil.toHex(
-					CREATE_TABLENAME.digest((setDataname + ltmClass.getName()).getBytes(Constant.UTF8_CHARSET)));
+			return TABLE_SET_PREFIX + HexaUtil
+					.toHex(CREATE_TABLENAME.digest((setDataname + ltmClass.getName()).getBytes(Constant.UTF8_CHARSET)));
 		}
 	}
 
 	static <I extends LtmObjectModelling> String getTablenameMap(final Class<I> ltmClass, final String mapDataname) {
 		synchronized (CREATE_TABLENAME) {
-			return "M" + HexaUtil.toHex(
-					CREATE_TABLENAME.digest((mapDataname + ltmClass.getName()).getBytes(Constant.UTF8_CHARSET)));
+			return TABLE_MAP_PREFIX + HexaUtil
+					.toHex(CREATE_TABLENAME.digest((mapDataname + ltmClass.getName()).getBytes(Constant.UTF8_CHARSET)));
 		}
 	}
 
@@ -95,8 +97,8 @@ final class HsqldbUtil {
 		final String createSchema = "create schema \"" + SCHEMA + "\"";
 		LOG.debug("createSchema: #0", createSchema);
 		stt.execute(createSchema);
-		conn.commit();
 		stt.close();
+		conn.commit();
 	}
 
 	static {
@@ -155,10 +157,15 @@ final class HsqldbUtil {
 				// drop tables
 				if (!dropTable.isEmpty()) {
 					String dropSql;
+					Statement stt;
 					for (final String droptable : dropTable) {
 						dropSql = "drop table " + droptable;
 						LOG.warn("erasing table: #0", droptable);
-						conn.createStatement().execute(dropSql);
+						stt = conn.createStatement();
+						stt.execute(dropSql);
+						stt.close();
+						// TODO remove big binary files
+						// BigBinaryTracer.delFromLtmClassName(conn, ltmClassName);
 					}
 					conn.commit();
 				}
@@ -194,7 +201,7 @@ final class HsqldbUtil {
 			query.append(", \"");
 			query.append(prepClass.getColumns().get(i));
 			query.append("\" ");
-			query.append(getHsqlType(prepClass.getColumnsTypes().get(i)));
+			query.append(getHsqlType(prepClass.getColumnsTypes().get(i).getSqlType()));
 		}
 		query.append(")");
 		// comment on table
@@ -209,8 +216,8 @@ final class HsqldbUtil {
 		LOG.debug("createTable: #0", createTable);
 		final Statement stt = conn.createStatement();
 		stt.execute(createTable);
-		conn.commit();
 		stt.close();
+		conn.commit();
 	}
 
 	private static void dropColumns(final Connection conn, final String tablename, final List<String> toRemove)
@@ -231,8 +238,8 @@ final class HsqldbUtil {
 			LOG.debug("dropColumns: #0", dropColumns);
 			final Statement stt = conn.createStatement();
 			stt.execute(dropColumns);
-			conn.commit();
 			stt.close();
+			conn.commit();
 		}
 	}
 
@@ -249,28 +256,25 @@ final class HsqldbUtil {
 				query.append(" add \"");
 				query.append(column);
 				query.append("\" ");
-				query.append(getHsqlType(prepClass.getColumnsTypes().get(prepClass.getColumns().indexOf(column))));
+				query.append(getHsqlType(
+						prepClass.getColumnsTypes().get(prepClass.getColumns().indexOf(column)).getSqlType()));
 				query.append("; ");
 			}
 			final String addColumns = query.toString();
 			LOG.debug("addColumns: #0", addColumns);
 			final Statement stt = conn.createStatement();
 			stt.execute(addColumns);
-			conn.commit();
 			stt.close();
+			conn.commit();
 		}
 	}
 
 	static void initialize(final Connection conn, final PreparedClass prepClass) throws SQLException {
 		LOG.trace("table: #0", prepClass.getTablename());
-		List<String> columnList = TABLE_COLUMN_MAP.get(prepClass.getTablename());
-		// check if table already exist
+		final List<String> columnList = TABLE_COLUMN_MAP.get(prepClass.getTablename());
+		// check if table already exists
 		if (columnList == null) {
-			columnList = new ArrayList<>();
-			TABLE_COLUMN_MAP.put(prepClass.getTablename(), columnList);
 			createTable(conn, prepClass);
-			// TODO other long term memory
-			// TODO special column stream
 			// TODO tabelas intermedias -set-map
 		} else {
 			if (DataMemoryPool.CONFIG.isAutoForgetsInterfaceComponentMisses()) {
@@ -280,8 +284,6 @@ final class HsqldbUtil {
 				toRemove.remove(DataProxyHandler.ID);
 				dropColumns(conn, prepClass.getTablename(), toRemove);
 				columnList.removeAll(toRemove);
-				// TODO other long term memory
-				// TODO special column stream
 				// TODO tabelas intermedias -set-map
 			}
 			final List<String> toAdd = new ArrayList<>();
@@ -289,8 +291,6 @@ final class HsqldbUtil {
 			toAdd.removeAll(columnList);
 			addColumns(conn, prepClass, toAdd);
 			columnList.addAll(toAdd);
-			// TODO other long term memory
-			// TODO special column stream
 			// TODO tabelas intermedias -set-map
 		}
 	}
@@ -300,113 +300,136 @@ final class HsqldbUtil {
 		final String dropSchema = "drop schema if exists \"" + SCHEMA + "\" cascade";
 		LOG.debug("dropSchema: #0", dropSchema);
 		stt.execute(dropSchema);
-		conn.commit();
 		stt.close();
+		conn.commit();
 		TABLE_COLUMN_MAP.clear();
 		createSchema(conn);
 	}
 
-	private static String getHsqlType(final Integer type) {
+	static String getHsqlType(final int sqlType) {
 		final String result;
-		switch (type) {
+		switch (sqlType) {
 		case Types.TINYINT:
-			result = "tinyint";
+			result = "tinyint default null";
 			break;
 		case Types.SMALLINT:
-			result = "smallint";
+			result = "smallint default null";
 			break;
 		case Types.INTEGER:
-			result = "int";
+			result = "int default null";
 			break;
 		case Types.BIGINT:
-			result = "bigint";
+			result = "bigint default null";
 			break;
 		case Types.DECIMAL:
-			result = "decimal";
+			result = "decimal default null";
 			break;
 		case Types.DOUBLE:
-			result = "float";
+			result = "float default null";
 			break;
 		case Types.FLOAT:
-			result = "float";
+			result = "float default null";
 			break;
 		case Types.BOOLEAN:
-			result = "bit";
+			result = "bit default null";
 			break;
 		case Types.VARCHAR:
-			result = "varchar (256)";
+			result = "varchar (256) default null";
 			break;
-		case Types.CLOB:
-			result = "longvarchar";
+		case Types.LONGVARCHAR:
+			result = "longvarchar default null";
 			break;
-		case Types.BLOB:
-			result = "longvarbinary";
+		case Types.LONGVARBINARY:
+			result = "longvarbinary default null";
 			break;
 		default:
-			throw new UnsupportedDataTypeLtRtException(type.toString());
+			throw new UnsupportedDataTypeLtRtException("sqlType: #0", sqlType);
 		}
 		return result;
 	}
 
-	static Integer getSqlType(final Class<?> type) {
-		final Integer result;
-		if (Byte.class.isAssignableFrom(type) || byte.class.isAssignableFrom(type)) {
-			result = Types.TINYINT;
-		} else if (Short.class.isAssignableFrom(type) || short.class.isAssignableFrom(type)) {
-			result = Types.SMALLINT;
-		} else if (Integer.class.isAssignableFrom(type) || int.class.isAssignableFrom(type)) {
-			result = Types.INTEGER;
-		} else if (Long.class.isAssignableFrom(type) || long.class.isAssignableFrom(type)) {
-			result = Types.BIGINT;
-		} else if (BigDecimal.class.isAssignableFrom(type)) {
-			result = Types.DECIMAL;
-		} else if (Double.class.isAssignableFrom(type) || double.class.isAssignableFrom(type)) {
-			result = Types.DOUBLE;
-		} else if (Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type)) {
-			result = Types.FLOAT;
-		} else if (Boolean.class.isAssignableFrom(type) || boolean.class.isAssignableFrom(type)) {
-			result = Types.BOOLEAN;
-		} else if (type.isEnum()) {
-			result = Types.VARCHAR;
-		} else if (String.class.isAssignableFrom(type)) {
-			result = Types.CLOB;
-		} else if (type.isArray() && (byte.class.isAssignableFrom(type.getComponentType()))) {
-			result = Types.BLOB;
-		} else {
+	static Object parseValue(final ResultSet rSet, final String column, final int sqlType) throws SQLException {
+		final Object result;
+		if (rSet.getObject(column) == null || rSet.wasNull()) {
 			result = null;
-		}
-		return result;
-	}
-
-	static void setPrepStt(final PreparedStatement pStt, final int pos, final int sqlType, final Object value)
-			throws SQLException {
-		try {
-			LOG.trace("sqlType: #0", sqlType);
+		} else {
 			switch (sqlType) {
 			case Types.TINYINT:
+				result = rSet.getByte(column);
+				break;
 			case Types.SMALLINT:
+				result = rSet.getShort(column);
+				break;
 			case Types.INTEGER:
+				result = rSet.getInt(column);
+				break;
 			case Types.BIGINT:
+				result = rSet.getLong(column);
+				break;
 			case Types.DECIMAL:
+				result = rSet.getBigDecimal(column);
+				break;
 			case Types.DOUBLE:
+				result = rSet.getDouble(column);
+				break;
 			case Types.FLOAT:
+				result = rSet.getFloat(column);
+				break;
 			case Types.BOOLEAN:
-				pStt.setObject(pos, value, sqlType);
+				result = rSet.getBoolean(column);
 				break;
 			case Types.VARCHAR:
-				pStt.setString(pos, value.toString());
+				result = rSet.getString(column);
 				break;
-			case Types.CLOB:
-				pStt.setString(pos, String.class.cast(value));
+			case Types.LONGVARCHAR:
+				result = rSet.getString(column);
 				break;
-			case Types.BLOB:
-				pStt.setBytes(pos, (byte[]) value);
+			case Types.LONGVARBINARY:
+				result = rSet.getBytes(column);
 				break;
 			default:
 				throw new UnsupportedDataTypeLtRtException("sqlType: #0", sqlType);
 			}
-		} catch (final SQLSyntaxErrorException e) {
-			throw new ImplementationLtRtException("sqlType: #0, #1", sqlType, e);
+		}
+		return result;
+	}
+
+	static void setPrepStt(final PreparedStatement pStt, final DataMemoryType[] types, final Object[] parameters)
+			throws SQLException {
+		setPrepStt(pStt, 1, types, parameters);
+	}
+
+	static void setPrepStt(final PreparedStatement pStt, final int offset, final DataMemoryType[] types,
+			final Object[] parameters) throws SQLException {
+		if (parameters != null) {
+			for (int i = 0; i < parameters.length; i++) {
+				setPrepStt(pStt, offset + i, types[i].getSqlType(), parameters[i]);
+			}
+		}
+	}
+
+	static void setPrepStt(final PreparedStatement pStt, final int pos, final int sqlType, final Object value)
+			throws SQLException {
+		switch (sqlType) {
+		case Types.TINYINT:
+		case Types.SMALLINT:
+		case Types.INTEGER:
+		case Types.BIGINT:
+		case Types.DECIMAL:
+		case Types.DOUBLE:
+		case Types.FLOAT:
+		case Types.BOOLEAN:
+		case Types.VARCHAR:
+			pStt.setObject(pos, value, sqlType);
+			break;
+		case Types.LONGVARCHAR:
+			pStt.setString(pos, String.class.cast(value));
+			break;
+		case Types.LONGVARBINARY:
+			pStt.setBytes(pos, (byte[]) value);
+			break;
+		default:
+			throw new UnsupportedDataTypeLtRtException("sqlType: #0", sqlType);
 		}
 	}
 
@@ -421,8 +444,6 @@ final class HsqldbUtil {
 		result.append("\".\"");
 		result.append(tablename);
 		result.append("\" default values; call identity()");
-		// TODO other long term memory
-		// TODO special column stream
 		// TODO tabelas intermedias -set-map
 		return result.toString();
 	}
@@ -438,14 +459,33 @@ final class HsqldbUtil {
 		result.append("\" = ? where \"");
 		result.append(DataProxyHandler.ID);
 		result.append("\" = ?");
-		// TODO other long term memory
-		// TODO special column stream
 		// TODO tabelas intermedias -set-map
 		return result.toString();
 	}
 
 	static String getStatementDeleteById(final String tablename) {
 		return "delete from \"" + SCHEMA + "\".\"" + tablename + "\" where \"" + DataProxyHandler.ID + "\" = ?";
+		// TODO tabelas intermedias -set-map
+	}
+
+	static String getStatementCount(final String tablename, final String filter) {
+		return "select count(1) from \"" + SCHEMA + "\".\"" + tablename + "\" where " + filter;
+	}
+
+	static String getStatementHasResult(final String tablename, final String filter) {
+		return "select \"" + DataProxyHandler.ID + "\" from \"" + SCHEMA + "\".\"" + tablename + "\" where " + filter
+				+ " limit 1";
+	}
+
+	static String getStatementContains(final String tablename, final String filter) {
+		return "select \"" + DataProxyHandler.ID + "\" from \"" + SCHEMA + "\".\"" + tablename + "\" where \""
+				+ DataProxyHandler.ID + "\" in ? and " + filter;
+	}
+
+	static String getStatementScaledIterator(final String tablename, final String filter) {
+		return "select \"" + DataProxyHandler.ID + "\" from \"" + SCHEMA + "\".\"" + tablename + "\" where \""
+				+ DataProxyHandler.ID + "\" > ? and " + filter + " order by \"" + DataProxyHandler.ID
+				+ "\" asc limit 1";
 	}
 
 }

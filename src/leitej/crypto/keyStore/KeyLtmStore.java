@@ -16,29 +16,25 @@
 
 package leitej.crypto.keyStore;
 
+import leitej.ltm.LargeMemory;
 import leitej.ltm.LtmObjectModelling;
-import leitej.ltm.annotation.Column;
-import leitej.ltm.annotation.LongTermMemory;
-import leitej.ltm.lixo.LtmBinary;
 
 /**
  *
  * @author Julio Leite
  */
-@LongTermMemory(name = "lt_key_ltm_store")
 public interface KeyLtmStore extends LtmObjectModelling {
 
 	public static final String FIELD_ALIAS = "alias";
 
-	@Column(updatable = false, unique = true, nullable = false)
 	public String getAlias();
 
 	public void setAlias(String alias);
 
 	public static final String FIELD_KEY_STORE = "keyStore";
 
-	public LtmBinary getKeyStore();
+	public LargeMemory getKeyStore();
 
-	public void setKeyStore(LtmBinary keyStore);
+	public void setKeyStore(LargeMemory keyStore);
 
 }

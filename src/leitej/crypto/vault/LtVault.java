@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
@@ -40,11 +41,8 @@ import leitej.exception.CertificateLtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.exception.KeyStoreLtException;
 import leitej.exception.LtmLtRtException;
+import leitej.ltm.LtmFilter;
 import leitej.ltm.LongTermMemory;
-import leitej.ltm.Query;
-import leitej.ltm.QueryEntrance;
-import leitej.ltm.QueryResult;
-import leitej.util.BinaryUtil;
 import leitej.util.data.Cache;
 import leitej.util.data.CacheSoft;
 import leitej.util.data.CacheWeak;
@@ -66,10 +64,6 @@ public final class LtVault {
 
 	private static final LongTermMemory LTM = LongTermMemory.getInstance();
 	private static final Map<String, LtVault> INSTANCE_MAP = new HashMap<>();
-	static {
-		LTM.registry(VaultCertificate.class);
-		LTM.registry(VaultSecretIV.class);
-	}
 
 	/**
 	 *
@@ -173,11 +167,9 @@ public final class LtVault {
 		}
 	}
 
-	private final QueryResult<VaultSecretIV> findVaultSecretIV;
 	private final Cache<String, VaultSecretIV> vaultSecretIVLightCache;
 	private final Cache<String, IvParameterSpec> secretIVCache;
 
-	private final QueryResult<VaultCertificate> findVaultCertificate;
 	private final Map<String, VaultCertificate> vaultCertificateIssuerMap;
 	private final Cache<String, VaultCertificate> vaultCertificateLightCache;
 	private final Cache<String, X509Certificate> certificateCache;
@@ -189,30 +181,8 @@ public final class LtVault {
 			throws KeyStoreLtException, IOException {
 		this.keyLtmStoreAlias = keyLtmStoreAlias;
 		this.keyLtmStore = keyLtmStore;
-		//
-		final QueryEntrance<VaultSecretIV> entranceVaultSecretIV = Query.newTableEntrance(VaultSecretIV.class);
-		this.findVaultSecretIV = Query.find(entranceVaultSecretIV,
-				Query.filterBy(
-						Query.expression(Query.field(entranceVaultSecretIV, VaultSecretIV.FIELD_KEY_LTM_STORE_ALIAS),
-								Query.equal(), Query.literalParameter(keyLtmStoreAlias)),
-						Query.and(), Query.expression(Query.field(entranceVaultSecretIV, VaultSecretIV.FIELD_ALIAS),
-								Query.equal(), Query.dynamicParameter())));
-		this.findVaultSecretIV.setFetchScale(1);
 		this.vaultSecretIVLightCache = new CacheWeak<>();
 		this.secretIVCache = new CacheSoft<>();
-		//
-		final QueryEntrance<VaultCertificate> entranceVaultCertificate = Query.newTableEntrance(VaultCertificate.class);
-		this.findVaultCertificate = Query
-				.find(entranceVaultCertificate,
-						Query.filterBy(
-								Query.expression(
-										Query.field(entranceVaultCertificate,
-												VaultCertificate.FIELD_KEY_LTM_STORE_ALIAS),
-										Query.equal(), Query.literalParameter(keyLtmStoreAlias)),
-								Query.and(),
-								Query.expression(Query.field(entranceVaultCertificate, VaultCertificate.FIELD_ALIAS),
-										Query.equal(), Query.dynamicParameter())));
-		this.findVaultCertificate.setFetchScale(1);
 		this.vaultCertificateIssuerMap = new HashMap<>();
 		this.vaultCertificateLightCache = new CacheWeak<>();
 		this.certificateCache = new CacheSoft<>();
@@ -241,8 +211,12 @@ public final class LtVault {
 			this.keyLtmStore.persist();
 		}
 		// assert vault has the internal secret iv for certificates
-		this.findVaultSecretIV.setParams(VAULT_INTERNAL_CERTIFICATE_SECRET_IV_ENTRY_ALIAS);
-		if (this.findVaultSecretIV.size() != 1) {
+		final LtmFilter<VaultSecretIV> filter = LTM.newFilter(VaultSecretIV.class);
+		filter.setOperandEqual().setKeyLtmStoreAlias(this.keyLtmStoreAlias);
+		filter.setAnd();
+		filter.setOperandEqual().setAlias(VAULT_INTERNAL_CERTIFICATE_SECRET_IV_ENTRY_ALIAS);
+		final Set<VaultSecretIV> found = LTM.find(filter);
+		if (found.size() != 1) {
 			setSecretIV(VAULT_INTERNAL_CERTIFICATE_SECRET_IV_ENTRY_ALIAS,
 					Cryptography.ivGenerate(CipherEnum.Twofish.ivBitSize()));
 		}
@@ -259,7 +233,7 @@ public final class LtVault {
 				final VaultSecretIV vaultSecretIV = fetchSecretIv(alias);
 				if (vaultSecretIV != null) {
 					// TODO: desencriptar iv
-					result = Cryptography.ivProduce(BinaryUtil.convert(vaultSecretIV.getIv()));
+					result = Cryptography.ivProduce(vaultSecretIV.getIv());
 					this.secretIVCache.set(alias, result);
 				}
 			}
@@ -270,9 +244,13 @@ public final class LtVault {
 	private final VaultSecretIV fetchSecretIv(final String alias) throws LtmLtRtException {
 		VaultSecretIV result = this.vaultSecretIVLightCache.get(alias);
 		if (result == null) {
-			this.findVaultSecretIV.setParams(alias);
-			if (this.findVaultSecretIV.size() == 1) {
-				result = this.findVaultSecretIV.get(0);
+			final LtmFilter<VaultSecretIV> filter = LTM.newFilter(VaultSecretIV.class);
+			filter.setOperandEqual().setKeyLtmStoreAlias(this.keyLtmStoreAlias);
+			filter.setAnd();
+			filter.setOperandEqual().setAlias(alias);
+			final Set<VaultSecretIV> found = LTM.find(filter);
+			if (found.size() == 1) {
+				result = found.iterator().next();
 				this.vaultSecretIVLightCache.set(alias, result);
 			}
 		}
@@ -283,13 +261,12 @@ public final class LtVault {
 		synchronized (this.secretIVCache) {
 			VaultSecretIV vaultSecretIV = fetchSecretIv(alias);
 			if (vaultSecretIV == null) {
-				vaultSecretIV = LTM.newObject(VaultSecretIV.class);
+				vaultSecretIV = LTM.newRecord(VaultSecretIV.class);
 				vaultSecretIV.setKeyLtmStoreAlias(this.keyLtmStoreAlias);
 				vaultSecretIV.setAlias(alias);
 			}
 			// TODO: encriptar iv
-			vaultSecretIV.setIv(BinaryUtil.convert(iv.getIV()));
-			vaultSecretIV.save();
+			vaultSecretIV.setIv(iv.getIV());
 			this.secretIVCache.set(alias, iv);
 		}
 	}
@@ -308,13 +285,13 @@ public final class LtVault {
 						// TODO: desencriptar certificate
 						try {
 							result = CertificateIoUtil
-									.readX509Certificate(vaultCertificate.getCertificate().access().newInputStream());
+									.readX509Certificate(vaultCertificate.getCertificate().newInputStream());
 						} catch (final CertificateLtException e) {
 							throw new IOException(e);
 						}
 						this.certificateCache.set(alias, result);
 					} finally {
-						vaultCertificate.getCertificate().access().close();
+						vaultCertificate.getCertificate().close();
 					}
 				}
 			}
@@ -346,9 +323,13 @@ public final class LtVault {
 	private final VaultCertificate fetchCertificate(final String alias) throws LtmLtRtException {
 		VaultCertificate result = this.vaultCertificateLightCache.get(alias);
 		if (result == null) {
-			this.findVaultCertificate.setParams(alias);
-			if (this.findVaultCertificate.size() == 1) {
-				result = this.findVaultCertificate.get(0);
+			final LtmFilter<VaultCertificate> filter = LTM.newFilter(VaultCertificate.class);
+			filter.setOperandEqual().setKeyLtmStoreAlias(this.keyLtmStoreAlias);
+			filter.setAnd();
+			filter.setOperandEqual().setAlias(alias);
+			final Set<VaultCertificate> found = LTM.find(filter);
+			if (found.size() == 1) {
+				result = found.iterator().next();
 				this.vaultCertificateLightCache.set(alias, result);
 			}
 		}
@@ -374,18 +355,17 @@ public final class LtVault {
 			final VaultCertificate issuer) throws LtmLtRtException, IOException {
 		VaultCertificate vaultCertificate = fetchCertificate(alias);
 		if (vaultCertificate == null) {
-			vaultCertificate = LTM.newObject(VaultCertificate.class);
+			vaultCertificate = LTM.newRecord(VaultCertificate.class);
 			vaultCertificate.setKeyLtmStoreAlias(this.keyLtmStoreAlias);
 			vaultCertificate.setAlias(alias);
 			vaultCertificate.setIssuer(issuer);
 			// TODO: encriptar certificate
 			try {
-				CertificateIoUtil.writeX509CertificatesPEM(vaultCertificate.getCertificate().access().newOutputStream(),
+				CertificateIoUtil.writeX509CertificatesPEM(vaultCertificate.getCertificate().newOutputStream(),
 						Constant.UTF8_CHARSET_NAME, certificate);
 			} finally {
-				vaultCertificate.getCertificate().access().close();
+				vaultCertificate.getCertificate().close();
 			}
-			vaultCertificate.save();
 			this.certificateCache.set(alias, certificate);
 		}
 		return vaultCertificate;

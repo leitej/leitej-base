@@ -52,46 +52,4 @@ public final class BinaryUtil {
 		buffer[7] = (byte) ((v >>> 0) & 0xFF);
 	}
 
-	@Deprecated
-	public static byte[] convert(final Byte[] array) throws NullPointerException {
-		if (array == null) {
-			return null;
-		}
-		return convert(array, array.length);
-	}
-
-	@Deprecated
-	public static byte[] convert(final Byte[] array, final int length) throws NullPointerException {
-		if (array == null) {
-			return null;
-		}
-		final byte[] result = new byte[length];
-//		System.arraycopy(array, 0, result, 0, length);
-		for (int i = 0; i < length; i++) {
-			result[i] = array[i];
-		}
-		return result;
-	}
-
-	@Deprecated
-	public static Byte[] convert(final byte[] array) throws NullPointerException {
-		if (array == null) {
-			return null;
-		}
-		return convert(array, array.length);
-	}
-
-	@Deprecated
-	public static Byte[] convert(final byte[] array, final int length) throws NullPointerException {
-		if (array == null) {
-			return null;
-		}
-		final Byte[] result = new Byte[length];
-//		System.arraycopy(array, 0, result, 0, length);
-		for (int i = 0; i < length; i++) {
-			result[i] = array[i];
-		}
-		return result;
-	}
-
 }

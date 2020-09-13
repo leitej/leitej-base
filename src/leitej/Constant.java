@@ -16,6 +16,7 @@
 
 package leitej;
 
+import java.io.File;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 
@@ -61,6 +62,7 @@ public final class Constant {
 	public static final String SET_PREFIX = "set";
 	public static final String VALUEOF_METHOD_NAME = "valueOf";
 
+	// TODO pass the String to File to all representatives directories
 	public static final String DEFAULT_PROPERTIES_FILE_DIR = "meta-inf" + DEFAULT_FILE_SEPARATOR;
 	public static final String DEFAULT_DATA_FILE_DIR = "data" + DEFAULT_FILE_SEPARATOR;
 
@@ -68,13 +70,11 @@ public final class Constant {
 	public final static String DEFAULT_BACKUP_EXTENSION = ".bkp";
 	public final static String DEFAULT_EXAMPLE_EXTENSION = ".example";
 
-	public static final String BIG_BINARY_TEMPORARY_DIRECTORY = DEFAULT_DATA_FILE_DIR + "bigBinary"
-			+ DEFAULT_FILE_SEPARATOR;
 	public static final int FRACTION_INPUT_STREAM_REFRESH_WAIT_IO = 2000; // 2 seconds
 	public static final int IO_BUFFER_SIZE = 2 * KILO; // 2 KB
 
-	public static final String LTM_DIR = DEFAULT_DATA_FILE_DIR + "/ltm"; // long term memory
-	public static final String LTM_DBNAME_DIR = LTM_DIR + "/rdb"; // relational data base
-	public static final String LTM_STREAM_DIR = LTM_DIR + "/jbs"; // leitej binary stream
+	public static final String LTM_DIR = DEFAULT_DATA_FILE_DIR + "ltm" + DEFAULT_FILE_SEPARATOR; // long term memory
+	public static final String LTM_DBNAME_DIR = LTM_DIR + "rdb"; // relational data base
+	public static final File LTM_STREAM_DIR = new File(LTM_DIR, "jbs"); // leitej binary stream
 
 }

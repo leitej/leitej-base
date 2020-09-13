@@ -81,7 +81,6 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 					cache.clear();
 				}
 			} catch (ClosedLtRtException | ObjectPoolLtException | SQLException | InterruptedException e) {
-				LOG.error("#0", e);
 				throw new LtmLtRtException(e);
 			}
 		}
@@ -101,7 +100,6 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 			}
 		} catch (IllegalArgumentLtRtException | ClosedLtRtException | ObjectPoolLtException | InterruptedException
 				| SQLException e) {
-			LOG.error("exception: #0", e);
 			throw new LtmLtRtException(e);
 		}
 	}
@@ -118,36 +116,32 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 			}
 		} catch (IllegalArgumentLtRtException | ClosedLtRtException | ObjectPoolLtException | InterruptedException
 				| SQLException e) {
-			LOG.error("exception: #0", e);
 			throw new LtmLtRtException(e);
 		}
 	}
 
 	public <T extends LtmObjectModelling> void forgets(final T record) throws LtmLtRtException {
-		final Class<T> ltmClass = INSTANCE.getInvocationHandler(record).getInterface();
-		forgets(ltmClass, record.getId());
-	}
-
-	public <T extends LtmObjectModelling> void forgets(final Class<T> ltmClass, final long id) throws LtmLtRtException {
+		final DataProxyHandler dph = INSTANCE.getInvocationHandler(record);
+		final Class<T> ltmClass = dph.getInterface();
+		final long id = record.getId();
 		try {
 			synchronized (ltmClass) {
-				DataProxyHandler.delete(ltmClass, id);
+				DataProxyHandler.delete(dph.getPreparedClass(), id);
 				cacheDel(ltmClass, id);
 			}
-		} catch (ClosedLtRtException | ObjectPoolLtException | InterruptedException | SQLException e) {
-			LOG.error("exception: #0", e);
+		} catch (ClosedLtRtException | ObjectPoolLtException | IllegalArgumentException | InterruptedException
+				| SQLException e) {
 			throw new LtmLtRtException(e);
 		}
 	}
 
-	public <T extends LtmObjectModelling> void forgets(final Set<T> set) throws LtmLtRtException {
-		if (set instanceof ScaledSet) {
-			ScaledSet.delete((ScaledSet<T>) set);
-		} else {
-			for (final T ltm : set) {
-				forgets(ltm);
-			}
-		}
+	public <T extends LtmObjectModelling> LtmFilter<T> newFilter(final Class<T> ltmClass) throws LtmLtRtException {
+		return new LtmFilter<>(ltmClass);
+	}
+
+	public <T extends LtmObjectModelling> Set<T> find(final LtmFilter<T> ltmFilter) throws LtmLtRtException {
+		return new LtmSet<>(ltmFilter.getLTMClass(), ltmFilter.getQueryFilter(), ltmFilter.getParams(),
+				ltmFilter.getTypes());
 	}
 
 }

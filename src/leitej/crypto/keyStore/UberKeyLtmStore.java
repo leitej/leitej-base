@@ -21,14 +21,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import leitej.exception.KeyStoreLtException;
 import leitej.exception.LtmLtRtException;
+import leitej.ltm.LtmFilter;
+import leitej.ltm.LargeMemory;
 import leitej.ltm.LongTermMemory;
-import leitej.ltm.Query;
-import leitej.ltm.QueryEntrance;
-import leitej.ltm.QueryResult;
-import leitej.ltm.lixo.LtmBinary;
 
 /**
  *
@@ -37,15 +36,6 @@ import leitej.ltm.lixo.LtmBinary;
 public final class UberKeyLtmStore extends AbstractUberKeyStore {
 
 	private static final LongTermMemory LTM = LongTermMemory.getInstance();
-	private static final QueryResult<KeyLtmStore> FIND_KEYSTORE;
-	static {
-		LTM.registry(KeyLtmStore.class);
-		final QueryEntrance<KeyLtmStore> entranceIV = Query.newTableEntrance(KeyLtmStore.class);
-		FIND_KEYSTORE = Query.find(entranceIV,
-				Query.filterBy(Query.expression(Query.field(entranceIV, KeyLtmStore.FIELD_ALIAS), Query.equal(),
-						Query.dynamicParameter())));
-		FIND_KEYSTORE.setFetchScale(1);
-	}
 	private static final Map<String, UberKeyLtmStore> INSTANCE_MAP = new HashMap<>();
 
 	/**
@@ -60,15 +50,15 @@ public final class UberKeyLtmStore extends AbstractUberKeyStore {
 		synchronized (INSTANCE_MAP) {
 			final UberKeyLtmStore keyLtmStore = INSTANCE_MAP.get(alias);
 			if (keyLtmStore == null) {
-				synchronized (FIND_KEYSTORE) {
-					FIND_KEYSTORE.setParams(alias);
-					try {
-						if (FIND_KEYSTORE.size() == 1) {
-							result = true;
-						}
-					} catch (final LtmLtRtException e) {
-						throw new IOException(e);
+				try {
+					final LtmFilter<KeyLtmStore> filter = LTM.newFilter(KeyLtmStore.class);
+					filter.setOperandEqual().setAlias(alias);
+					final Set<KeyLtmStore> found = LTM.find(filter);
+					if (found.size() == 1) {
+						result = true;
 					}
+				} catch (final LtmLtRtException e) {
+					throw new IOException(e);
 				}
 			} else {
 				result = true;
@@ -83,7 +73,7 @@ public final class UberKeyLtmStore extends AbstractUberKeyStore {
 	 * <br/>
 	 * If a password is not given for integrity, then integrity checking is not
 	 * performed.
-	 * 
+	 *
 	 * @param alias    the alias name
 	 * @param password the password used to check the integrity of the keystore, the
 	 *                 password used to unlock the keystore, or <code>null</code>
@@ -177,36 +167,37 @@ public final class UberKeyLtmStore extends AbstractUberKeyStore {
 	 */
 	private static final UberKeyLtmStore newUberKeyLtmStore(final boolean create, final String alias,
 			final Password password) throws KeyStoreLtException, IOException {
-		LtmBinary ltmStore;
+		LargeMemory ltmStore;
 		synchronized (INSTANCE_MAP) {
 			UberKeyLtmStore keyLtmStore = INSTANCE_MAP.get(alias);
 			if (keyLtmStore == null) {
-				synchronized (FIND_KEYSTORE) {
-					FIND_KEYSTORE.setParams(alias);
-					try {
-						if (FIND_KEYSTORE.size() != 1) {
-							final KeyLtmStore createLtmStore = LTM.newObject(KeyLtmStore.class);
-							createLtmStore.setAlias(alias);
-							createLtmStore.save();
-							ltmStore = createLtmStore.getKeyStore();
-						} else {
-							ltmStore = FIND_KEYSTORE.get(0).getKeyStore();
-							if (create) {
-								ltmStore.access().setLength(0);
-								ltmStore.access().close();
-							}
+				try {
+					final LtmFilter<KeyLtmStore> filter = LTM.newFilter(KeyLtmStore.class);
+					filter.setOperandEqual().setAlias(alias);
+					final Set<KeyLtmStore> found = LTM.find(filter);
+					if (found.size() != 1) {
+						final KeyLtmStore createLtmStore = LTM.newRecord(KeyLtmStore.class);
+						createLtmStore.setAlias(alias);
+						ltmStore = createLtmStore.getKeyStore();
+					} else {
+						ltmStore = found.iterator().next().getKeyStore();
+						if (create) {
+							ltmStore.open();
+							ltmStore.setLength(0);
+							ltmStore.close();
 						}
-					} catch (final LtmLtRtException e) {
-						throw new IOException(e);
 					}
+				} catch (final LtmLtRtException e) {
+					throw new IOException(e);
 				}
-				final InputStream is = ((create) ? null : ltmStore.access().newInputStream());
+				ltmStore.open();
+				final InputStream is = ((create) ? null : ltmStore.newInputStream());
 				try {
 					keyLtmStore = new UberKeyLtmStore(is, ltmStore, password);
 				} finally {
 					if (is != null) {
 						is.close();
-						ltmStore.access().close();
+						ltmStore.close();
 					}
 				}
 				INSTANCE_MAP.put(alias, keyLtmStore);
@@ -220,7 +211,7 @@ public final class UberKeyLtmStore extends AbstractUberKeyStore {
 		}
 	}
 
-	private final LtmBinary ltmStore;
+	private final LargeMemory ltmStore;
 
 	/**
 	 * @param is
@@ -228,7 +219,7 @@ public final class UberKeyLtmStore extends AbstractUberKeyStore {
 	 * @throws KeyStoreLtException
 	 * @throws IOException
 	 */
-	private UberKeyLtmStore(final InputStream is, final LtmBinary ltmStore, final Password password)
+	private UberKeyLtmStore(final InputStream is, final LargeMemory ltmStore, final Password password)
 			throws KeyStoreLtException, IOException {
 		super(is, password);
 		this.ltmStore = ltmStore;
@@ -236,8 +227,10 @@ public final class UberKeyLtmStore extends AbstractUberKeyStore {
 
 	@Override
 	protected byte[] getKeyStoredData() throws IOException {
-		final byte[] result = new byte[(int) this.ltmStore.access().length()];
-		this.ltmStore.access().readFully(0, result);
+		this.ltmStore.open();
+		final byte[] result = new byte[(int) this.ltmStore.length()];
+		this.ltmStore.readFully(0, result);
+		this.ltmStore.close();
 		return result;
 	}
 
@@ -245,14 +238,15 @@ public final class UberKeyLtmStore extends AbstractUberKeyStore {
 	public void persist() throws KeyStoreLtException, IOException {
 		OutputStream os = null;
 		try {
-			this.ltmStore.access().setLength(0);
-			os = this.ltmStore.access().newOutputStream();
+			this.ltmStore.open();
+			this.ltmStore.setLength(0);
+			os = this.ltmStore.newOutputStream();
 			super.store(os);
 		} finally {
 			if (os != null) {
 				os.close();
 			}
-			this.ltmStore.access().close();
+			this.ltmStore.close();
 		}
 	}
 

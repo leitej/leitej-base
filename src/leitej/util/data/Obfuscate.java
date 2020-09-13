@@ -14,32 +14,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package leitej.ltm;
+package leitej.util.data;
 
-import java.io.Serializable;
-import java.util.AbstractMap;
-import java.util.Map;
-import java.util.Set;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author Julio Leite
  *
  */
-public final class ScaledMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Serializable {
+@Inherited
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public abstract @interface Obfuscate {
 
-	private static final long serialVersionUID = -6140872290111701860L;
+	public static final boolean DEFAULT_USER_SALT = false;
 
-	// FIXME override more methods to do not force iterate all elements
+	public abstract boolean userSalt() default DEFAULT_USER_SALT;
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.util.AbstractMap#entrySet()
-	 */
-	@Override
-	public Set<Entry<K, V>> entrySet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public static final String DEFAULT_HASH = "MD5";
+
+	public abstract String hash() default DEFAULT_HASH;
 
 }

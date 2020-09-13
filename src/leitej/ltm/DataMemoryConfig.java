@@ -31,4 +31,5 @@ public interface DataMemoryConfig extends XmlObjectModelling {
 	boolean isAutoForgetsInterfaceComponentMisses();
 
 	void setAutoForgetsInterfaceComponentMisses(boolean autoForgetsInterfaceComponentMisses);
+
 }

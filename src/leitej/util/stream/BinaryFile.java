@@ -16,7 +16,9 @@
 
 package leitej.util.stream;
 
+import java.io.Closeable;
 import java.io.EOFException;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -26,17 +28,17 @@ import java.io.RandomAccessFile;
  *
  * @author Julio Leite
  */
-public final class BinaryFile implements RandomAccessBinary {
+public final class BinaryFile implements RandomAccessBinary, Closeable {
 
-	private final String filename;
+	private final File file;
 	private final RandomAccessFile raFile;
 	private final boolean isSynchronously;
 
 	/**
 	 * Creates a new instance of FilePieces.
 	 *
-	 * @param filename the system-dependent filename
-	 * @param mode     the access mode
+	 * @param file the system-dependent file
+	 * @param mode the access mode
 	 * @throws FileNotFoundException if the mode is <tt>"read"</tt> but the given
 	 *                               string does not denote an existing regular
 	 *                               file, or if the mode is
@@ -51,11 +53,11 @@ public final class BinaryFile implements RandomAccessBinary {
 	 *                               security manager's <code>checkWrite</code>
 	 *                               method denies write access to the file
 	 */
-	public BinaryFile(final String filename, final RandomAccessModeEnum mode)
+	public BinaryFile(final File file, final RandomAccessModeEnum mode)
 			throws FileNotFoundException, SecurityException {
-		this.filename = filename;
+		this.file = file;
 		this.isSynchronously = mode.isSynchronously();
-		this.raFile = new RandomAccessFile(filename, mode.getRandomAccessFileMode());
+		this.raFile = new RandomAccessFile(file, mode.getRandomAccessFileMode());
 	}
 
 	@Override
@@ -108,27 +110,27 @@ public final class BinaryFile implements RandomAccessBinary {
 
 	@Override
 	public FractionInputStream newInputStream() throws IOException {
-		return new BinaryFileFractionInputStream(this.filename, 0, -1, this);
+		return new BinaryFileFractionInputStream(this.file, 0, -1, this);
 	}
 
 	@Override
 	public FractionInputStream newInputStream(final long offset) throws IOException {
-		return new BinaryFileFractionInputStream(this.filename, offset, -1, this);
+		return new BinaryFileFractionInputStream(this.file, offset, -1, this);
 	}
 
 	@Override
 	public FractionInputStream newInputStream(final long offset, final long length) throws IOException {
-		return new BinaryFileFractionInputStream(this.filename, offset, length, this);
+		return new BinaryFileFractionInputStream(this.file, offset, length, this);
 	}
 
 	@Override
 	public FractionOutputStream newOutputStream() throws IOException {
-		return new BinaryFileFractionOutputStream(this.filename, -1, 0, -1, this.isSynchronously, this);
+		return new BinaryFileFractionOutputStream(this.file, -1, 0, -1, this.isSynchronously, this);
 	}
 
 	@Override
 	public FractionOutputStream newOutputStream(final long offset) throws IOException {
-		return new BinaryFileFractionOutputStream(this.filename, -1, offset, -1, this.isSynchronously, this);
+		return new BinaryFileFractionOutputStream(this.file, -1, offset, -1, this.isSynchronously, this);
 	}
 
 	@Override

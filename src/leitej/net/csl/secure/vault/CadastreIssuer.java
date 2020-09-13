@@ -17,30 +17,24 @@
 package leitej.net.csl.secure.vault;
 
 import leitej.ltm.LtmObjectModelling;
-import leitej.ltm.annotation.CascadeTypeEnum;
-import leitej.ltm.annotation.Column;
-import leitej.ltm.annotation.JoinColumn;
-import leitej.ltm.annotation.LongTermMemory;
-import leitej.ltm.annotation.ManyToOne;
 
 /**
  *
  * @author Julio Leite
  */
-@LongTermMemory(name = "csl_vault_cadastre_issuer")
 public interface CadastreIssuer extends LtmObjectModelling {
+
+	// TODO replace the alias and issuer with
+	// MAP<alias,issuer>
 
 	public static final String FIELD_ALIAS = "alias";
 
-	@Column(updatable = false, unique = true, nullable = false)
 	public String getAlias();
 
 	public void setAlias(String alias);
 
 	public static final String FIELD_ISSUER = "issuer";
 
-	@ManyToOne(cascade = { CascadeTypeEnum.SAVE })
-	@JoinColumn(nullable = true, updatable = false)
 	public CadastreIssuer getIssuer();
 
 	public void setIssuer(CadastreIssuer issuer);

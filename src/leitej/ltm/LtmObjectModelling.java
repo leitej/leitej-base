@@ -23,10 +23,6 @@ package leitej.ltm;
  */
 public abstract interface LtmObjectModelling {
 
-	// TODO implement with
-	// leitej.util.data.BigBinaryData
-	// location Constant.LTM_STREAM_DIR
-
 	public abstract long getId();
 
 	public abstract void setId(long id);

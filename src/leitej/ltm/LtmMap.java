@@ -17,8 +17,8 @@
 package leitej.ltm;
 
 import java.io.Serializable;
-import java.util.AbstractSet;
-import java.util.Iterator;
+import java.util.AbstractMap;
+import java.util.Map;
 import java.util.Set;
 
 import leitej.log.Logger;
@@ -27,31 +27,23 @@ import leitej.log.Logger;
  * @author Julio Leite
  *
  */
-public final class ScaledSet<T> extends AbstractSet<T> implements Set<T>, Serializable {
+public final class LtmMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Serializable {
 
-	private static final long serialVersionUID = 5098023082686280992L;
+	private static final long serialVersionUID = -6140872290111701860L;
 
 	private static final Logger LOG = Logger.getInstance();
 
-	private static final LongTermMemory DATA_PROXY = LongTermMemory.getInstance();
-
-	static final <T extends LtmObjectModelling> void delete(final ScaledSet<T> set) {
-		// TODO when deleting remember to delete also cache on DATA_PROXY
-
-	}
-
 	// FIXME override more methods to do not force iterate all elements
-	// from AbstractSet and AbstractCollection
 
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see java.util.AbstractMap#entrySet()
+	 */
 	@Override
-	public Iterator<T> iterator() {
+	public Set<Entry<K, V>> entrySet() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
-	public int size() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 }
