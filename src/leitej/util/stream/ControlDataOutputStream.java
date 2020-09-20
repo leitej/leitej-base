@@ -102,8 +102,6 @@ public class ControlDataOutputStream extends OutputStream {
 		}
 		try {
 			this.cdf.close();
-		} catch (final DataOverflowLtException e) {
-			throw new IOException(e);
 		} catch (final InterruptedException e) {
 			throw new IOException(e);
 		} finally {

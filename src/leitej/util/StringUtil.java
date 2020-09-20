@@ -165,7 +165,7 @@ public final class StringUtil {
 				sb.append(Arrays.deepToString((Object[]) obj));
 			} else {
 				if (tmp == byte.class) {
-					sb.append(Arrays.toString((byte[]) obj));
+					HexaUtil.toHex(sb, (byte[]) obj);
 				} else if (tmp == short.class) {
 					sb.append(Arrays.toString((short[]) obj));
 				} else if (tmp == int.class) {

@@ -17,6 +17,7 @@
 package leitej.xml;
 
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -32,7 +33,7 @@ import leitej.util.stream.StreamUtil;
  * @author Julio Leite
  * @see leitej.xml.XmlConsumer
  */
-public final class XmlProducer {
+public final class XmlProducer implements Closeable {
 
 	private final XmlProducerTools xmlProdTools = new XmlProducerTools();
 	private final Stack<String> tagTrack = new Stack<>();
@@ -81,6 +82,7 @@ public final class XmlProducer {
 	 *
 	 * @throws IOException If an I/O error occurs
 	 */
+	@Override
 	public synchronized void close() throws IOException {
 		if (this.outWriter != null) {
 			this.outWriter.flush();

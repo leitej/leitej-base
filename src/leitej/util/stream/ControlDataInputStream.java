@@ -122,8 +122,6 @@ public class ControlDataInputStream extends InputStream {
 	public void close() throws IOException {
 		try {
 			this.cdf.close();
-		} catch (final DataOverflowLtException e) {
-			throw new IOException(e);
 		} catch (final InterruptedException e) {
 			throw new IOException(e);
 		} finally {

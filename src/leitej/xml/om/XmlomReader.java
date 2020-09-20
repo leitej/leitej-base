@@ -16,6 +16,7 @@
 
 package leitej.xml.om;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -32,7 +33,7 @@ import leitej.exception.XmlomInvalidLtException;
  * @author Julio Leite
  * @see leitej.xml.om.XmlomWriter
  */
-public final class XmlomReader {
+public final class XmlomReader implements Closeable {
 
 	private final Parser in;
 
@@ -239,6 +240,7 @@ public final class XmlomReader {
 	 *
 	 * @throws IOException If an I/O error occurs
 	 */
+	@Override
 	public void close() throws IOException {
 		this.in.close();
 	}

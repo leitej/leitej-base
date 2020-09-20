@@ -19,6 +19,7 @@ package leitej.xml;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -36,7 +37,7 @@ import leitej.util.stream.StreamUtil;
  * @see leitej.xml.XmlProducer
  *
  */
-public final class XmlConsumer {
+public final class XmlConsumer implements Closeable {
 
 	private static final char EOF_CHAR = (char) -1;
 
@@ -330,6 +331,7 @@ public final class XmlConsumer {
 	 *
 	 * @throws IOException If an I/O error occurs
 	 */
+	@Override
 	public synchronized void close() throws IOException {
 		if (this.in != null) {
 			this.in.close();

@@ -139,7 +139,7 @@ final class ControlDataFlow {
 		}
 	}
 
-	void close() throws DataOverflowLtException, InterruptedException {
+	void close() throws InterruptedException {
 		spendExactTime();
 		this.controlMaxBytePerStep = false;
 		this.controlBytePerSecond = false;

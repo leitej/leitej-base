@@ -16,6 +16,7 @@
 
 package leitej.xml.om;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -32,7 +33,7 @@ import leitej.exception.XmlInvalidLtException;
  * @author Julio Leite
  * @see leitej.xml.om.XmlomReader
  */
-public final class XmlomWriter {
+public final class XmlomWriter implements Closeable {
 
 	private static final DataProxy DATA_PROXY = DataProxy.getInstance();
 
@@ -115,6 +116,7 @@ public final class XmlomWriter {
 	 *
 	 * @exception IOException if an I/O error occurs.
 	 */
+	@Override
 	public void close() throws IOException {
 		try {
 			this.out.close();
