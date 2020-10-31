@@ -26,6 +26,8 @@ import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.LtmLtRtException;
 import leitej.exception.ObjectPoolLtException;
 import leitej.util.data.AbstractDataProxyHandler;
+import leitej.util.data.Obfuscate;
+import leitej.util.data.ObfuscateUtil;
 
 /**
  * @author Julio Leite
@@ -190,6 +192,16 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 				throw new LtmLtRtException("This object was erased from long term memory");
 			}
 		}
+	}
+
+	@Override
+	protected <O> O deObfuscate(final Obfuscate annot, final O value) {
+		return ObfuscateUtil.unHide(annot, value);
+	}
+
+	@Override
+	protected <O> O obfuscate(final Obfuscate annot, final O value) {
+		return ObfuscateUtil.hide(annot, value);
 	}
 
 	PreparedClass getPreparedClass() {

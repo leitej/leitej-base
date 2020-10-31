@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 import leitej.util.data.AbstractDataProxyHandler;
+import leitej.util.data.Obfuscate;
+import leitej.util.data.ObfuscateUtil;
 
 /**
  *
@@ -47,6 +49,16 @@ final class DataProxyHandler extends AbstractDataProxyHandler<XmlObjectModelling
 	@Override
 	protected void set(final String dataName, final Object value) {
 		this.data.put(dataName, value);
+	}
+
+	@Override
+	protected <O> O deObfuscate(final Obfuscate annot, final O value) {
+		return ObfuscateUtil.unHide(annot, value);
+	}
+
+	@Override
+	protected <O> O obfuscate(final Obfuscate annot, final O value) {
+		return ObfuscateUtil.hide(annot, value);
 	}
 
 	<I extends XmlObjectModelling> Class<I> getInterface() {

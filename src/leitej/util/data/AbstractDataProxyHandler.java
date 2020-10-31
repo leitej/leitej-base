@@ -44,6 +44,7 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 	private static final Map<Class<?>, Map<Method, String>> DATA_NAME_FOR_METHOD_MAP_BY_CLASS = new HashMap<>();
 	private static final Map<Class<?>, List<String>> ALL_DATA_NAME_MAP_BY_CLASS = new HashMap<>();
 	private static final Map<Class<?>, Map<String, Method[]>> DATA_METHODS_GET_SET_MAP_BY_CLASS = new HashMap<>();
+	private static final Map<Class<?>, Map<Method, Obfuscate>> OBFUSCATE_MAP_BY_CLASS = new HashMap<>();
 	private static final StringBuilder SB = new StringBuilder();
 
 	private final Class<?> dataInterfaceClass;
@@ -52,6 +53,7 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 	private final Map<Method, String> dataNameForMethodMap;
 	private final List<String> allDataNameList;
 	private final Map<String, Method[]> methodsGetSet;
+	private final Map<Method, Obfuscate> obfuscateMap;
 
 	/**
 	 *
@@ -78,6 +80,7 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 		this.dataNameForMethodMap = DATA_NAME_FOR_METHOD_MAP_BY_CLASS.get(dataInterfaceClass);
 		this.allDataNameList = ALL_DATA_NAME_MAP_BY_CLASS.get(dataInterfaceClass);
 		this.methodsGetSet = DATA_METHODS_GET_SET_MAP_BY_CLASS.get(dataInterfaceClass);
+		this.obfuscateMap = OBFUSCATE_MAP_BY_CLASS.get(dataInterfaceClass);
 	}
 
 	private static void registryClass(final Class<?> dataInterfaceClass) {
@@ -85,7 +88,10 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 		final Map<Method, String> dataNameForMethodMap = new HashMap<>();
 		final List<String> allDataNameMap = new ArrayList<>();
 		final Map<String, Method[]> methodsGetSet = new HashMap<>();
+		final Map<Method, Obfuscate> obfuscateMap = new HashMap<>();
 		String dataNameTmp;
+		Obfuscate obfuscateGet;
+		Obfuscate obfuscateSet;
 		for (final Method[] mGetSet : AgnosticUtil.getMethodsGetSet(dataInterfaceClass)) {
 			isGetterMap.put(mGetSet[0], Boolean.TRUE);
 			isGetterMap.put(mGetSet[1], Boolean.FALSE);
@@ -94,11 +100,18 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 			dataNameForMethodMap.put(mGetSet[1], dataNameTmp);
 			allDataNameMap.add(dataNameTmp);
 			methodsGetSet.put(dataNameTmp, mGetSet);
+			obfuscateGet = mGetSet[0].getAnnotation(Obfuscate.class);
+			obfuscateSet = mGetSet[1].getAnnotation(Obfuscate.class);
+			if (obfuscateGet != null || obfuscateSet != null) {
+				obfuscateMap.put(mGetSet[0], ((obfuscateGet != null) ? obfuscateGet : obfuscateSet));
+				obfuscateMap.put(mGetSet[1], ((obfuscateSet != null) ? obfuscateSet : obfuscateGet));
+			}
 		}
 		IS_GETTER_MAP_BY_CLASS.put(dataInterfaceClass, isGetterMap);
 		DATA_NAME_FOR_METHOD_MAP_BY_CLASS.put(dataInterfaceClass, dataNameForMethodMap);
 		ALL_DATA_NAME_MAP_BY_CLASS.put(dataInterfaceClass, allDataNameMap);
 		DATA_METHODS_GET_SET_MAP_BY_CLASS.put(dataInterfaceClass, methodsGetSet);
+		OBFUSCATE_MAP_BY_CLASS.put(dataInterfaceClass, obfuscateMap);
 	}
 
 	@Override
@@ -119,12 +132,22 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 		}
 		// getters
 		if (args == null && isGetterMethod(method)) {
-			return validadePrimitive(method, get(dataNameGetter(method)));
+			final Object result = validatePrimitive(method, get(dataNameGetter(method)));
+			if (this.obfuscateMap.get(method) == null) {
+				return result;
+			} else {
+				return deObfuscate(this.obfuscateMap.get(method), result);
+			}
 		}
 		// setter
 		if (args != null && args.length == 1 && isSetterMethod(method)) {
-			set(dataNameSetter(method), args[0]);
-			return null;
+			if (this.obfuscateMap.get(method) == null) {
+				set(dataNameSetter(method), args[0]);
+				return null;
+			} else {
+				set(dataNameSetter(method), obfuscate(this.obfuscateMap.get(method), args[0]));
+				return null;
+			}
 		}
 		// special methods
 		return invokeSpecial(proxy, method, args);
@@ -135,7 +158,7 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 		return tmp != null && tmp.booleanValue();
 	}
 
-	private Object validadePrimitive(final Method method, final Object obj) {
+	private Object validatePrimitive(final Method method, final Object obj) {
 		Object result = obj;
 		if (obj == null && method.getReturnType().isPrimitive()) {
 			final Class<?> pClass = method.getReturnType();
@@ -183,6 +206,10 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 	protected abstract Object get(String dataName);
 
 	protected abstract void set(String dataName, Object value);
+
+	protected abstract <O extends Object> O deObfuscate(Obfuscate annot, O value);
+
+	protected abstract <O extends Object> O obfuscate(Obfuscate annot, O value);
 
 	@SuppressWarnings("unchecked")
 	protected final <T extends I> Class<T> getDataInterfaceClass() {

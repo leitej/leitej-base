@@ -31,12 +31,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public abstract @interface Obfuscate {
 
-	public static final boolean DEFAULT_USER_SALT = false;
+	public abstract boolean usernameSalt() default false;
 
-	public abstract boolean userSalt() default DEFAULT_USER_SALT;
-
-	public static final String DEFAULT_HASH = "MD5";
-
-	public abstract String hash() default DEFAULT_HASH;
+	public abstract boolean hostnameSalt() default false;
 
 }

@@ -18,6 +18,8 @@ package leitej.ltm;
 
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.util.data.AbstractDataProxyHandler;
+import leitej.util.data.Obfuscate;
+import leitej.util.data.ObfuscateUtil;
 
 /**
  * @author Julio Leite
@@ -42,6 +44,16 @@ final class FilterHandler extends AbstractDataProxyHandler<LtmObjectModelling> {
 	@Override
 	protected void set(final String dataName, final Object value) {
 		this.filter.setDataFilter(dataName, value);
+	}
+
+	@Override
+	protected <O> O deObfuscate(final Obfuscate annot, final O value) {
+		throw new UnsupportedOperationException("The LTM filter do not have the deObfuscate component.");
+	}
+
+	@Override
+	protected <O> O obfuscate(final Obfuscate annot, final O value) {
+		return ObfuscateUtil.hide(annot, value);
 	}
 
 	<T extends LtmObjectModelling> void setFilter(final LtmFilter<T> filter) {
