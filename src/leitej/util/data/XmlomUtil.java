@@ -61,6 +61,17 @@ public final class XmlomUtil {
 	}
 
 	/**
+	 * Gives the xmlom interface used in <code>proxy</code> instantiation.
+	 *
+	 * @param proxy xmlom object
+	 * @return xmlom interface of argument
+	 */
+	@SuppressWarnings("unchecked")
+	public static <I extends XmlObjectModelling> Class<I> getInterface(final I proxy) {
+		return AbstractDataProxyHandler.class.cast(proxy).getDataInterfaceClass();
+	}
+
+	/**
 	 * Saves the object to a file with the
 	 * <code>Constant.UTF8_CHARSET_NAME</code>.<br/>
 	 * This method will try to create the file if not exists.
