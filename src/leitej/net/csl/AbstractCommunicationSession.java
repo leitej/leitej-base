@@ -282,7 +282,7 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 		return this.factory;
 	}
 
-	public final <I extends XmlObjectModelling> void write(final I... objs) {
+	public final <I extends XmlObjectModelling> void write(final I objs) {
 		if (!this.stepClosed && this.cdis != null) {
 			this.stepClosed = true;
 			this.cdis.changeStep();

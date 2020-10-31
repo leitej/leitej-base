@@ -137,8 +137,6 @@ public final class DtpServer {
 					} else {
 						LOG.error("#0", e);
 					}
-				} catch (final IOException e) {
-					LOG.error("#0", e);
 				} catch (final Exception e) {
 					LOG.error("#0", e);
 				} finally {
