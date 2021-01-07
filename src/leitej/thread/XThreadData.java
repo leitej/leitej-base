@@ -21,13 +21,13 @@ import java.util.Date;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.util.DateUtil;
-import leitej.util.data.TimeTriggerImpl;
-import leitej.util.data.TimeTrigger;
 import leitej.util.data.InvokeItf;
+import leitej.util.data.TimeTrigger;
+import leitej.util.data.TimeTriggerImpl;
 
 /**
- * This class uses {@link leitej.util.data.TimeTrigger DateTimerItf} to give
- * the steps of execution.
+ * This class uses {@link leitej.util.data.TimeTrigger DateTimerItf} to give the
+ * steps of execution.
  *
  * @author Julio Leite
  * @see leitej.thread.ThreadData
@@ -48,7 +48,7 @@ public final class XThreadData extends ThreadData {
 	 * @throws IllegalArgumentLtRtException if <code>invokeData</code> is null
 	 */
 	public XThreadData(final InvokeItf invokeData) {
-		this(invokeData, TimeTriggerImpl.getSingleImmediateTrigger(), null, null); // Execute only once
+		this(invokeData, null, null, null); // Execute only once
 	}
 
 	/**
@@ -71,7 +71,7 @@ public final class XThreadData extends ThreadData {
 	 * @throws IllegalArgumentLtRtException if <code>invokeData</code> is null
 	 */
 	public XThreadData(final InvokeItf invokeData, final String threadName) throws IllegalArgumentLtRtException {
-		this(invokeData, TimeTriggerImpl.getSingleImmediateTrigger(), threadName, null); // Execute only once
+		this(invokeData, null, threadName, null); // Execute only once
 	}
 
 	/**
@@ -83,14 +83,15 @@ public final class XThreadData extends ThreadData {
 	 */
 	public XThreadData(final InvokeItf invokeData, final ThreadPriorityEnum priority)
 			throws IllegalArgumentLtRtException {
-		this(invokeData, TimeTriggerImpl.getSingleImmediateTrigger(), null, priority); // Execute only once
+		this(invokeData, null, null, priority); // Execute only once
 	}
 
 	/**
 	 * Creates a new instance of XThreadData.
 	 *
 	 * @param invokeData {@link leitej.util.data.InvokeItf InvokeItf} to be executed
-	 * @param dateTimer  with the steps of execution
+	 * @param dateTimer  with the steps of execution, if null will execute only one
+	 *                   step and now
 	 * @param threadName partial name for the thread when executing
 	 *                   <code>invokeData</code>
 	 * @param priority   of thread execution
@@ -100,7 +101,7 @@ public final class XThreadData extends ThreadData {
 			final ThreadPriorityEnum priority) throws IllegalArgumentLtRtException {
 		super(invokeData, threadName, priority);
 		if (dateTimer == null) {
-			this.dateTimer = new TimeTriggerImpl();
+			this.dateTimer = TimeTriggerImpl.getSingleImmediateTrigger();
 		} else {
 			this.dateTimer = dateTimer;
 		}

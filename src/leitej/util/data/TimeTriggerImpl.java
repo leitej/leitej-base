@@ -31,18 +31,19 @@ public final class TimeTriggerImpl implements TimeTrigger {
 
 	private static final long serialVersionUID = -5278534120277185092L;
 
-	private Date initiate = null; // data de inicio da tarefa
-	private DateFieldEnum periodType = null; // calender.field
-	private int periodFactor = 0; // repeticao de tipoPeriodo, define o intervalo no caso de ter repeticoes
-	private int numRepetitions = -1; // numero de repeticoes a executar a tarefa
-	private Date finalize = null; // date de expiracao da tarefa
+	private final Date initiate; // data de inicio da tarefa
+	private final DateFieldEnum periodType; // calender.field
+	private final int periodFactor; // repeticao de tipoPeriodo, define o intervalo no caso de ter repeticoes
+	private int numRepetitions; // numero de repeticoes a executar a tarefa
+	private final Date finalize; // date de expiracao da tarefa
 
-	private Date nextDate = null;
+	private Date nextDate;
 
 	/**
 	 * Creates a new instance of DateTimer. Without steps.
 	 */
 	public TimeTriggerImpl() {
+		this(null, null, 0, 0, null);
 	}
 
 	/**
@@ -53,8 +54,7 @@ public final class TimeTriggerImpl implements TimeTrigger {
 	 *                     step
 	 */
 	public TimeTriggerImpl(final DateFieldEnum periodType, final int periodFactor) {
-		this.periodType = periodType;
-		this.periodFactor = periodFactor;
+		this(null, periodType, periodFactor, -1, null);
 	}
 
 	/**
@@ -66,9 +66,7 @@ public final class TimeTriggerImpl implements TimeTrigger {
 	 * @param numRepetitions number of steps to give
 	 */
 	public TimeTriggerImpl(final DateFieldEnum periodType, final int periodFactor, final int numRepetitions) {
-		this.periodType = periodType;
-		this.periodFactor = periodFactor;
-		this.numRepetitions = numRepetitions;
+		this(null, periodType, periodFactor, numRepetitions, null);
 	}
 
 	/**
@@ -80,9 +78,7 @@ public final class TimeTriggerImpl implements TimeTrigger {
 	 * @param finalize     Date that determines the end step
 	 */
 	public TimeTriggerImpl(final DateFieldEnum periodType, final int periodFactor, final Date finalize) {
-		this.periodType = periodType;
-		this.periodFactor = periodFactor;
-		this.finalize = finalize;
+		this(null, periodType, periodFactor, -1, finalize);
 	}
 
 	/**
@@ -98,11 +94,11 @@ public final class TimeTriggerImpl implements TimeTrigger {
 	public TimeTriggerImpl(final Date initiate, final DateFieldEnum periodType, final int periodFactor,
 			final int numRepetitions, final Date finalize) {
 		this.initiate = initiate;
-		this.nextDate = initiate;
 		this.periodType = periodType;
 		this.periodFactor = periodFactor;
 		this.numRepetitions = numRepetitions;
 		this.finalize = finalize;
+		this.nextDate = initiate;
 	}
 
 	private boolean hasStepper() {
@@ -115,7 +111,7 @@ public final class TimeTriggerImpl implements TimeTrigger {
 		if (this.initiate == null && this.nextDate == null && this.periodType == DateFieldEnum.MILLISECOND
 				&& this.periodFactor == 1 && this.numRepetitions == 1 && this.finalize == null) {
 			this.nextDate = DateUtil.now();
-			this.numRepetitions--;
+			this.numRepetitions = 0;
 		} else if (this.nextDate == null || !DateUtil.isFuture(this.nextDate)) {
 			if (hasStepper()) {
 				Date init = this.initiate;
@@ -126,14 +122,15 @@ public final class TimeTriggerImpl implements TimeTrigger {
 					init = DateUtil.now();
 					DateUtil.zeroTill(init, this.periodType);
 				}
-				while (!DateUtil.isFuture(init) && this.numRepetitions != 0
+				final Date now = DateUtil.now();
+				while (now.compareTo(init) >= 0 && this.numRepetitions != 0
 						&& (this.finalize == null || this.finalize.compareTo(init) >= 0)) {
 					DateUtil.add(init, this.periodType, this.periodFactor);
 					if (this.numRepetitions > 0) {
 						this.numRepetitions--;
 					}
 				}
-				if (DateUtil.isFuture(init)) {
+				if (now.compareTo(init) < 0) {
 					this.nextDate = init;
 				} else {
 					this.nextDate = null;
@@ -141,6 +138,7 @@ public final class TimeTriggerImpl implements TimeTrigger {
 				}
 			} else if (this.nextDate != null) {
 				this.nextDate = null;
+				this.numRepetitions = 0;
 			}
 		}
 		if (this.nextDate == null) {
