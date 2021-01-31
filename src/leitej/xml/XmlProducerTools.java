@@ -153,14 +153,9 @@ final class XmlProducerTools {
 		for (int i = 0; i < indent.intValue(); i++) {
 			dest.append(XmlTools.IDENT_CHARACTER);
 		}
-		dest.append(XmlTools.KEY_LESS_THAN);
-		dest.append(XmlTools.COMMENT_CHARACTER_INIT_FIRST);
-		dest.append(XmlTools.COMMENT_CHARACTER_INIT_SECOND_THIRD);
-		dest.append(XmlTools.COMMENT_CHARACTER_INIT_SECOND_THIRD);
-		XmlTools.encod(dest, comment);
-		dest.append(XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND);
-		dest.append(XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND);
-		dest.append(XmlTools.KEY_GREATER_THAN);
+		dest.append(XmlTools.COMMENT_WRAP[0]);
+		dest.append(comment);
+		dest.append(XmlTools.COMMENT_WRAP[1]);
 	}
 
 	/**

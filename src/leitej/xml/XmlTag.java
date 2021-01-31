@@ -31,7 +31,6 @@ final class XmlTag {
 	private boolean isInvalid;
 	private XmlTagType type;
 	private CharSequence name;
-	private CharSequence comment;
 	private final Map<String, Object> attribMap;
 
 	/**
@@ -50,7 +49,6 @@ final class XmlTag {
 		this.isInvalid = true;
 		this.type = null;
 		this.name = null;
-		this.comment = null;
 		this.attribMap.clear();
 		this.tag.setLength(0);
 	}
@@ -105,29 +103,15 @@ final class XmlTag {
 		if (this.isInvalid) {
 			throw new XmlInvalidLtException("Invalid xml tag: #0", this.tag);
 		}
-		if (this.name == null && (getXmlTagType().equals(XmlTagType.OPEN) || getXmlTagType().equals(XmlTagType.CLOSE)
-				|| getXmlTagType().equals(XmlTagType.OPEN_CLOSE))) {
-			this.name = XmlConsumerTools.getElementName(this.tag);
+		if (this.name == null) {
+			if ((getXmlTagType().equals(XmlTagType.OPEN) || getXmlTagType().equals(XmlTagType.CLOSE)
+					|| getXmlTagType().equals(XmlTagType.OPEN_CLOSE))) {
+				this.name = XmlConsumerTools.getElementName(this.tag);
+			} else {
+				this.name = ((getXmlTagType() == null) ? "" : getXmlTagType().toString());
+			}
 		}
 		return this.name;
-	}
-
-	/**
-	 * Obtains the comment of the tag.
-	 *
-	 * @param dest to write the comment
-	 * @throws XmlInvalidLtException If is not a valid tag
-	 */
-	void getComment(final StringBuilder dest) throws XmlInvalidLtException {
-		if (this.isInvalid) {
-			throw new XmlInvalidLtException("Invalid xml tag: #0", this.tag);
-		}
-		if (XmlTagType.COMMENT.equals(getXmlTagType())) {
-			if (this.comment == null) {
-				this.comment = XmlConsumerTools.getElementComment(this.tag);
-			}
-			XmlTools.decod(dest, this.comment);
-		}
 	}
 
 	/**

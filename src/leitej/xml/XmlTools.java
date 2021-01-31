@@ -27,6 +27,7 @@ import leitej.util.stream.FileUtil;
 final class XmlTools {
 
 	static final String KEY_XML_ELEMENT_NAME = "xml";
+	static final String[] COMMENT_WRAP = { "<!--", "-->" };
 	static final String[] CDATA_WRAP = { "<![CDATA[", "]]>" };
 	static final String[] HDATA_WRAP = { "<![HDATA[", "]]>" };
 
@@ -36,11 +37,14 @@ final class XmlTools {
 	static final char IDENT_CHARACTER = '\t';
 	static final char META_DATA_CHARACTER_INIT = '?';
 	static final char META_DATA_CHARACTER_END = '?';
-	static final char COMMENT_CHARACTER_INIT_FIRST = '!';
-	static final char COMMENT_CHARACTER_INIT_SECOND_THIRD = '-';
-	static final char COMMENT_CHARACTER_END_FIRST_SECOND = '-';
+	static final char COMMENT_CHARACTER_INIT_FIRST = COMMENT_WRAP[0].charAt(1);
+	static final char COMMENT_CHARACTER_INIT_SECOND_THIRD = COMMENT_WRAP[0].charAt(2);
+	static final char COMMENT_CHARACTER_END_FIRST_SECOND = COMMENT_WRAP[1].charAt(0);
 	static final char SEMICOLON_CHARACTER = ';';
-	private static final char DATA_INIT_FIRST = CDATA_WRAP[0].charAt(0);
+	static final char DATA_INIT = CDATA_WRAP[0].charAt(0);
+	static final char DATA_INIT_FIRST = CDATA_WRAP[0].charAt(1);
+	static final char DATA_INIT_SECOND = CDATA_WRAP[0].charAt(2);
+	static final char[] DATA_INIT_VARIANT = new char[] { HDATA_WRAP[0].charAt(3), CDATA_WRAP[0].charAt(3) };
 	static final char DATA_INIT_LAST = CDATA_WRAP[0].charAt(CDATA_WRAP[0].length() - 1);
 	static final char DATA_END_FIRST = CDATA_WRAP[1].charAt(0);
 
@@ -85,7 +89,7 @@ final class XmlTools {
 			for (int i = 0; i < value.length(); i++) {
 				ci = value.charAt(i);
 				if (isCData > 0) {
-					if (DATA_INIT_FIRST == ci && containsAt(value, i, CDATA_WRAP[0])) {
+					if (DATA_INIT == ci && containsAt(value, i, CDATA_WRAP[0])) {
 						dest.append(CDATA_WRAP[0]);
 						isCData++;
 						i += (CDATA_WRAP[0].length() - 1);
@@ -97,7 +101,7 @@ final class XmlTools {
 						dest.append(ci);
 					}
 				} else {
-					if (DATA_INIT_FIRST == ci && containsAt(value, i, CDATA_WRAP[0])) {
+					if (DATA_INIT == ci && containsAt(value, i, CDATA_WRAP[0])) {
 						dest.append(CDATA_WRAP[0]);
 						isCData++;
 						i += (CDATA_WRAP[0].length() - 1);

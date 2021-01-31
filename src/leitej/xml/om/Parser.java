@@ -18,6 +18,7 @@ package leitej.xml.om;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -56,7 +57,6 @@ final class Parser {
 
 	private XmlConsumer consumer = null;
 	private Map<Integer, Object> trackLoopObjects = new HashMap<>();
-	private final StringBuilder sbTmpComment = new StringBuilder();
 	private final StringBuilder sbTmpVal = new StringBuilder();
 	private final StringBuilder sbTmpElmName = new StringBuilder();
 	private final StringBuilder sbTmpAttb = new StringBuilder();
@@ -171,10 +171,10 @@ final class Parser {
 				if (comments == null) {
 					comments = new ArrayList<>();
 				}
+				final StringWriter sw = new StringWriter();
+				this.consumer.setWriteNextCommentTo(sw);
 				this.consumer.nextElement();
-				this.sbTmpComment.setLength(0);
-				this.consumer.getComment(this.sbTmpComment);
-				comments.add(this.sbTmpComment.toString());
+				comments.add(sw.getBuffer().toString());
 			}
 			Object tmpObj = null;
 			// read the next object
@@ -425,10 +425,10 @@ final class Parser {
 				if (comments == null) {
 					comments = new ArrayList<>();
 				}
+				final StringWriter sw = new StringWriter();
+				this.consumer.setWriteNextCommentTo(sw);
 				this.consumer.nextElement();
-				this.sbTmpComment.setLength(0);
-				this.consumer.getComment(this.sbTmpComment);
-				comments.add(this.sbTmpComment.toString());
+				comments.add(sw.getBuffer().toString());
 			}
 			if (!XmlTagType.OPEN.equals(this.consumer.peekNextTagType())
 					&& !XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
