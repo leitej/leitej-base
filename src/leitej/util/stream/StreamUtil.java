@@ -38,6 +38,50 @@ public final class StreamUtil {
 	private static final int BUFFER_SIZE = Constant.IO_BUFFER_SIZE; // 2 KB
 	private static final int FLUSH_INTERVAL = Constant.MEGA; // 1 MB
 
+	public static final OutputStream VOID_OUTPUT_STREAM;
+	public static final Writer VOID_WRITER;
+
+	static {
+		VOID_OUTPUT_STREAM = new OutputStream() {
+			@Override
+			public void write(final int b) throws IOException {
+				// void
+			}
+
+			@Override
+			public void write(final byte b[], final int off, final int len) throws IOException {
+				// void
+			}
+		};
+		VOID_WRITER = new Writer() {
+			@Override
+			public void write(final char[] cbuf, final int off, final int len) throws IOException {
+				// void
+			}
+
+			@Override
+			public void write(final String str, final int off, final int len) throws IOException {
+				// void
+			}
+
+			@Override
+			public Writer append(final CharSequence csq, final int start, final int end) throws IOException {
+				// void
+				return this;
+			}
+
+			@Override
+			public void flush() throws IOException {
+				// void
+			}
+
+			@Override
+			public void close() throws IOException {
+				// void
+			}
+		};
+	}
+
 	/**
 	 * Creates a new instance of StreamUtil.
 	 */

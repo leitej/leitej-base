@@ -41,8 +41,8 @@ final class XmlConsumerTools {
 	 */
 	static final boolean validatesTag(final CharSequence tag) {
 		return (tag != null && tag.length() > 3 && XmlTools.KEY_LESS_THAN == tag.charAt(0)
-				&& (XmlTools.KEY_GREATER_THAN == tag.charAt(tag.length() - 1)) || tag.equals(XmlTools.CDATA_WRAP[0])
-				|| tag.equals(XmlTools.HDATA_WRAP[0]));
+				&& (XmlTools.KEY_GREATER_THAN == tag.charAt(tag.length() - 1)) || tag.equals(XmlTools.COMMENT_WRAP[0])
+				|| tag.equals(XmlTools.CDATA_WRAP[0]) || tag.equals(XmlTools.HDATA_WRAP[0]));
 	}
 
 	/**
@@ -68,12 +68,12 @@ final class XmlConsumerTools {
 		if (XmlTools.META_DATA_CHARACTER_INIT == tag.charAt(1)) {
 			result = XmlTagType.META_DATA;
 		} else if (XmlTools.COMMENT_CHARACTER_INIT_FIRST == tag.charAt(1)) {
-			if (XmlTools.COMMENT_CHARACTER_INIT_SECOND_THIRD == tag.charAt(2)
-					&& XmlTools.COMMENT_CHARACTER_INIT_SECOND_THIRD == tag.charAt(3)) {
+			final String sTag = tag.toString();
+			if (sTag.equals(XmlTools.COMMENT_WRAP[0])) {
 				result = XmlTagType.COMMENT;
-			} else if (tag.equals(XmlTools.CDATA_WRAP[0])) {
+			} else if (sTag.equals(XmlTools.CDATA_WRAP[0])) {
 				result = XmlTagType.CDATA;
-			} else if (tag.equals(XmlTools.HDATA_WRAP[0])) {
+			} else if (sTag.equals(XmlTools.HDATA_WRAP[0])) {
 				result = XmlTagType.HDATA;
 			} else {
 				result = null;
@@ -103,8 +103,7 @@ final class XmlConsumerTools {
 		for (int i = 1; i < tag.length() - 1 && result == null; i++) {
 			if (Character.isLetter(tag.charAt(i))) {
 				result = Boolean.TRUE;
-			}
-			if (!Character.isLetter(tag.charAt(i)) && !Character.isWhitespace(tag.charAt(i))) {
+			} else if (!Character.isWhitespace(tag.charAt(i))) {
 				result = Boolean.FALSE;
 			}
 		}
@@ -130,21 +129,6 @@ final class XmlConsumerTools {
 		final CharSequence result = tag.subSequence(init, pos);
 		XmlTools.validatesElementName(result);
 		return result;
-	}
-
-	/**
-	 * Get the raw comment of <code>commentTag</code>.
-	 *
-	 * @param commentTag
-	 * @return tag comment without decode
-	 */
-	static final CharSequence getElementComment(final CharSequence commentTag) {
-		final int init = 4;
-		int pos = init;
-		while (XmlTools.KEY_GREATER_THAN != commentTag.charAt(pos)) {
-			pos++;
-		}
-		return commentTag.subSequence(init, pos - 2);
 	}
 
 	/**

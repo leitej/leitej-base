@@ -237,7 +237,7 @@ final class Producer {
 		Object data;
 		for (final String dataName : dph.getDataNames()) {
 			data = dphData.get(dataName);
-			if (data != null) {
+			if (data != null && !"comments".equals(dataName)) {
 				this.sbTmpElmName.setLength(0);
 				this.sbTmpElmName.append(dataName);
 				printObject(data, this.sbTmpElmName);

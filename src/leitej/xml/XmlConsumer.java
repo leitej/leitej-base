@@ -16,13 +16,13 @@
 
 package leitej.xml;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
+import java.io.Writer;
 import java.util.Stack;
 
 import leitej.exception.IllegalStateLtRtException;
@@ -46,9 +46,9 @@ public final class XmlConsumer implements Closeable {
 	private XmlTag curTag;
 	private final StringBuilder curData;
 	private XmlTag nextTag;
-	private BufferedWriter osCData;
-	private StringBuilder sbCData;
-	private BufferedOutputStream osHData;
+	private Writer osComment;
+	private Writer osCData;
+	private OutputStream osHData;
 
 	/**
 	 * Creates a new instance of XMLConsumer.
@@ -61,8 +61,8 @@ public final class XmlConsumer implements Closeable {
 		this.curTag = new XmlTag();
 		this.curData = new StringBuilder();
 		this.nextTag = new XmlTag();
+		this.osComment = null;
 		this.osCData = null;
-		this.sbCData = null;
 		this.osHData = null;
 	}
 
@@ -78,117 +78,93 @@ public final class XmlConsumer implements Closeable {
 		this.curTag = this.nextTag;
 		tmpNextTag.init();
 		if (this.in != null) {
-			char c = '#';
-			// read CDATA and HDATA
+			// read COMMENT, CDATA or HDATA
 			if (this.curTag.getXmlTagType() != null) {
 				switch (this.curTag.getXmlTagType()) {
-				case CDATA:
-					if (this.sbCData != null) {
-						final int initPos = this.sbCData.length();
-						boolean endedCData = false;
-						while (!endedCData) {
-							while ((c = (char) this.in.read()) != EOF_CHAR && c != XmlTools.DATA_END_FIRST) {
-								this.sbCData.append(c);
-							}
-							if (c == XmlTools.DATA_END_FIRST) {
-								if ((c = (char) this.in.read()) != EOF_CHAR && c != XmlTools.CDATA_WRAP[1].charAt(1)) {
-									this.sbCData.append(XmlTools.DATA_END_FIRST);
-									this.sbCData.append(c);
-								} else {
-									if ((c = (char) this.in.read()) != EOF_CHAR
-											&& c != XmlTools.CDATA_WRAP[1].charAt(2)) {
-										this.sbCData.append(XmlTools.DATA_END_FIRST);
-										this.sbCData.append(XmlTools.CDATA_WRAP[1].charAt(1));
-										this.sbCData.append(c);
-									} else {
-										endedCData = true;
-									}
-								}
-							}
-							if (c == EOF_CHAR) {
-								throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
-							}
-						}
-						if (this.osCData != null) {
-							this.osCData.append(this.sbCData, initPos, this.sbCData.length() - initPos);
-						}
-						this.sbCData = null;
-						this.osCData = null;
-					} else if (this.osCData != null) {
-						final Reader ris = new DetectDataEndInputStream(this.in);
-						StreamUtil.pipeReadable(ris, this.osCData, true);
-						ris.close();
-						this.osCData = null;
+				case COMMENT:
+					final Reader commentStream = new DetectCommentEndInputStream(this.in);
+					if (this.osComment == null) {
+						StreamUtil.pipeReadable(commentStream, StreamUtil.VOID_WRITER, false);
 					} else {
-						boolean endedCData = false;
-						while (!endedCData) {
-							while ((c = (char) this.in.read()) != EOF_CHAR && c != XmlTools.DATA_END_FIRST) {
-							}
-							if (c == XmlTools.DATA_END_FIRST) {
-								if ((c = (char) this.in.read()) != EOF_CHAR && c != XmlTools.CDATA_WRAP[1].charAt(1)) {
-								} else {
-									if ((c = (char) this.in.read()) != EOF_CHAR
-											&& c != XmlTools.CDATA_WRAP[1].charAt(2)) {
-									} else {
-										endedCData = true;
-									}
-								}
-							}
-							if (c == EOF_CHAR) {
-								throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
-							}
-						}
+						StreamUtil.pipeReadable(commentStream, this.osComment, true);
+						this.osComment = null;
 					}
+					commentStream.close();
+					break;
+
+				case CDATA:
+					final Reader cDataStream = new DetectDataEndInputStream(this.in);
+					if (this.osCData == null) {
+						StreamUtil.pipeReadable(cDataStream, StreamUtil.VOID_WRITER, false);
+					} else {
+						StreamUtil.pipeReadable(cDataStream, this.osCData, true);
+						this.osCData = null;
+					}
+					cDataStream.close();
 					break;
 
 				case HDATA:
-					if (this.osHData != null) {
-						final Reader ris = new DetectDataEndInputStream(this.in);
-						StreamUtil.pipeFromHex(ris, this.osHData, true);
-						ris.close();
-						this.osHData = null;
+					final Reader hDataStream = new DetectDataEndInputStream(this.in);
+					if (this.osHData == null) {
+						StreamUtil.pipeReadable(hDataStream, StreamUtil.VOID_WRITER, false);
 					} else {
-						boolean endedCData = false;
-						while (!endedCData) {
-							while ((c = (char) this.in.read()) != EOF_CHAR && c != XmlTools.DATA_END_FIRST) {
-							}
-							if (c == XmlTools.DATA_END_FIRST) {
-								if ((c = (char) this.in.read()) != EOF_CHAR && c != XmlTools.HDATA_WRAP[1].charAt(1)) {
-								} else {
-									if ((c = (char) this.in.read()) != EOF_CHAR
-											&& c != XmlTools.HDATA_WRAP[1].charAt(2)) {
-									} else {
-										endedCData = true;
-									}
-								}
-							}
-							if (c == EOF_CHAR) {
-								throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
-							}
-						}
+						StreamUtil.pipeFromHex(hDataStream, this.osHData, true);
+						this.osHData = null;
 					}
+					hDataStream.close();
 					break;
 
 				default:
 					break;
 				}
 			}
-			this.curData.setLength(0);
+			char c;
 			// read data
-			if (c != EOF_CHAR) {
-				while ((c = (char) this.in.read()) != EOF_CHAR && c != XmlTools.KEY_LESS_THAN) {
-					this.curData.append(c);
-				}
+			this.curData.setLength(0);
+			while ((c = (char) this.in.read()) != EOF_CHAR && c != XmlTools.KEY_LESS_THAN) {
+				this.curData.append(c);
 			}
 			if (c != EOF_CHAR) {
 				// read tag
-				do {
+				tmpNextTag.append(c);
+				c = (char) this.in.read();
+				if (c == EOF_CHAR) {
+					throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
+				} else if (c == XmlTools.COMMENT_CHARACTER_INIT_FIRST) {
+					// its COMMENT, CDATA or HDATA
 					tmpNextTag.append(c);
-				} while (!(c == XmlTools.DATA_INIT_LAST && (XmlTagType.CDATA.equals(tmpNextTag.getXmlTagType())
-						|| XmlTagType.HDATA.equals(tmpNextTag.getXmlTagType())))
-						&& (c = (char) this.in.read()) != EOF_CHAR && c != XmlTools.KEY_GREATER_THAN);
-				if (c == XmlTools.KEY_GREATER_THAN) {
-					tmpNextTag.append(c);
+					c = (char) this.in.read();
+					if (c == EOF_CHAR) {
+						throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
+					} else if (c == XmlTools.COMMENT_CHARACTER_INIT_SECOND_THIRD) {
+						// its COMMENT
+						tmpNextTag.append(c);
+						c = (char) this.in.read();
+						if (c == EOF_CHAR) {
+							throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
+						} else {
+							tmpNextTag.append(c);
+						}
+					} else if (c == XmlTools.DATA_INIT_SECOND) {
+						// its CDATA or HDATA
+						tmpNextTag.append(c);
+						for (int i = 3; i < XmlTools.CDATA_WRAP[0].length()
+								&& (c = (char) this.in.read()) != EOF_CHAR; i++) {
+							tmpNextTag.append(c);
+						}
+						if (c == EOF_CHAR) {
+							throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
+						}
+					} else {
+						throw new IOException(new XmlInvalidLtException("Invalid xml reading tag: #0", tmpNextTag));
+					}
+				} else {
+					do {
+						tmpNextTag.append(c);
+					} while ((c = (char) this.in.read()) != EOF_CHAR && c != XmlTools.KEY_GREATER_THAN);
+					if (c == XmlTools.KEY_GREATER_THAN) {
+						tmpNextTag.append(c);
+					}
 				}
 				// load
 				if (c != EOF_CHAR) {
@@ -265,16 +241,6 @@ public final class XmlConsumer implements Closeable {
 	}
 
 	/**
-	 * Get the content of the comment.
-	 *
-	 * @param dest to write the comment
-	 * @throws XmlInvalidLtException if tag is invalid
-	 */
-	public synchronized void getComment(final StringBuilder dest) throws XmlInvalidLtException {
-		this.curTag.getComment(dest);
-	}
-
-	/**
 	 * Obtains the attribute value by tag.
 	 *
 	 * @param dest               to write the value
@@ -288,29 +254,29 @@ public final class XmlConsumer implements Closeable {
 	}
 
 	/**
-	 * Prepares consumer to write CDATA content to the object in argument.
+	 * Prepares consumer to write Comment content to the object in argument.
 	 *
-	 * @param osCData destination
+	 * @param osComment destination
 	 * @throws XmlInvalidLtException if tag is invalid
 	 */
-	public synchronized void setWriteNextCDataTo(final BufferedWriter osCData) throws XmlInvalidLtException {
-		if (XmlTagType.CDATA.equals(peekNextTagType())) {
-			throw new IllegalStateLtRtException("Expected CDATA tag, but it is: #0", peekNextTagType());
+	public synchronized void setWriteNextCommentTo(final Writer osComment) throws XmlInvalidLtException {
+		if (!XmlTagType.COMMENT.equals(peekNextTagType())) {
+			throw new IllegalStateLtRtException("Expected Comment tag, but it is: #0", peekNextTagType());
 		}
-		this.osCData = osCData;
+		this.osComment = osComment;
 	}
 
 	/**
 	 * Prepares consumer to write CDATA content to the object in argument.
 	 *
-	 * @param sbCData destination
+	 * @param osCData destination
 	 * @throws XmlInvalidLtException if tag is invalid
 	 */
-	public synchronized void setWriteNextCDataTo(final StringBuilder sbCData) throws XmlInvalidLtException {
-		if (XmlTagType.CDATA.equals(peekNextTagType())) {
+	public synchronized void setWriteNextCDataTo(final Writer osCData) throws XmlInvalidLtException {
+		if (!XmlTagType.CDATA.equals(peekNextTagType())) {
 			throw new IllegalStateLtRtException("Expected CDATA tag, but it is: #0", peekNextTagType());
 		}
-		this.sbCData = sbCData;
+		this.osCData = osCData;
 	}
 
 	/**
@@ -319,8 +285,8 @@ public final class XmlConsumer implements Closeable {
 	 * @param osHData destination
 	 * @throws XmlInvalidLtException if tag is invalid
 	 */
-	public synchronized void setWriteNextHDataTo(final BufferedOutputStream osHData) throws XmlInvalidLtException {
-		if (XmlTagType.HDATA.equals(peekNextTagType())) {
+	public synchronized void setWriteNextHDataTo(final OutputStream osHData) throws XmlInvalidLtException {
+		if (!XmlTagType.HDATA.equals(peekNextTagType())) {
 			throw new IllegalStateLtRtException("Expected HDATA tag, but it is: #0", peekNextTagType());
 		}
 		this.osHData = osHData;
@@ -349,11 +315,11 @@ public final class XmlConsumer implements Closeable {
 
 	private class DetectDataEndInputStream extends Reader {
 
-		private final BufferedReader ddeis;
-		private boolean endedCData = false;
+		private final BufferedReader reader;
+		private boolean endedData = false;
 
-		private DetectDataEndInputStream(final BufferedReader ddeis) {
-			this.ddeis = ddeis;
+		private DetectDataEndInputStream(final BufferedReader reader) {
+			this.reader = reader;
 		}
 
 		@Override
@@ -368,28 +334,28 @@ public final class XmlConsumer implements Closeable {
 				throw new UnsupportedOperationException(
 						new ImplementationLtRtException("Not implemented to receive a 0 < len < 4"));
 			}
-			if (this.endedCData) {
+			if (this.endedData) {
 				return -1;
 			}
 			final int readLimit = off + (len - 3);
 			int count = off;
 			char c = '#';
-			while (count < readLimit && (c = (char) this.ddeis.read()) != EOF_CHAR && c != XmlTools.DATA_END_FIRST) {
+			while (count < readLimit && (c = (char) this.reader.read()) != EOF_CHAR && c != XmlTools.DATA_END_FIRST) {
 				cbuf[count++] = c;
 			}
 			if (count < readLimit) {
 				if (c == XmlTools.DATA_END_FIRST) {
-					if ((c = (char) this.ddeis.read()) != EOF_CHAR && c != XmlTools.CDATA_WRAP[1].charAt(1)) {
+					if ((c = (char) this.reader.read()) != EOF_CHAR && c != XmlTools.CDATA_WRAP[1].charAt(1)) {
 						cbuf[count++] = XmlTools.DATA_END_FIRST;
 						cbuf[count++] = c;
 					} else {
-						if ((c = (char) this.ddeis.read()) != EOF_CHAR && c != XmlTools.CDATA_WRAP[1].charAt(2)) {
+						if ((c = (char) this.reader.read()) != EOF_CHAR && c != XmlTools.CDATA_WRAP[1].charAt(2)) {
 							cbuf[count++] = XmlTools.DATA_END_FIRST;
 							cbuf[count++] = XmlTools.CDATA_WRAP[1].charAt(1);
 							cbuf[count++] = c;
 						} else {
 							if (c == XmlTools.CDATA_WRAP[1].charAt(2)) {
-								this.endedCData = true;
+								this.endedData = true;
 							} else {
 								throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
 							}
@@ -404,6 +370,156 @@ public final class XmlConsumer implements Closeable {
 
 		@Override
 		public void close() throws IOException {
+			this.endedData = true;
+		}
+
+	}
+
+	private class DetectCommentEndInputStream extends Reader {
+
+		private final BufferedReader reader;
+		private boolean endedData = false;
+		private Reader dataStream = null;
+		private boolean consumedFirstEnd = false;
+
+		private DetectCommentEndInputStream(final BufferedReader reader) {
+			this.reader = reader;
+		}
+
+		@Override
+		public int read(final char[] cbuf, final int off, final int len) throws IOException {
+			if (this.dataStream != null) {
+				int count = this.dataStream.read(cbuf, off, len);
+				if (count < 0) {
+					this.dataStream = null;
+					count = XmlTools.CDATA_WRAP[1].length();
+					for (int i = 0; i < count; i++) {
+						cbuf[off + i] = XmlTools.CDATA_WRAP[1].charAt(i);
+					}
+				}
+				return count;
+			}
+			if (cbuf == null) {
+				throw new NullPointerException();
+			} else if (off < 0 || len < 0 || len > cbuf.length - off) {
+				throw new IndexOutOfBoundsException();
+			} else if (len == 0) {
+				return 0;
+			} else if (len < 10) {
+				throw new UnsupportedOperationException(
+						new ImplementationLtRtException("Not implemented to receive a 0 < len < 10"));
+			}
+			if (this.endedData) {
+				return -1;
+			}
+			final int readLimit = off + (len - 9);
+			int count = off;
+			char c = '#';
+			if (this.consumedFirstEnd) {
+				c = XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND;
+				this.consumedFirstEnd = false;
+			} else {
+				while (count < readLimit && (c = (char) this.reader.read()) != EOF_CHAR
+						&& c != XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND && c != XmlTools.DATA_INIT) {
+					cbuf[count++] = c;
+				}
+			}
+			if (count < readLimit) {
+				if (c == XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND) {
+					// check end of comment
+					if ((c = (char) this.reader.read()) != EOF_CHAR
+							&& c != XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND) {
+						cbuf[count++] = XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND;
+						cbuf[count++] = c;
+					} else {
+						if ((c = (char) this.reader.read()) != EOF_CHAR && c != XmlTools.KEY_GREATER_THAN) {
+							cbuf[count++] = XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND;
+							cbuf[count++] = XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND;
+							cbuf[count++] = c;
+						} else {
+							if (c == XmlTools.KEY_GREATER_THAN) {
+								this.endedData = true;
+							} else {
+								throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
+							}
+						}
+					}
+				} else if (c == XmlTools.DATA_INIT) {
+					// check initiation of CDATA or HDATA
+					cbuf[count++] = c;
+					if ((c = (char) this.reader.read()) != EOF_CHAR && c != XmlTools.DATA_INIT_FIRST) {
+						if (c == XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND) {
+							this.consumedFirstEnd = true;
+						} else {
+							cbuf[count++] = c;
+						}
+					} else {
+						if (c == XmlTools.DATA_INIT_FIRST) {
+							cbuf[count++] = c;
+							if ((c = (char) this.reader.read()) != EOF_CHAR && c != XmlTools.DATA_INIT_SECOND) {
+								if (c == XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND) {
+									this.consumedFirstEnd = true;
+								} else {
+									cbuf[count++] = c;
+								}
+							} else {
+								if (c == XmlTools.DATA_INIT_SECOND) {
+									cbuf[count++] = c;
+									if ((c = (char) this.reader.read()) == EOF_CHAR) {
+										throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
+									} else {
+										if (c == XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND) {
+											this.consumedFirstEnd = true;
+										} else {
+											cbuf[count++] = c;
+											boolean isDataVariant = false;
+											for (int i = 0; i < XmlTools.DATA_INIT_VARIANT.length; i++) {
+												if (c == XmlTools.DATA_INIT_VARIANT[i]) {
+													isDataVariant = true;
+												}
+											}
+											if (isDataVariant) {
+												int dataTagPos = 4;
+												while (dataTagPos < XmlTools.CDATA_WRAP[0].length()
+														&& (c = (char) this.reader.read()) == XmlTools.CDATA_WRAP[0]
+																.charAt(dataTagPos)) {
+													cbuf[count++] = c;
+													dataTagPos++;
+												}
+												if (dataTagPos == XmlTools.CDATA_WRAP[0].length()) {
+													// data tag inside comment tag
+													this.dataStream = new DetectDataEndInputStream(this.reader);
+												} else {
+													if (c == EOF_CHAR) {
+														throw new IOException(
+																new XmlInvalidLtException("Unexpected end of stream"));
+													} else if (c == XmlTools.COMMENT_CHARACTER_END_FIRST_SECOND) {
+														this.consumedFirstEnd = true;
+													} else {
+														cbuf[count++] = c;
+													}
+												}
+											}
+										}
+									}
+								} else {
+									throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
+								}
+							}
+						} else {
+							throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
+						}
+					}
+				} else {
+					throw new IOException(new XmlInvalidLtException("Unexpected end of stream"));
+				}
+			}
+			return count - off;
+		}
+
+		@Override
+		public void close() throws IOException {
+			this.endedData = true;
 		}
 
 	}
