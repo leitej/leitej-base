@@ -30,10 +30,14 @@ final class FilterHandler extends AbstractDataProxyHandler<LtmObjectModelling> {
 	private static final long serialVersionUID = -8120089006746451609L;
 
 	private LtmFilter<?> filter;
+	private boolean obSwitchSet;
+	private boolean obSwitchGet;
 
 	protected <T extends LtmObjectModelling> FilterHandler(final Class<T> dataInterfaceClass)
 			throws IllegalArgumentLtRtException {
 		super(dataInterfaceClass);
+		this.obSwitchSet = false;
+		this.obSwitchGet = false;
 	}
 
 	@Override
@@ -43,7 +47,11 @@ final class FilterHandler extends AbstractDataProxyHandler<LtmObjectModelling> {
 
 	@Override
 	protected void set(final String dataName, final Object value) {
-		this.filter.setDataFilter(dataName, value);
+		final boolean obfuscatedValue = this.obSwitchSet != this.obSwitchGet;
+		this.filter.setDataFilter(dataName, value, obfuscatedValue);
+		if (obfuscatedValue) {
+			this.obSwitchGet = !this.obSwitchGet;
+		}
 	}
 
 	@Override
@@ -53,6 +61,7 @@ final class FilterHandler extends AbstractDataProxyHandler<LtmObjectModelling> {
 
 	@Override
 	protected <O> O obfuscate(final Obfuscate annot, final O value) {
+		this.obSwitchSet = !this.obSwitchSet;
 		return ObfuscateUtil.hide(annot, value);
 	}
 

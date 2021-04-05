@@ -19,8 +19,8 @@ package leitej.ltm;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import leitej.exception.ClosedLtRtException;
 import leitej.exception.IllegalArgumentLtRtException;
@@ -135,12 +135,8 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 		}
 	}
 
-	public <T extends LtmObjectModelling> LtmFilter<T> newFilter(final Class<T> ltmClass) throws LtmLtRtException {
-		return new LtmFilter<>(ltmClass);
-	}
-
-	public <T extends LtmObjectModelling> Set<T> find(final LtmFilter<T> ltmFilter) throws LtmLtRtException {
-		return new LtmSet<>(ltmFilter.getLTMClass(), ltmFilter.getQueryFilter(), ltmFilter.getParams(),
+	public <T extends LtmObjectModelling> Iterator<T> search(final LtmFilter<T> ltmFilter) throws LtmLtRtException {
+		return new LtmIteractor<>(ltmFilter.getLTMClass(), ltmFilter.getQueryFilter(), ltmFilter.getParams(),
 				ltmFilter.getTypes());
 	}
 

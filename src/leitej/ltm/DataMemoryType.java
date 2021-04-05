@@ -76,6 +76,38 @@ enum DataMemoryType {
 		return result;
 	}
 
+	boolean isNumber() {
+		boolean result;
+		switch (this) {
+		case BYTE:
+		case SHORT:
+		case INT:
+		case LONG:
+		case BIG_DECIMAL:
+		case DOUBLE:
+		case FLOAT:
+			result = true;
+			break;
+		default:
+			result = false;
+			break;
+		}
+		return result;
+	}
+
+	boolean isText() {
+		boolean result;
+		switch (this) {
+		case STRING:
+			result = true;
+			break;
+		default:
+			result = false;
+			break;
+		}
+		return result;
+	}
+
 	static DataMemoryType getDataMemoryType(final Class<?> type) {
 		final DataMemoryType result;
 		if (Byte.class.isAssignableFrom(type) || byte.class.isAssignableFrom(type)) {

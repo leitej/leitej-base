@@ -19,6 +19,7 @@ package leitej.ltm;
 import java.util.ArrayList;
 import java.util.List;
 
+import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.ImplementationLtRtException;
 
 /**
@@ -29,8 +30,12 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 
 	private static final FilterProxy PROXY = new FilterProxy();
 
-	private static enum OPERAND {
-		EQ
+	public static enum OPERATOR_JOIN {
+		AND, OR;
+	};
+
+	public static enum OPERATOR {
+		EQUAL, NOT_EQUAL, GREATER_THAN, LESS_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL, LIKE;
 	};
 
 	private final Class<T> ltmClass;
@@ -39,67 +44,46 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 	private final List<Object> paramList;
 	private final List<DataMemoryType> typeList;
 	private final StringBuilder filter;
-	private OPERAND nextOp;
-	private boolean needCondition;
+	private final OPERATOR_JOIN opJoin;
+	private OPERATOR nextOp;
 
-	LtmFilter(final Class<T> ltmClass) {
+	public LtmFilter(final Class<T> ltmClass, final OPERATOR_JOIN opJoin) {
+		if (opJoin == null) {
+			throw new NullPointerException();
+		}
 		this.ltmClass = ltmClass;
 		this.data = PROXY.newProxyInstance(ltmClass, this);
 		this.fHandler = PROXY.getHandler(this.data);
 		this.paramList = new ArrayList<>();
 		this.typeList = new ArrayList<>();
 		this.filter = new StringBuilder();
+		this.opJoin = opJoin;
 		this.nextOp = null;
-		this.needCondition = false;
 	}
 
-	public LtmFilter<T> setAnd() {
-		if (!this.needCondition) {
-			throw new IllegalStateException();
+	public T prepare(final OPERATOR op) {
+		if (op == null) {
+			throw new NullPointerException();
 		}
-		this.filter.append(" and");
-		this.needCondition = false;
-		return this;
-	}
+		if (this.filter.length() != 0) {
+			switch (this.opJoin) {
+			case AND:
+				this.filter.append(" and");
+				break;
 
-	public LtmFilter<T> setOr() {
-		if (!this.needCondition) {
-			throw new IllegalStateException();
-		}
-		this.filter.append(" or");
-		this.needCondition = false;
-		return this;
-	}
+			case OR:
+				this.filter.append(" or");
+				break;
 
-	public T setOperandEqual() {
-		if (this.needCondition) {
-			throw new IllegalStateException();
+			default:
+				throw new ImplementationLtRtException();
+			}
 		}
-		this.nextOp = OPERAND.EQ;
+		this.nextOp = op;
 		return this.data;
 	}
 
-	public T getParam() {
-		if (this.needCondition) {
-			throw new IllegalStateException();
-		}
-		return this.data;
-	}
-
-	void setDataFilter(final String dataName, final Object value) {
-		if (this.needCondition || this.nextOp == null) {
-			throw new IllegalStateException();
-		}
-		this.filter.append(" \"");
-		this.filter.append(dataName);
-		this.filter.append("\" ");
-		if (OPERAND.EQ.equals(this.nextOp)) {
-			this.filter.append("=");
-		} else {
-			throw new ImplementationLtRtException();
-		}
-		this.filter.append(" ?");
-		//
+	void setDataFilter(final String dataName, final Object value, final boolean obfuscatedValue) {
 		final DataMemoryType type = DataMemoryType.getDataMemoryType(this.fHandler.getType(dataName));
 		this.typeList.add(type);
 		if (DataMemoryType.LARGE_MEMORY.equals(type)) {
@@ -110,15 +94,66 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 			this.paramList.add(value);
 		}
 		//
-		this.needCondition = true;
-		this.nextOp = null;
+		this.filter.append(" \"");
+		this.filter.append(dataName);
+		this.filter.append("\" ");
+		switch (this.nextOp) {
+		case EQUAL:
+			this.filter.append("=");
+			break;
+
+		case GREATER_THAN:
+			this.filter.append(">");
+			if (!type.isNumber()) {
+				throw new IllegalStateLtRtException("Invalid operator: #0 to use on data type: #1", this.nextOp, type);
+			}
+			break;
+
+		case GREATER_THAN_OR_EQUAL:
+			this.filter.append(">=");
+			if (!type.isNumber()) {
+				throw new IllegalStateLtRtException("Invalid operator: #0 to use on data type: #1", this.nextOp, type);
+			}
+			break;
+
+		case LESS_THAN:
+			this.filter.append("<");
+			if (!type.isNumber()) {
+				throw new IllegalStateLtRtException("Invalid operator: #0 to use on data type: #1", this.nextOp, type);
+			}
+			break;
+
+		case LESS_THAN_OR_EQUAL:
+			this.filter.append("<=");
+			if (!type.isNumber()) {
+				throw new IllegalStateLtRtException("Invalid operator: #0 to use on data type: #1", this.nextOp, type);
+			}
+			break;
+
+		case LIKE:
+			this.filter.append("like");
+			if (!type.isText()) {
+				throw new IllegalStateLtRtException("Invalid operator: #0 to use on data type: #1", this.nextOp, type);
+			}
+			if (obfuscatedValue) {
+				throw new IllegalStateLtRtException("Invalid operator: #0 on obfuscated data: #0", this.nextOp,
+						dataName);
+			}
+			break;
+
+		case NOT_EQUAL:
+			this.filter.append("!=");
+			break;
+
+		default:
+			throw new ImplementationLtRtException();
+		}
+		this.filter.append(" ?");
 	}
 
 	public void reset() {
 		this.paramList.clear();
 		this.typeList.clear();
-		this.nextOp = null;
-		this.needCondition = false;
 		this.filter.setLength(0);
 	}
 

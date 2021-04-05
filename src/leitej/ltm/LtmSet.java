@@ -44,10 +44,8 @@ public final class LtmSet<E extends LtmObjectModelling> implements Set<E> {
 	private final String pSttCount;
 	private final String pSttHasResult;
 	private final String pSttContains;
-	private final String pSttScaledIterator;
 
-	LtmSet(final Class<E> ltmClass, final String queryFilter, final Object[] parameters,
-			final DataMemoryType[] types) {
+	LtmSet(final Class<E> ltmClass, final String queryFilter, final Object[] parameters, final DataMemoryType[] types) {
 		LOG.trace("#0", ltmClass);
 		this.ltmClass = ltmClass;
 		this.tablename = HsqldbUtil.getTablename(ltmClass);
@@ -57,8 +55,9 @@ public final class LtmSet<E extends LtmObjectModelling> implements Set<E> {
 		this.pSttCount = HsqldbUtil.getStatementCount(this.tablename, this.queryFilter);
 		this.pSttHasResult = HsqldbUtil.getStatementHasResult(this.tablename, this.queryFilter);
 		this.pSttContains = HsqldbUtil.getStatementContains(this.tablename, this.queryFilter);
-		this.pSttScaledIterator = HsqldbUtil.getStatementScaledIterator(this.tablename, this.queryFilter);
 	}
+
+	// Query Operations
 
 	@Override
 	public int size() {
@@ -66,7 +65,7 @@ public final class LtmSet<E extends LtmObjectModelling> implements Set<E> {
 		DataMemoryConnection conn = null;
 		try {
 			try {
-				conn = MEM_POOL.newObject();
+				conn = MEM_POOL.poll();
 				result = conn.count(this.pSttCount, this.types, this.parameters);
 			} finally {
 				if (conn != null) {
@@ -85,7 +84,7 @@ public final class LtmSet<E extends LtmObjectModelling> implements Set<E> {
 		DataMemoryConnection conn = null;
 		try {
 			try {
-				conn = MEM_POOL.newObject();
+				conn = MEM_POOL.poll();
 				result = !conn.hasResult(this.pSttHasResult, this.types, this.parameters);
 			} finally {
 				if (conn != null) {
@@ -106,7 +105,7 @@ public final class LtmSet<E extends LtmObjectModelling> implements Set<E> {
 			DataMemoryConnection conn = null;
 			try {
 				try {
-					conn = MEM_POOL.newObject();
+					conn = MEM_POOL.poll();
 					result = conn.containsID(this.pSttContains, this.types, this.parameters, oId);
 				} finally {
 					if (conn != null) {
@@ -124,7 +123,7 @@ public final class LtmSet<E extends LtmObjectModelling> implements Set<E> {
 
 	@Override
 	public Iterator<E> iterator() {
-		return new LtmIteractor<>(this.ltmClass, this.pSttScaledIterator, this.parameters, this.types);
+		return new LtmIteractor<>(this.ltmClass, this.queryFilter, this.parameters, this.types);
 	}
 
 	@Override
@@ -137,6 +136,8 @@ public final class LtmSet<E extends LtmObjectModelling> implements Set<E> {
 		throw new UnsupportedOperationException();
 	}
 
+	// Modification Operations
+
 	@Override
 	public boolean add(final E e) {
 		// TODO Auto-generated method stub
@@ -148,6 +149,8 @@ public final class LtmSet<E extends LtmObjectModelling> implements Set<E> {
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+	// Bulk Operations
 
 	@Override
 	public boolean containsAll(final Collection<?> c) {
@@ -178,7 +181,7 @@ public final class LtmSet<E extends LtmObjectModelling> implements Set<E> {
 					DataMemoryConnection conn = null;
 					try {
 						try {
-							conn = MEM_POOL.newObject();
+							conn = MEM_POOL.poll();
 							result = conn.containsIDset(this.pSttContains, this.types, this.parameters, idSet);
 						} finally {
 							if (conn != null) {
@@ -220,6 +223,20 @@ public final class LtmSet<E extends LtmObjectModelling> implements Set<E> {
 	public void clear() {
 		// TODO Auto-generated method stub
 
+	}
+
+	// Comparison and hashing
+
+	@Override
+	public boolean equals(final Object o) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }
