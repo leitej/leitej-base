@@ -80,4 +80,16 @@ final class LtmIteractor<T extends LtmObjectModelling> implements Iterator<T> {
 		return result;
 	}
 
+	// Comparison and hashing
+
+	@Override
+	public boolean equals(final Object o) {
+		return (this == o);
+	}
+
+	@Override
+	public int hashCode() {
+		return this.query.hashCode() + this.parameters.hashCode();
+	}
+
 }

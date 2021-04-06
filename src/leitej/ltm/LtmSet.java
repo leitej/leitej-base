@@ -229,14 +229,16 @@ public final class LtmSet<E extends LtmObjectModelling> implements Set<E> {
 
 	@Override
 	public boolean equals(final Object o) {
-		// TODO Auto-generated method stub
-		return false;
+		if (o == null || !LtmSet.class.isInstance(o)) {
+			return false;
+		} else {
+			return hashCode() == o.hashCode();
+		}
 	}
 
 	@Override
 	public int hashCode() {
-		// TODO Auto-generated method stub
-		return 0;
+		return this.pSttCount.hashCode() + this.parameters.hashCode();
 	}
 
 }
