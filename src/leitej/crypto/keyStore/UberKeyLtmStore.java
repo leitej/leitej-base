@@ -20,14 +20,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import leitej.exception.KeyStoreLtException;
 import leitej.exception.LtmLtRtException;
-import leitej.ltm.LtmFilter;
 import leitej.ltm.LargeMemory;
 import leitej.ltm.LongTermMemory;
+import leitej.ltm.LtmFilter;
+import leitej.ltm.LtmFilter.OPERATOR;
+import leitej.ltm.LtmFilter.OPERATOR_JOIN;
 
 /**
  *
@@ -51,10 +53,10 @@ public final class UberKeyLtmStore extends AbstractUberKeyStore {
 			final UberKeyLtmStore keyLtmStore = INSTANCE_MAP.get(alias);
 			if (keyLtmStore == null) {
 				try {
-					final LtmFilter<KeyLtmStore> filter = LTM.newFilter(KeyLtmStore.class);
-					filter.setOperandEqual().setAlias(alias);
-					final Set<KeyLtmStore> found = LTM.find(filter);
-					if (found.size() == 1) {
+					final LtmFilter<KeyLtmStore> filter = new LtmFilter<>(KeyLtmStore.class, OPERATOR_JOIN.AND);
+					filter.prepare(OPERATOR.EQUAL).setAlias(alias);
+					final Iterator<KeyLtmStore> found = LTM.search(filter);
+					if (found.hasNext()) {
 						result = true;
 					}
 				} catch (final LtmLtRtException e) {
@@ -172,15 +174,15 @@ public final class UberKeyLtmStore extends AbstractUberKeyStore {
 			UberKeyLtmStore keyLtmStore = INSTANCE_MAP.get(alias);
 			if (keyLtmStore == null) {
 				try {
-					final LtmFilter<KeyLtmStore> filter = LTM.newFilter(KeyLtmStore.class);
-					filter.setOperandEqual().setAlias(alias);
-					final Set<KeyLtmStore> found = LTM.find(filter);
-					if (found.size() != 1) {
+					final LtmFilter<KeyLtmStore> filter = new LtmFilter<>(KeyLtmStore.class, OPERATOR_JOIN.AND);
+					filter.prepare(OPERATOR.EQUAL).setAlias(alias);
+					final Iterator<KeyLtmStore> found = LTM.search(filter);
+					if (!found.hasNext()) {
 						final KeyLtmStore createLtmStore = LTM.newRecord(KeyLtmStore.class);
 						createLtmStore.setAlias(alias);
 						ltmStore = createLtmStore.getKeyStore();
 					} else {
-						ltmStore = found.iterator().next().getKeyStore();
+						ltmStore = found.next().getKeyStore();
 						if (create) {
 							ltmStore.open();
 							ltmStore.setLength(0);

@@ -23,9 +23,9 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
@@ -41,8 +41,10 @@ import leitej.exception.CertificateLtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.exception.KeyStoreLtException;
 import leitej.exception.LtmLtRtException;
-import leitej.ltm.LtmFilter;
 import leitej.ltm.LongTermMemory;
+import leitej.ltm.LtmFilter;
+import leitej.ltm.LtmFilter.OPERATOR;
+import leitej.ltm.LtmFilter.OPERATOR_JOIN;
 import leitej.util.data.Cache;
 import leitej.util.data.CacheSoft;
 import leitej.util.data.CacheWeak;
@@ -211,12 +213,11 @@ public final class LtVault {
 			this.keyLtmStore.persist();
 		}
 		// assert vault has the internal secret iv for certificates
-		final LtmFilter<VaultSecretIV> filter = LTM.newFilter(VaultSecretIV.class);
-		filter.setOperandEqual().setKeyLtmStoreAlias(this.keyLtmStoreAlias);
-		filter.setAnd();
-		filter.setOperandEqual().setAlias(VAULT_INTERNAL_CERTIFICATE_SECRET_IV_ENTRY_ALIAS);
-		final Set<VaultSecretIV> found = LTM.find(filter);
-		if (found.size() != 1) {
+		final LtmFilter<VaultSecretIV> filter = new LtmFilter<>(VaultSecretIV.class, OPERATOR_JOIN.AND);
+		filter.prepare(OPERATOR.EQUAL).setKeyLtmStoreAlias(this.keyLtmStoreAlias);
+		filter.prepare(OPERATOR.EQUAL).setAlias(VAULT_INTERNAL_CERTIFICATE_SECRET_IV_ENTRY_ALIAS);
+		final Iterator<VaultSecretIV> found = LTM.search(filter);
+		if (!found.hasNext()) {
 			setSecretIV(VAULT_INTERNAL_CERTIFICATE_SECRET_IV_ENTRY_ALIAS,
 					Cryptography.ivGenerate(CipherEnum.Twofish.ivBitSize()));
 		}
@@ -244,13 +245,12 @@ public final class LtVault {
 	private final VaultSecretIV fetchSecretIv(final String alias) throws LtmLtRtException {
 		VaultSecretIV result = this.vaultSecretIVLightCache.get(alias);
 		if (result == null) {
-			final LtmFilter<VaultSecretIV> filter = LTM.newFilter(VaultSecretIV.class);
-			filter.setOperandEqual().setKeyLtmStoreAlias(this.keyLtmStoreAlias);
-			filter.setAnd();
-			filter.setOperandEqual().setAlias(alias);
-			final Set<VaultSecretIV> found = LTM.find(filter);
-			if (found.size() == 1) {
-				result = found.iterator().next();
+			final LtmFilter<VaultSecretIV> filter = new LtmFilter<>(VaultSecretIV.class, OPERATOR_JOIN.AND);
+			filter.prepare(OPERATOR.EQUAL).setKeyLtmStoreAlias(this.keyLtmStoreAlias);
+			filter.prepare(OPERATOR.EQUAL).setAlias(alias);
+			final Iterator<VaultSecretIV> found = LTM.search(filter);
+			if (found.hasNext()) {
+				result = found.next();
 				this.vaultSecretIVLightCache.set(alias, result);
 			}
 		}
@@ -323,13 +323,12 @@ public final class LtVault {
 	private final VaultCertificate fetchCertificate(final String alias) throws LtmLtRtException {
 		VaultCertificate result = this.vaultCertificateLightCache.get(alias);
 		if (result == null) {
-			final LtmFilter<VaultCertificate> filter = LTM.newFilter(VaultCertificate.class);
-			filter.setOperandEqual().setKeyLtmStoreAlias(this.keyLtmStoreAlias);
-			filter.setAnd();
-			filter.setOperandEqual().setAlias(alias);
-			final Set<VaultCertificate> found = LTM.find(filter);
-			if (found.size() == 1) {
-				result = found.iterator().next();
+			final LtmFilter<VaultCertificate> filter = new LtmFilter<>(VaultCertificate.class, OPERATOR_JOIN.AND);
+			filter.prepare(OPERATOR.EQUAL).setKeyLtmStoreAlias(this.keyLtmStoreAlias);
+			filter.prepare(OPERATOR.EQUAL).setAlias(alias);
+			final Iterator<VaultCertificate> found = LTM.search(filter);
+			if (found.hasNext()) {
+				result = found.next();
 				this.vaultCertificateLightCache.set(alias, result);
 			}
 		}

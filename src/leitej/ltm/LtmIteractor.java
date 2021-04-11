@@ -38,9 +38,10 @@ final class LtmIteractor<T extends LtmObjectModelling> implements Iterator<T> {
 	private final DataMemoryType[] types;
 	private Long nextId;
 
-	LtmIteractor(final Class<T> ltmClass, final String query, final Object[] parameters, final DataMemoryType[] types) {
+	LtmIteractor(final Class<T> ltmClass, final String queryFilter, final Object[] parameters,
+			final DataMemoryType[] types) {
 		this.ltmClass = ltmClass;
-		this.query = query;
+		this.query = HsqldbUtil.getStatementScaledIterator(HsqldbUtil.getTablename(ltmClass), queryFilter);
 		this.parameters = parameters;
 		this.types = types;
 		this.nextId = fetchNextId(Long.MIN_VALUE);
@@ -66,7 +67,7 @@ final class LtmIteractor<T extends LtmObjectModelling> implements Iterator<T> {
 		DataMemoryConnection conn = null;
 		try {
 			try {
-				conn = MEM_POOL.newObject();
+				conn = MEM_POOL.poll();
 				result = conn.getNextId(this.query, this.types, this.parameters, id);
 			} finally {
 				if (conn != null) {
@@ -77,6 +78,18 @@ final class LtmIteractor<T extends LtmObjectModelling> implements Iterator<T> {
 			throw new LtmLtRtException(e);
 		}
 		return result;
+	}
+
+	// Comparison and hashing
+
+	@Override
+	public boolean equals(final Object o) {
+		return (this == o);
+	}
+
+	@Override
+	public int hashCode() {
+		return this.query.hashCode() + this.parameters.hashCode();
 	}
 
 }
