@@ -23,6 +23,7 @@ hs_err_pid*
 
 #eclipse
 !dist/*
+dist/bcprov-jdk16-145.jar
 /.metadata/
 /.recommenders/
 /notes/

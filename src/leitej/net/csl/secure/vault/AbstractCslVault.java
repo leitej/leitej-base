@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import leitej.crypto.ConstantCrypto;
 import leitej.crypto.asymmetric.certificate.CertificateChainUtil;
@@ -35,8 +35,10 @@ import leitej.exception.ImplementationLtRtException;
 import leitej.exception.KeyStoreLtException;
 import leitej.exception.LtmLtRtException;
 import leitej.log.Logger;
-import leitej.ltm.LtmFilter;
 import leitej.ltm.LongTermMemory;
+import leitej.ltm.LtmFilter;
+import leitej.ltm.LtmFilter.OPERATOR;
+import leitej.ltm.LtmFilter.OPERATOR_JOIN;
 import leitej.net.csl.secure.rooter.OffRoot;
 import leitej.util.data.Cache;
 import leitej.util.data.CacheSoft;
@@ -267,11 +269,11 @@ public abstract class AbstractCslVault implements CslVaultItf {
 		}
 		final String alias = CertificateUtil.getAliasFrom(chain[position]);
 		CadastreIssuer result;
-		final LtmFilter<CadastreIssuer> filter = LTM.newFilter(CadastreIssuer.class);
-		filter.setOperandEqual().setAlias(alias);
-		final Set<CadastreIssuer> found = LTM.find(filter);
-		if (found.size() == 1) {
-			result = found.iterator().next();
+		final LtmFilter<CadastreIssuer> filter = new LtmFilter<>(CadastreIssuer.class, OPERATOR_JOIN.AND);
+		filter.prepare(OPERATOR.EQUAL).setAlias(alias);
+		final Iterator<CadastreIssuer> found = LTM.search(filter);
+		if (found.hasNext()) {
+			result = found.next();
 		} else {
 			result = LTM.newRecord(CadastreIssuer.class);
 			result.setAlias(alias);
@@ -340,13 +342,13 @@ public abstract class AbstractCslVault implements CslVaultItf {
 		synchronized (this.cadastreCache) {
 			Cadastre result = this.cadastreCache.get(aliasClientCertificate);
 			if (result == null) {
-				final LtmFilter<Cadastre> filter = LTM.newFilter(Cadastre.class);
-				filter.setOperandEqual().setAlias(aliasClientCertificate);
-				final Set<Cadastre> found = LTM.find(filter);
-				if (found.size() != 1) {
+				final LtmFilter<Cadastre> filter = new LtmFilter<>(Cadastre.class, OPERATOR_JOIN.AND);
+				filter.prepare(OPERATOR.EQUAL).setAlias(aliasClientCertificate);
+				final Iterator<Cadastre> found = LTM.search(filter);
+				if (!found.hasNext()) {
 					throw new CertificateLtException();
 				}
-				result = found.iterator().next();
+				result = found.next();
 				this.cadastreCache.set(aliasClientCertificate, result);
 			}
 			return result;
