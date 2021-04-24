@@ -27,8 +27,8 @@ import java.util.Random;
 
 import leitej.Constant;
 import leitej.exception.IllegalStateLtRtException;
+import leitej.exception.SeppukuLtRtException;
 import leitej.exception.UnsupportedDataTypeLtRtException;
-import leitej.log.Logger;
 import leitej.util.HexaUtil;
 import leitej.util.NetUtil;
 import leitej.util.machine.UserUtil;
@@ -75,7 +75,7 @@ public final class ObfuscateUtil {
 				}
 			}
 		} catch (final IOException e) {
-			Logger.getInstance().fatal("#0", e);
+			throw new SeppukuLtRtException(e);
 		}
 		RANDOM = new Random(seed);
 		ENTROPY = new byte[ENTROPY_GEN_STEP_SIZE];

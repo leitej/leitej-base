@@ -32,7 +32,6 @@ import java.util.Enumeration;
 import javax.crypto.SecretKey;
 
 import leitej.crypto.Cryptography;
-import leitej.crypto.ProviderEnum;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.exception.KeyStoreLtException;
@@ -73,7 +72,7 @@ abstract class AbstractKeyStore {
 	 * In order to create an empty keystore, or if the keystore cannot be
 	 * initialized from a stream, pass <code>null</code> as the <code>stream</code>
 	 * argument.
-	 * 
+	 *
 	 * @param stream   the input stream from which the keystore is loaded, or
 	 *                 <code>null</code>
 	 * @param password the password used to check the integrity of the keystore, the
@@ -98,12 +97,10 @@ abstract class AbstractKeyStore {
 	 *                             +Cause CertificateException if any of the
 	 *                             certificates in the keystore could not be loaded
 	 */
-	protected AbstractKeyStore(final KeyStoreEnum keyStoreEnum, final ProviderEnum providerEnum,
-			final InputStream stream, final Password password) throws KeyStoreLtException, IOException {
-		this.keyStore = Cryptography.getKeyStore(keyStoreEnum, providerEnum);
-		// This line is important; if it is missing, you will get a KeyStoreException
-		// when the entries are added.
-		load(stream, password);
+	protected AbstractKeyStore(final String keyStoreEnum, final InputStream stream, final Password password)
+			throws KeyStoreLtException, IOException {
+		this.keyStore = Cryptography.getKeyStore(keyStoreEnum);
+		loadKeyStore(stream, password);
 	}
 
 	/**
@@ -132,7 +129,7 @@ abstract class AbstractKeyStore {
 
 	/**
 	 * Returns the private key associated with the given alias.
-	 * 
+	 *
 	 * @param alias the alias name
 	 * @return the requested key, or null if the given alias does not exist or does
 	 *         not identify a key-related entry
@@ -147,7 +144,7 @@ abstract class AbstractKeyStore {
 
 	/**
 	 * Returns the secret key associated with the given alias.
-	 * 
+	 *
 	 * @param alias the alias name
 	 * @return the requested key, or null if the given alias does not exist or does
 	 *         not identify a key-related entry
@@ -232,7 +229,7 @@ abstract class AbstractKeyStore {
 	 *                             +Cause CertificateException if any of the
 	 *                             certificates in the keystore could not be loaded
 	 */
-	protected final void load(final InputStream stream, final Password password)
+	protected final void loadKeyStore(final InputStream stream, final Password password)
 			throws KeyStoreLtException, IOException {
 		try {
 			this.keyStore.load(stream, ((password == null || stream == null) ? null : password.getPassword()));
@@ -271,7 +268,7 @@ abstract class AbstractKeyStore {
 				this.keyStore.store(stream, ((password == null) ? null : password.getPassword()));
 			}
 		} catch (final KeyStoreException e) {
-			throw new ImplementationLtRtException(e);
+			throw new KeyStoreLtException(e);
 		} catch (final IllegalStateLtRtException e) {
 			throw new ImplementationLtRtException(e);
 		} catch (final NoSuchAlgorithmException e) {
@@ -357,7 +354,7 @@ abstract class AbstractKeyStore {
 	/**
 	 * Returns the first element of the key certificate chain associated with the
 	 * given alias.
-	 * 
+	 *
 	 * @param alias the alias name
 	 * @return the certificate, or null if the given alias does not exist or does
 	 *         not contain a certificate
@@ -384,7 +381,7 @@ abstract class AbstractKeyStore {
 
 	/**
 	 * Returns the trusted certificate associated with the given alias.
-	 * 
+	 *
 	 * @param alias the alias name
 	 * @return the certificate, or null if the given alias does not exist or does
 	 *         not contain a certificate
@@ -421,7 +418,7 @@ abstract class AbstractKeyStore {
 	 * If the entry being considered was created by a call to
 	 * <code>setPrivateKeyEntry</code>, then the given certificate is compared to
 	 * the first element of that entry's certificate chain.
-	 * 
+	 *
 	 * @param cert the certificate to match with.
 	 * @return the alias name of the first entry with a matching certificate, or
 	 *         null if no such entry exists in this keystore
@@ -475,7 +472,7 @@ abstract class AbstractKeyStore {
 	 * Returns the key associated with the given alias, using the given password to
 	 * recover it. The key must have been associated with the alias by a call to
 	 * <code>setPrivateKeyEntry</code>.
-	 * 
+	 *
 	 * @param alias    the alias name
 	 * @param password the password for recovering the key
 	 * @return the requested key, or null if the given alias does not exist or does
@@ -514,7 +511,7 @@ abstract class AbstractKeyStore {
 	 * Returns the key associated with the given alias, using the given password to
 	 * recover it. The key must have been associated with the alias by a call to
 	 * <code>setSecretKeyEntry</code>.
-	 * 
+	 *
 	 * @param alias    the alias name
 	 * @param password the password for recovering the key
 	 * @return the requested key, or null if the given alias does not exist or does

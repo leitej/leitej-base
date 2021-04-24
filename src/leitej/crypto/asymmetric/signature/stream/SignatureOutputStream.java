@@ -27,7 +27,6 @@ import java.security.Signature;
 import java.security.SignatureException;
 
 import leitej.crypto.Cryptography;
-import leitej.crypto.asymmetric.signature.SignatureEnum;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.ImplementationLtRtException;
 
@@ -77,7 +76,7 @@ public final class SignatureOutputStream extends OutputStream {
 	 * @throws InvalidKeyException
 	 */
 	public SignatureOutputStream(final OutputStream os, final int secureStepLength, final PrivateKey privateKey,
-			final SignatureEnum signatureAlgorithm)
+			final String signatureAlgorithm)
 			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
 		this(os, secureStepLength, privateKey, signatureAlgorithm, false);
 	}
@@ -94,7 +93,7 @@ public final class SignatureOutputStream extends OutputStream {
 	 * @throws InvalidKeyException
 	 */
 	public SignatureOutputStream(final OutputStream os, final int secureStepLength, final PrivateKey privateKey,
-			final SignatureEnum signatureAlgorithm, final boolean activatePadding)
+			final String signatureAlgorithm, final boolean activatePadding)
 			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
 		if (os == null || secureStepLength <= BYTE_CONTROL_STEP || privateKey == null) {
 			throw new IllegalArgumentLtRtException();

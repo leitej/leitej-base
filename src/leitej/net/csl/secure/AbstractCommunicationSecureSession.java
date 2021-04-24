@@ -25,17 +25,17 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.security.InvalidKeyException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
 import leitej.Constant;
 import leitej.crypto.Cryptography;
 import leitej.crypto.asymmetric.CipherRSA;
-import leitej.crypto.asymmetric.certificate.CertificateIoUtil;
+import leitej.crypto.asymmetric.certificate.CertificateStreamUtil;
 import leitej.crypto.hash.HMacEnum;
 import leitej.crypto.hash.stream.HMacInputStream;
 import leitej.crypto.hash.stream.HMacOutputStream;
-import leitej.crypto.symmetric.CipherEnum;
 import leitej.crypto.symmetric.stream.CircInputStream;
 import leitej.crypto.symmetric.stream.CircOutputStream;
 import leitej.exception.CertificateChainLtException;
@@ -150,8 +150,10 @@ abstract class AbstractCommunicationSecureSession extends
 	@Override
 	protected final OutputStream getOutputStreamWrapped(final OutputStream out) throws ConnectionLtException {
 		try {
-			final CircOutputStream circOutputStream = new CircOutputStream(out, CipherEnum.Twofish);
-			circOutputStream.cipherInit(true, Cryptography.keyProduce(CipherEnum.Twofish, this.oKeyBytes),
+			final CircOutputStream circOutputStream = new CircOutputStream(out,
+					Cryptography.getDefaultSymmetricCipher());
+			circOutputStream.cipherInit(true,
+					Cryptography.keyProduce(Cryptography.getDefaultSymmetricCipher(), this.oKeyBytes),
 					Cryptography.ivProduce(this.oIvBytes));
 			return new HMacOutputStream(circOutputStream, HMacEnum.HMacSHA512,
 					Cryptography.hmacKeyProduce(HMacEnum.HMacSHA512, this.oHMacKeyBytes), Constant.MEGA);
@@ -163,8 +165,9 @@ abstract class AbstractCommunicationSecureSession extends
 	@Override
 	protected final InputStream getInputStreamWrapped(final InputStream in) throws ConnectionLtException {
 		try {
-			final CircInputStream circInputStream = new CircInputStream(in, CipherEnum.Twofish);
-			circInputStream.cipherInit(false, Cryptography.keyProduce(CipherEnum.Twofish, this.iKeyBytes),
+			final CircInputStream circInputStream = new CircInputStream(in, Cryptography.getDefaultSymmetricCipher());
+			circInputStream.cipherInit(false,
+					Cryptography.keyProduce(Cryptography.getDefaultSymmetricCipher(), this.iKeyBytes),
 					Cryptography.ivProduce(this.iIvBytes));
 			return new HMacInputStream(circInputStream, HMacEnum.HMacSHA512,
 					Cryptography.hmacKeyProduce(HMacEnum.HMacSHA512, this.iHMacKeyBytes), Constant.MEGA);
@@ -201,7 +204,7 @@ abstract class AbstractCommunicationSecureSession extends
 		}
 		LOG.debug("Sending my end-certificate");
 		try {
-			CertificateIoUtil.writeX509Certificates(out, certificate);
+			CertificateStreamUtil.writeX509Certificates(out, certificate);
 		} catch (final CertificateLtException e) {
 			throw new IOException(e);
 		}
@@ -215,7 +218,7 @@ abstract class AbstractCommunicationSecureSession extends
 			final X509Certificate[] hostChain = getFactory().getCslVault().getCslChainCertificate();
 			try {
 				for (int i = 1; i < hostChain.length; i++) {
-					CertificateIoUtil.writeX509Certificates(out, hostChain[i]);
+					CertificateStreamUtil.writeX509Certificates(out, hostChain[i]);
 				}
 			} catch (final CertificateLtException e) {
 				throw new IOException(e);
@@ -237,7 +240,7 @@ abstract class AbstractCommunicationSecureSession extends
 		// client unknown)
 		X509Certificate clientCertificate = null;
 		try {
-			clientCertificate = CertificateIoUtil.readX509Certificate(in);
+			clientCertificate = CertificateStreamUtil.readX509Certificate(in);
 			LOG.debug("Receiving remote end-certificate");
 			getFactory().getCslVault().verifyEndPointCertificate(clientCertificate);
 			sendConfirmationByte(out);
@@ -252,7 +255,7 @@ abstract class AbstractCommunicationSecureSession extends
 				clientChain[0] = clientCertificate;
 				try {
 					for (int i = 1; i < clientChain.length; i++) {
-						clientChain[i] = CertificateIoUtil.readX509Certificate(in);
+						clientChain[i] = CertificateStreamUtil.readX509Certificate(in);
 					}
 					getFactory().getCslVault().addEndPointChain(clientChain);
 					sendConfirmationByte(out);
@@ -266,6 +269,9 @@ abstract class AbstractCommunicationSecureSession extends
 					sendDenyByte(out);
 					throw new IOException(e1);
 				} catch (final KeyStoreLtException e1) {
+					sendDenyByte(out);
+					throw new IOException(e1);
+				} catch (final CertificateEncodingException e1) {
 					sendDenyByte(out);
 					throw new IOException(e1);
 				}
@@ -317,9 +323,10 @@ abstract class AbstractCommunicationSecureSession extends
 			off += in.read(block, off, block.length - off);
 		}
 		final ByteArrayInputStream bis = new ByteArrayInputStream(block);
-		final CircInputStream circInputStream = new CircInputStream(bis, CipherEnum.Twofish);
+		final CircInputStream circInputStream = new CircInputStream(bis, Cryptography.getDefaultSymmetricCipher());
 		circInputStream.cipherInit(false,
-				Cryptography.keyProduce(CipherEnum.Twofish, Arrays.copyOfRange(remoteKeyBlock, 0, 32)),
+				Cryptography.keyProduce(Cryptography.getDefaultSymmetricCipher(),
+						Arrays.copyOfRange(remoteKeyBlock, 0, 32)),
 				Cryptography.ivProduce(Arrays.copyOfRange(remoteKeyBlock, 32, 48)));
 		final byte[] keys = new byte[80];
 		off = 0;
@@ -337,9 +344,10 @@ abstract class AbstractCommunicationSecureSession extends
 		final byte[] keys = new byte[80];
 		getFactory().secureRandomFill(keys);
 		final ByteArrayOutputStream bos = new ByteArrayOutputStream(keys.length);
-		final CircOutputStream circOutputStream = new CircOutputStream(bos, CipherEnum.Twofish);
+		final CircOutputStream circOutputStream = new CircOutputStream(bos, Cryptography.getDefaultSymmetricCipher());
 		circOutputStream.cipherInit(true,
-				Cryptography.keyProduce(CipherEnum.Twofish, Arrays.copyOfRange(myKeyBlock, 0, 32)),
+				Cryptography.keyProduce(Cryptography.getDefaultSymmetricCipher(),
+						Arrays.copyOfRange(myKeyBlock, 0, 32)),
 				Cryptography.ivProduce(Arrays.copyOfRange(myKeyBlock, 32, 48)));
 		circOutputStream.write(keys);
 		circOutputStream.flush();

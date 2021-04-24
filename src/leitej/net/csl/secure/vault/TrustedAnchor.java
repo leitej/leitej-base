@@ -19,7 +19,7 @@ package leitej.net.csl.secure.vault;
 import java.io.ByteArrayInputStream;
 import java.security.cert.X509Certificate;
 
-import leitej.crypto.asymmetric.certificate.CertificateIoUtil;
+import leitej.crypto.asymmetric.certificate.CertificateStreamUtil;
 import leitej.crypto.asymmetric.certificate.CertificateUtil;
 import leitej.exception.CertificateLtException;
 import leitej.exception.ImplementationLtRtException;
@@ -449,7 +449,7 @@ final class TrustedAnchor {
 	static final X509Certificate CERTIFICATE;
 	static {
 		try {
-			CERTIFICATE = CertificateIoUtil.readX509Certificate(new ByteArrayInputStream(DATA));
+			CERTIFICATE = CertificateStreamUtil.readX509Certificate(new ByteArrayInputStream(DATA));
 		} catch (final CertificateLtException e) {
 			throw new ImplementationLtRtException(e);
 		}

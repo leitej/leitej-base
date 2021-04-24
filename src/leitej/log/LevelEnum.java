@@ -23,5 +23,5 @@ package leitej.log;
  * @see leitej.log.Logger
  */
 public enum LevelEnum {
-	NONE, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, ALL;
+	NONE, ERROR, WARN, INFO, DEBUG, TRACE, ALL;
 }

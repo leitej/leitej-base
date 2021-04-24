@@ -17,9 +17,11 @@
 package leitej.crypto.vault;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,13 +32,11 @@ import java.util.Map;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-import leitej.Constant;
 import leitej.crypto.Cryptography;
-import leitej.crypto.asymmetric.certificate.CertificateIoUtil;
+import leitej.crypto.asymmetric.certificate.CertificateStreamUtil;
 import leitej.crypto.asymmetric.certificate.CertificateUtil;
 import leitej.crypto.keyStore.Password;
 import leitej.crypto.keyStore.UberKeyLtmStore;
-import leitej.crypto.symmetric.CipherEnum;
 import leitej.exception.CertificateLtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.exception.KeyStoreLtException;
@@ -191,8 +191,8 @@ public final class LtVault {
 		// assert vault has the internal secret key for iv_s
 		if (this.keyLtmStore.getSecretKey(VAULT_INTERNAL_IV_SECRET_KEY_ENTRY_ALIAS) == null) {
 			try {
-				this.keyLtmStore.setSecretKeyEntry(VAULT_INTERNAL_IV_SECRET_KEY_ENTRY_ALIAS,
-						Cryptography.keyGenerate(CipherEnum.Twofish, CipherEnum.Twofish.bestKeyBitSize()));
+				this.keyLtmStore.setSecretKeyEntry(VAULT_INTERNAL_IV_SECRET_KEY_ENTRY_ALIAS, Cryptography.keyGenerate(
+						Cryptography.getDefaultSymmetricCipher(), Cryptography.getDefaultSymmetricKeyBitSize()));
 			} catch (final NoSuchAlgorithmException e) {
 				throw new KeyStoreLtException(e);
 			} catch (final NoSuchProviderException e) {
@@ -204,7 +204,8 @@ public final class LtVault {
 		if (this.keyLtmStore.getSecretKey(VAULT_INTERNAL_CERTIFICATE_SECRET_KEY_ENTRY_ALIAS) == null) {
 			try {
 				this.keyLtmStore.setSecretKeyEntry(VAULT_INTERNAL_CERTIFICATE_SECRET_KEY_ENTRY_ALIAS,
-						Cryptography.keyGenerate(CipherEnum.Twofish, CipherEnum.Twofish.bestKeyBitSize()));
+						Cryptography.keyGenerate(Cryptography.getDefaultSymmetricCipher(),
+								Cryptography.getDefaultSymmetricKeyBitSize()));
 			} catch (final NoSuchAlgorithmException e) {
 				throw new KeyStoreLtException(e);
 			} catch (final NoSuchProviderException e) {
@@ -219,7 +220,7 @@ public final class LtVault {
 		final Iterator<VaultSecretIV> found = LTM.search(filter);
 		if (!found.hasNext()) {
 			setSecretIV(VAULT_INTERNAL_CERTIFICATE_SECRET_IV_ENTRY_ALIAS,
-					Cryptography.ivGenerate(CipherEnum.Twofish.ivBitSize()));
+					Cryptography.ivGenerate(Cryptography.getDefaultSymmetricIvBitSize()));
 		}
 	}
 
@@ -284,7 +285,7 @@ public final class LtVault {
 					try {
 						// TODO: desencriptar certificate
 						try {
-							result = CertificateIoUtil
+							result = CertificateStreamUtil
 									.readX509Certificate(vaultCertificate.getCertificate().newInputStream());
 						} catch (final CertificateLtException e) {
 							throw new IOException(e);
@@ -336,7 +337,7 @@ public final class LtVault {
 	}
 
 	public final void setCertificateChain(final String alias, final X509Certificate[] chain)
-			throws LtmLtRtException, IOException {
+			throws LtmLtRtException, IOException, CertificateEncodingException {
 		synchronized (this.certificateCache) {
 			VaultCertificate issuer = null;
 			String aliasIssuer;
@@ -351,7 +352,7 @@ public final class LtVault {
 	}
 
 	private final VaultCertificate setCertificate(final String alias, final X509Certificate certificate,
-			final VaultCertificate issuer) throws LtmLtRtException, IOException {
+			final VaultCertificate issuer) throws LtmLtRtException, IOException, CertificateEncodingException {
 		VaultCertificate vaultCertificate = fetchCertificate(alias);
 		if (vaultCertificate == null) {
 			vaultCertificate = LTM.newRecord(VaultCertificate.class);
@@ -360,8 +361,8 @@ public final class LtVault {
 			vaultCertificate.setIssuer(issuer);
 			// TODO: encriptar certificate
 			try {
-				CertificateIoUtil.writeX509CertificatesPEM(vaultCertificate.getCertificate().newOutputStream(),
-						Constant.UTF8_CHARSET_NAME, certificate);
+				CertificateStreamUtil.writeX509CertificatesPEM(
+						new PrintWriter(vaultCertificate.getCertificate().newOutputStream()), certificate);
 			} finally {
 				vaultCertificate.getCertificate().close();
 			}

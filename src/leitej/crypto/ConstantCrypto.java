@@ -25,6 +25,8 @@ public final class ConstantCrypto {
 	private ConstantCrypto() {
 	}
 
+	public static final String DEFAULT_JCE_PROVIDER = "SunJCE";
+
 	public static final String BASIC_CONSTRAIN_OID = "2.5.29.19";
 	public static final String SUBJECT_ALTERNATIVE_NAME_OID = "2.5.29.17";
 

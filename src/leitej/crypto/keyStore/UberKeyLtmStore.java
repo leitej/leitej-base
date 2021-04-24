@@ -35,7 +35,7 @@ import leitej.ltm.LtmFilter.OPERATOR_JOIN;
  *
  * @author Julio Leite
  */
-public final class UberKeyLtmStore extends AbstractUberKeyStore {
+public final class UberKeyLtmStore extends AbstractDefaultKeyStore {
 
 	private static final LongTermMemory LTM = LongTermMemory.getInstance();
 	private static final Map<String, UberKeyLtmStore> INSTANCE_MAP = new HashMap<>();

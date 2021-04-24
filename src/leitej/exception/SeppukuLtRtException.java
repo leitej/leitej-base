@@ -78,14 +78,23 @@ public final class SeppukuLtRtException extends LtRtException {
 	}
 
 	/**
+	 * Creates a new instance of <code>SeppukuLtRtException</code> with exit code
+	 * 707.
+	 *
+	 * @param cause The nested exception.
+	 */
+	public SeppukuLtRtException(final Throwable cause) {
+		this(707, cause);
+	}
+
+	/**
 	 * Creates a new instance of <code>SeppukuLtRtException</code>.
 	 *
 	 * @param exitStatus Exit status.
 	 * @param cause      The nested exception.
 	 */
 	public SeppukuLtRtException(final int exitStatus, final Throwable cause) {
-		super(cause);
-		SeppukuLtRtException.systemExit(exitStatus);
+		this(exitStatus, cause, "#0", cause);
 	}
 
 	/**
@@ -99,6 +108,7 @@ public final class SeppukuLtRtException extends LtRtException {
 	public SeppukuLtRtException(final int exitStatus, final Throwable cause, final String message,
 			final Object... objects) {
 		super(cause, message, objects);
+		LOG.error(message, objects);
 		SeppukuLtRtException.systemExit(exitStatus);
 	}
 
