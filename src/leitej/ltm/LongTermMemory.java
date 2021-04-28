@@ -44,7 +44,7 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 	private static final Map<Class<?>, Cache<Long, LtmObjectModelling>> CACHE = new HashMap<>();
 	private static final LongTermMemory INSTANCE = new LongTermMemory();
 
-	public static synchronized LongTermMemory getInstance() {
+	public static LongTermMemory getInstance() {
 		return INSTANCE;
 	}
 
