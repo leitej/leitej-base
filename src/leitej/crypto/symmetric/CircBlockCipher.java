@@ -59,9 +59,9 @@ public final class CircBlockCipher {
 
 	private boolean initialized;
 
-	public CircBlockCipher(final CipherEnum algorithm) {
+	public CircBlockCipher(final String cipherAlgorithm) {
 		try {
-			this.cipher = Cryptography.getCipher(algorithm, ModeEnum.ECB, PaddingEnum.NoPadding);
+			this.cipher = Cryptography.getCipher(cipherAlgorithm, ModeEnum.ECB, PaddingEnum.NoPadding);
 		} catch (final NoSuchAlgorithmException e) {
 			throw new ImplementationLtRtException(e);
 		} catch (final NoSuchProviderException e) {

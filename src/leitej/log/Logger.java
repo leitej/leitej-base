@@ -17,7 +17,6 @@
 package leitej.log;
 
 import leitej.exception.ImplementationLtRtException;
-import leitej.exception.SeppukuLtRtException;
 import leitej.util.AgnosticUtil;
 import leitej.util.DateUtil;
 import leitej.util.data.Cache;
@@ -152,45 +151,6 @@ public final class Logger {
 	 */
 	private Logger(final String signClass) {
 		this.appenderMng = new AppenderManager(signClass);
-	}
-
-	/**
-	 * Adds log at fatal level.<br/>
-	 * If any object in args argument has an instance of exception this method will
-	 * also send a stack trace of this.<br/>
-	 * After add the log this method throws a
-	 * {@link leitej.exception.SeppukuLtRtException SeppukuLtRtException} with exit
-	 * code 707, null cause and the same message as to log.
-	 *
-	 * @param msg  text of the message to log
-	 * @param args objects to compose the text message
-	 * @throws SeppukuLtRtException always
-	 * @see leitej.exception.SeppukuLtRtException
-	 */
-	public void fatal(final String msg, final Object... args) throws SeppukuLtRtException {
-		append(LevelEnum.FATAL, msg, args);
-		throw new SeppukuLtRtException(707, null, msg, args);
-	}
-
-	/**
-	 * Adds log at fatal level.<br/>
-	 * If any object in args argument has an instance of exception this method will
-	 * also send a stack trace of this.<br/>
-	 * After add the log this method throws a
-	 * {@link leitej.exception.SeppukuLtRtException SeppukuLtRtException} with the
-	 * same message to log.
-	 *
-	 * @param exitStatus Exit status
-	 * @param cause      The nested exception
-	 * @param msg        text of the message to log
-	 * @param args       objects to compose the text message
-	 * @throws SeppukuLtRtException always
-	 * @see leitej.exception.SeppukuLtRtException
-	 */
-	public void fatal(final int exitStatus, final Throwable cause, final String msg, final Object... args)
-			throws SeppukuLtRtException {
-		append(LevelEnum.FATAL, msg, args);
-		throw new SeppukuLtRtException(exitStatus, cause, msg, args);
 	}
 
 	/**

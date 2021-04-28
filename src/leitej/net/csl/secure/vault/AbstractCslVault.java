@@ -18,13 +18,13 @@ package leitej.net.csl.secure.vault;
 
 import java.io.IOException;
 import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import leitej.crypto.ConstantCrypto;
-import leitej.crypto.asymmetric.certificate.CertificateChainUtil;
 import leitej.crypto.asymmetric.certificate.CertificateUtil;
 import leitej.crypto.keyStore.Password;
 import leitej.crypto.vault.LtVault;
@@ -39,7 +39,6 @@ import leitej.ltm.LongTermMemory;
 import leitej.ltm.LtmFilter;
 import leitej.ltm.LtmFilter.OPERATOR;
 import leitej.ltm.LtmFilter.OPERATOR_JOIN;
-import leitej.net.csl.secure.rooter.OffRoot;
 import leitej.util.data.Cache;
 import leitej.util.data.CacheSoft;
 import leitej.util.data.CacheWeak;
@@ -230,14 +229,13 @@ public abstract class AbstractCslVault implements CslVaultItf {
 	}
 
 	@Override
-	public final void addEndPointChain(final X509Certificate[] chain)
-			throws CertificateChainLtException, LtmLtRtException, IOException, KeyStoreLtException {
+	public final void addEndPointChain(final X509Certificate[] chain) throws CertificateChainLtException,
+			LtmLtRtException, IOException, KeyStoreLtException, CertificateEncodingException {
 		if (!isTrustedAnchor(chain[chain.length - 1])) {
 			throw new CertificateChainLtException();
 		}
 		try {
-			CertificateChainUtil.verifyChain(chain, chain[chain.length - 1].getPublicKey(),
-					OffRoot.COMMUNICATION_PATH_LENGTH);
+			CertificateUtil.verifyChain(chain);
 		} catch (final CertificateLtException e) {
 			throw new CertificateChainLtException(e);
 		}

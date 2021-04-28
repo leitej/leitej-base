@@ -63,10 +63,10 @@ public final class CircBinary implements RandomAccessBinary {
 
 	private volatile boolean initialized;
 
-	public CircBinary(final RandomAccessBinary encryptedBinary, final CipherEnum cipher) {
+	public CircBinary(final RandomAccessBinary encryptedBinary, final String cipherAlgorithm) {
 		this.encryptedBinary = encryptedBinary;
-		this.circDecrypt = new CircBlockCipher(cipher);
-		this.circEncrypt = new CircBlockCipher(cipher);
+		this.circDecrypt = new CircBlockCipher(cipherAlgorithm);
+		this.circEncrypt = new CircBlockCipher(cipherAlgorithm);
 		this.readBlockSize = this.circDecrypt.getBlockByteSize();
 		this.readSeekBlockBuffer = new byte[this.readBlockSize];
 		this.readEncryptedDataBuffer = new byte[this.readBlockSize];

@@ -26,7 +26,7 @@ import java.util.Enumeration;
 
 import javax.crypto.SecretKey;
 
-import leitej.crypto.ProviderEnum;
+import leitej.crypto.Cryptography;
 import leitej.exception.ImplementationLtRtException;
 import leitej.exception.KeyStoreLtException;
 import leitej.util.data.Cache;
@@ -36,10 +36,7 @@ import leitej.util.data.CacheWeak;
  *
  * @author Julio Leite
  */
-abstract class AbstractUberKeyStore extends AbstractKeyStore {
-
-	private static final KeyStoreEnum KEYSTORE_ENUM = KeyStoreEnum.UBER;
-	private static final ProviderEnum PROVIDER_ENUM = ProviderEnum.BC;
+abstract class AbstractDefaultKeyStore extends AbstractKeyStore {
 
 	private transient volatile Password password;
 	private transient volatile Cache<String, PrivateKey> privateKeyLightCache;
@@ -70,9 +67,9 @@ abstract class AbstractUberKeyStore extends AbstractKeyStore {
 	 *                             +Cause CertificateException if any of the
 	 *                             certificates in the keystore could not be loaded
 	 */
-	protected AbstractUberKeyStore(final InputStream is, final Password password)
+	protected AbstractDefaultKeyStore(final InputStream is, final Password password)
 			throws KeyStoreLtException, IOException {
-		super(KEYSTORE_ENUM, PROVIDER_ENUM, is, password);
+		super(Cryptography.getDefaultKeyStoreType(), is, password);
 		this.password = password;
 		this.privateKeyLightCache = new CacheWeak<>();
 		this.secretKeyLightCache = new CacheWeak<>();
@@ -134,7 +131,7 @@ abstract class AbstractUberKeyStore extends AbstractKeyStore {
 					}
 				} finally {
 					if (!result) {
-						super.load(is, this.password);
+						super.loadKeyStore(is, this.password);
 					} else {
 						clearCache();
 					}

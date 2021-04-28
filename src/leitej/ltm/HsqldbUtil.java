@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import leitej.Constant;
+import leitej.exception.SeppukuLtRtException;
 import leitej.exception.UnsupportedDataTypeLtRtException;
 import leitej.log.Logger;
 import leitej.util.HexaUtil;
@@ -58,7 +59,7 @@ final class HsqldbUtil {
 		try {
 			Class.forName("org.hsqldb.jdbc.JDBCDriver");
 		} catch (final ClassNotFoundException e) {
-			LOG.fatal("#0", e);
+			throw new SeppukuLtRtException(e);
 		}
 		try {
 			CREATE_TABLENAME = MessageDigest.getInstance("SHA-384");
@@ -175,7 +176,7 @@ final class HsqldbUtil {
 				}
 			}
 		} catch (final SQLException e) {
-			LOG.fatal("#0", e);
+			throw new SeppukuLtRtException(e);
 		}
 	}
 

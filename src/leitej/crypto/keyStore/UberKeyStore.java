@@ -28,7 +28,7 @@ import leitej.util.stream.FileUtil;
  *
  * @author Julio Leite
  */
-public final class UberKeyStore extends AbstractUberKeyStore {
+public final class UberKeyStore extends AbstractDefaultKeyStore {
 
 	/**
 	 * Constructs a new object with a new <code>KeyStore</code> created, the

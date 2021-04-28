@@ -16,27 +16,32 @@
 
 package leitej.crypto;
 
-import leitej.exception.ImplementationLtRtException;
+import leitej.xml.om.XmlObjectModelling;
 
 /**
- *
  * @author Julio Leite
+ *
  */
-public enum ProviderEnum {
-	SunJCE, BC;
+public abstract interface Config extends XmlObjectModelling {
 
-	public String getName() {
-		String result;
-		switch (this) {
-		case SunJCE:
-			result = "SunJCE";
-			break;
-		case BC:
-			result = "BC";
-			break;
-		default:
-			throw new ImplementationLtRtException(this.toString());
-		}
-		return result;
-	}
+	public abstract String getDefaultCertificateSignatureAlgorithm();
+
+	public abstract void setDefaultCertificateSignatureAlgorithm(String defaultCertificateSignatureAlgorithm);
+
+	public abstract String getDefaultKeyStoreType();
+
+	public abstract void setDefaultKeyStoreType(String defaultKeyStoreType);
+
+	public abstract String getDefaultSymmetricCipher();
+
+	public abstract void setDefaultSymmetricCipher(String defaultSymmetricCipher);
+
+	public abstract int getDefaultSymmetricKeyBitSize();
+
+	public abstract void setDefaultSymmetricKeyBitSize(int defaultSymmetricKeyBitSize);
+
+	public abstract int getDefaultSymmetricIvBitSize();
+
+	public abstract void setDefaultSymmetricIvBitSize(int defaultSymmetricIvBitSize);
+
 }

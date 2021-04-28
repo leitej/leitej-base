@@ -27,6 +27,7 @@ import java.sql.Types;
 import leitej.Constant;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.ImplementationLtRtException;
+import leitej.exception.SeppukuLtRtException;
 import leitej.log.Logger;
 
 /**
@@ -43,7 +44,8 @@ final class LargeMemoryTracker {
 
 	static void eraseAll() {
 		if (!LargeMemory.eraseAll()) {
-			LOG.fatal("FAIL to delete all large memory: #0", Constant.LTM_STREAM_DIR);
+			throw new SeppukuLtRtException(
+					new IllegalStateLtRtException("FAIL to delete all large memory: #0", Constant.LTM_STREAM_DIR));
 		} else {
 			LOG.warn("eraseAll: #0", Constant.LTM_STREAM_DIR);
 		}
@@ -114,7 +116,7 @@ final class LargeMemoryTracker {
 				}
 			}
 		} catch (final SQLException | IOException e) {
-			LOG.fatal("#0", e);
+			throw new SeppukuLtRtException(e);
 		}
 	}
 

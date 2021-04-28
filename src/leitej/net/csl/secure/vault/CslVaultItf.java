@@ -18,6 +18,7 @@ package leitej.net.csl.secure.vault;
 
 import java.io.IOException;
 import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
 import leitej.exception.CertificateChainLtException;
@@ -70,8 +71,8 @@ public interface CslVaultItf {
 	 */
 	public void verifyEndPointCertificate(X509Certificate certificate) throws CertificateLtException, LtmLtRtException;
 
-	public void addEndPointChain(X509Certificate[] chain)
-			throws CertificateChainLtException, LtmLtRtException, IOException, KeyStoreLtException;
+	public void addEndPointChain(X509Certificate[] chain) throws CertificateChainLtException, LtmLtRtException,
+			IOException, KeyStoreLtException, CertificateEncodingException;
 
 	/**
 	 * @param remoteHalfStateKeyBlock

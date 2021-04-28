@@ -23,7 +23,6 @@ import java.security.Key;
 
 import javax.crypto.spec.IvParameterSpec;
 
-import leitej.crypto.symmetric.CipherEnum;
 import leitej.crypto.symmetric.CircBlockCipher;
 import leitej.exception.IllegalArgumentLtRtException;
 
@@ -42,17 +41,17 @@ public final class CircOutputStream extends OutputStream {
 	/**
 	 *
 	 * @param os
-	 * @param cipher
+	 * @param cipherAlgorithm
 	 * @throws IllegalArgumentLtRtException if <code>os</code> is null or
 	 *                                      <code>cipher</code> is null
 	 */
-	public CircOutputStream(final OutputStream os, final CipherEnum cipher) throws IllegalArgumentLtRtException {
+	public CircOutputStream(final OutputStream os, final String cipherAlgorithm) throws IllegalArgumentLtRtException {
 		super();
-		if (os == null || cipher == null) {
+		if (os == null || cipherAlgorithm == null) {
 			throw new IllegalArgumentLtRtException();
 		}
 		this.out = os;
-		this.blockCipher = new CircBlockCipher(cipher);
+		this.blockCipher = new CircBlockCipher(cipherAlgorithm);
 		this.byteArray = new byte[1];
 		this.blockByteSize = this.blockCipher.getBlockByteSize();
 		this.byteArrayOut = new byte[this.blockByteSize];

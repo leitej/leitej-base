@@ -18,14 +18,13 @@ package leitej.ltm;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
 
 import leitej.exception.ClosedLtRtException;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.ObjectPoolLtException;
+import leitej.exception.SeppukuLtRtException;
 import leitej.exception.XmlInvalidLtException;
-import leitej.log.Logger;
 import leitej.util.AgnosticUtil;
 import leitej.util.data.AbstractObjectPool;
 import leitej.util.data.Invoke;
@@ -40,8 +39,6 @@ public final class DataMemoryPool extends AbstractObjectPool<DataMemoryConnectio
 
 	private static final long serialVersionUID = 4645255425158742790L;
 
-	private static final Logger LOG = Logger.getInstance();
-
 	static final DataMemoryConfig CONFIG;
 	private static final DataMemoryPool INSTANCE;
 
@@ -50,23 +47,18 @@ public final class DataMemoryPool extends AbstractObjectPool<DataMemoryConnectio
 				XmlomUtil.newXmlObjectModelling(DataMemoryConfig.class) };
 		defaultContent[0].setMaxConnections(20);
 		defaultContent[0].setAutoForgetsInterfaceComponentMisses(false);
-		List<DataMemoryConfig> configList = null;
 		try {
-			configList = XmlomUtil.getConfig(DataMemoryConfig.class, defaultContent);
+			CONFIG = XmlomUtil.getConfig(DataMemoryConfig.class, defaultContent).get(0);
 		} catch (NullPointerException | SecurityException | XmlInvalidLtException | IOException e) {
-			LOG.fatal("#0", e);
+			throw new SeppukuLtRtException(e);
 		}
-		if (configList == null || configList.size() != 1) {
-			LOG.fatal("Illegal configuration: #0", configList);
-		}
-		CONFIG = configList.get(0);
 		//
 		INSTANCE = new DataMemoryPool(CONFIG.getMaxConnections());
 		try {
 			ShutdownHookUtil.addToLast(new Invoke(INSTANCE, AgnosticUtil.getMethod(INSTANCE, "close")));
 		} catch (IllegalStateLtRtException | IllegalArgumentLtRtException | NullPointerException
 				| IllegalArgumentException | SecurityException | NoSuchMethodException e) {
-			LOG.fatal("#0", e);
+			throw new SeppukuLtRtException(e);
 		}
 	}
 

@@ -19,26 +19,24 @@ package leitej.net.csl.secure.rooter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
-
-import org.bouncycastle.jce.PKCS10CertificationRequest;
+import java.util.Scanner;
 
 import leitej.Constant;
 import leitej.crypto.ConstantCrypto;
 import leitej.crypto.Cryptography;
-import leitej.crypto.asymmetric.certificate.CertificateChainUtil;
-import leitej.crypto.asymmetric.certificate.CertificateIoUtil;
+import leitej.crypto.asymmetric.certificate.CertificateStreamUtil;
 import leitej.crypto.asymmetric.certificate.CertificateUtil;
-import leitej.crypto.asymmetric.signature.SignatureEnum;
 import leitej.crypto.keyStore.Password;
 import leitej.crypto.keyStore.UberKeyStore;
-import leitej.exception.CertificateAuthorityLtException;
 import leitej.exception.CertificateLtException;
 import leitej.exception.CertificationRequestLtException;
 import leitej.exception.IllegalArgumentLtRtException;
@@ -48,6 +46,8 @@ import leitej.log.Logger;
 import leitej.util.DateUtil;
 import leitej.util.data.DateFieldEnum;
 import leitej.util.stream.FileUtil;
+import sun.security.pkcs10.PKCS10;
+import sun.security.x509.X500Name;
 
 /**
  *
@@ -135,12 +135,12 @@ public final class OffRoot {
 		LOG.info("Generating new key: #0", RSA_KEY_BIT_SIZE);
 		try {
 			final KeyPair keys = Cryptography.RSA.keyPairGenerate(RSA_KEY_BIT_SIZE);
-			final X509Certificate certificate = CertificateUtil.generateX509CertificateV3SelfSigned(
-					MY_CERTIFICATE_ISSUER, keys, SignatureEnum.SHA512WithRSAAndMGF1,
-					CertificateUtil.generateSerialNumber(), validAfter, validTill, COMMUNICATION_PATH_LENGTH);
+			final X509Certificate certificate = CertificateUtil.generateX509CertificateV3SelfSignedRootChain(
+					new X500Name(MY_CERTIFICATE_ISSUER), keys, validAfter, validTill, COMMUNICATION_PATH_LENGTH);
 			this.keystore.setPrivateKeyEntry(aliasName, keys.getPrivate(), new X509Certificate[] { certificate });
-			CertificateIoUtil.writeX509CertificatesPEM(certificateFilename, false, Constant.UTF8_CHARSET_NAME,
-					certificate);
+			final PrintWriter writer = new PrintWriter(new File(certificateFilename));
+			CertificateStreamUtil.writeX509CertificatesPEM(writer, certificate);
+			writer.close();
 		} catch (final IllegalArgumentLtRtException e) {
 			throw new ImplementationLtRtException(e);
 		} catch (final NoSuchAlgorithmException e) {
@@ -152,6 +152,8 @@ public final class OffRoot {
 		} catch (final NullPointerException e) {
 			throw new ImplementationLtRtException(e);
 		} catch (final UnsupportedEncodingException e) {
+			throw new ImplementationLtRtException(e);
+		} catch (final CertificateEncodingException e) {
 			throw new ImplementationLtRtException(e);
 		}
 	}
@@ -184,11 +186,12 @@ public final class OffRoot {
 	private final void sign(final File fileRequest)
 			throws CertificationRequestLtException, IOException, CertificateLtException, KeyStoreLtException {
 		LOG.info("Signing request: #0", fileRequest.getName());
+		final Scanner scanner = new Scanner(fileRequest.getAbsolutePath());
 		final Date now = DateUtil.zeroTill(DateUtil.now(), DateFieldEnum.DAY_OF_MONTH);
-		PKCS10CertificationRequest request;
+		PKCS10 request;
 		try {
-			request = CertificateIoUtil.readPKCS10CertificationRequestPEM(fileRequest.getAbsolutePath(),
-					Constant.UTF8_CHARSET_NAME);
+			request = CertificateStreamUtil.readPKCS10CertificationRequestPEM(scanner);
+			scanner.close();
 		} catch (final NullPointerException e) {
 			throw new ImplementationLtRtException(e);
 		} catch (final UnsupportedEncodingException e) {
@@ -197,25 +200,23 @@ public final class OffRoot {
 			throw new ImplementationLtRtException(e);
 		}
 		X509Certificate[] certificates;
-		try {
-			certificates = CertificateChainUtil.addLink(this.keystore.getKeyCertificateChain(MY_ENTRY_KEY_ALIAS),
-					(PrivateKey) this.keystore.getPrivateKey(MY_ENTRY_KEY_ALIAS), SignatureEnum.SHA512WithRSAAndMGF1,
-					CertificateUtil.generateSerialNumber(), now,
-					DateUtil.add((Date) now.clone(), DateFieldEnum.YEAR, VALIDITY_ACTIVE_TIME_YEARS), request);
-		} catch (final CertificateAuthorityLtException e) {
-			throw new ImplementationLtRtException(e);
-		}
+		certificates = CertificateUtil.addLink(this.keystore.getKeyCertificateChain(MY_ENTRY_KEY_ALIAS),
+				(PrivateKey) this.keystore.getPrivateKey(MY_ENTRY_KEY_ALIAS), now,
+				DateUtil.add((Date) now.clone(), DateFieldEnum.YEAR, VALIDITY_ACTIVE_TIME_YEARS), request);
 		final String filenameRequest = fileRequest.getAbsolutePath();
 		final String filenameCertificate = filenameRequest.substring(0, filenameRequest.length() - 4)
 				+ ConstantCrypto.CERTIFICATE_FILE_EXTENSION;
 		try {
-			CertificateIoUtil.writeX509CertificatesPEM(filenameCertificate, false, Constant.UTF8_CHARSET_NAME,
-					certificates);
+			final PrintWriter writer = new PrintWriter(filenameCertificate);
+			CertificateStreamUtil.writeX509CertificatesPEM(writer, certificates);
+			writer.close();
 		} catch (final NullPointerException e) {
 			throw new ImplementationLtRtException(e);
 		} catch (final UnsupportedEncodingException e) {
 			throw new ImplementationLtRtException(e);
 		} catch (final FileNotFoundException e) {
+			throw new ImplementationLtRtException(e);
+		} catch (final CertificateEncodingException e) {
 			throw new ImplementationLtRtException(e);
 		}
 	}
