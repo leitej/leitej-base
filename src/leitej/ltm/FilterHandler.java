@@ -17,6 +17,7 @@
 package leitej.ltm;
 
 import leitej.exception.IllegalArgumentLtRtException;
+import leitej.exception.ImplementationLtRtException;
 import leitej.util.data.AbstractDataProxyHandler;
 import leitej.util.data.Obfuscate;
 import leitej.util.data.ObfuscateUtil;
@@ -57,6 +58,11 @@ final class FilterHandler extends AbstractDataProxyHandler<LtmObjectModelling> {
 	@Override
 	protected <O> O deObfuscate(final Obfuscate annot, final O value) {
 		throw new UnsupportedOperationException("The LTM filter do not have the deObfuscate component.");
+	}
+
+	@Override
+	protected boolean isObfuscated(final Object value) {
+		throw new ImplementationLtRtException("Unexpecting use of this method!");
 	}
 
 	@Override

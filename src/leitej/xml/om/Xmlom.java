@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package leitej.util.data;
+package leitej.xml.om;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Proxy;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,9 +32,6 @@ import java.util.List;
 import leitej.Constant;
 import leitej.exception.XmlInvalidLtException;
 import leitej.util.stream.FileUtil;
-import leitej.xml.om.XmlObjectModelling;
-import leitej.xml.om.XmlomReader;
-import leitej.xml.om.XmlomWriter;
 
 /**
  * An useful class to help in XML Object Modelling stream.
@@ -42,12 +40,12 @@ import leitej.xml.om.XmlomWriter;
  * @see leitej.xml.om.XmlomWriter
  * @see leitej.xml.om.XmlomReader
  */
-public final class XmlomUtil {
+public final class Xmlom {
 
 	/**
 	 * Creates a new instance of XMLOMUtil.
 	 */
-	private XmlomUtil() {
+	private Xmlom() {
 	}
 
 	/**
@@ -56,7 +54,7 @@ public final class XmlomUtil {
 	 * @param interfaceClass to interact to this new xmlom object
 	 * @return the new xmlom object
 	 */
-	public static <I extends XmlObjectModelling> I newXmlObjectModelling(final Class<I> interfaceClass) {
+	public static <I extends XmlObjectModelling> I newInstance(final Class<I> interfaceClass) {
 		return XmlomWriter.newXmlObjectModelling(interfaceClass);
 	}
 
@@ -66,9 +64,24 @@ public final class XmlomUtil {
 	 * @param proxy xmlom object
 	 * @return xmlom interface of argument
 	 */
-	@SuppressWarnings("unchecked")
 	public static <I extends XmlObjectModelling> Class<I> getInterface(final I proxy) {
-		return AbstractDataProxyHandler.class.cast(proxy).getDataInterfaceClass();
+		return DataProxyHandler.class.cast(Proxy.getInvocationHandler(proxy)).getInterface();
+	}
+
+	/**
+	 * Check data in <code>obj</code> with obfuscated annotation if is in obfuscated
+	 * state. If no data has to be obfuscated this method returns true.<br>
+	 * <br>
+	 * Attention: this method iterates through all linked
+	 * <code>XmlObjectModelling</code> recursively starting from <code>obj</code>,
+	 * it is protected to not check the same link twice.
+	 *
+	 * @param obj xmlom to check
+	 * @return false if there is data that has be obfuscated and was load in plain
+	 *         state
+	 */
+	public static <I extends XmlObjectModelling> boolean isSerializationObfustated(final I obj) {
+		return DataProxyHandler.class.cast(Proxy.getInvocationHandler(obj)).isSerializationObfustated();
 	}
 
 	/**
@@ -407,7 +420,9 @@ public final class XmlomUtil {
 	/**
 	 * Reads the content of configuration file in default file for the
 	 * interfaceClass. With charset <code>Constant.UTF8_CHARSET_NAME</code>. If does
-	 * not exist, write a standard one as an example, and return null.
+	 * not exist, write a standard one as an example, and return null.<br>
+	 * If configuration file has obfuscated parameters unprotected, it will be
+	 * rewritten to obfuscate it.
 	 *
 	 * @param interfaceClass
 	 * @return
@@ -429,7 +444,9 @@ public final class XmlomUtil {
 	/**
 	 * Reads the content of configuration file in default file for the
 	 * interfaceClass. If does not exist, write a standard one as an example, and
-	 * return null.
+	 * return null.<br>
+	 * If configuration file has obfuscated parameters unprotected, it will be
+	 * rewritten to obfuscate it.
 	 *
 	 * @param interfaceClass
 	 * @param charset
@@ -448,7 +465,7 @@ public final class XmlomUtil {
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final Charset charset,
 			final boolean standardContent)
 			throws FileNotFoundException, NullPointerException, SecurityException, IOException, XmlInvalidLtException {
-		return getConfig(interfaceClass, FileUtil.defaultPropertyClassFilename(interfaceClass), charset,
+		return getConfig(interfaceClass, FileUtil.defaultPropertyClassFilename(interfaceClass), charset, true,
 				standardContent);
 	}
 
@@ -459,6 +476,7 @@ public final class XmlomUtil {
 	 * @param interfaceClass
 	 * @param fromFile
 	 * @param charset
+	 * @param rewriteIfNotObfuscated
 	 * @param standardContent
 	 * @return
 	 * @throws FileNotFoundException If <code>fromFile</code> is a directory rather
@@ -471,13 +489,13 @@ public final class XmlomUtil {
 	 *                               or write
 	 */
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final File fromFile,
-			final Charset charset, final boolean standardContent)
+			final Charset charset, final boolean rewriteIfNotObfuscated, final boolean standardContent)
 			throws FileNotFoundException, SecurityException, NullPointerException, XmlInvalidLtException, IOException {
-		return getConfig(interfaceClass, fromFile, charset, null, createExample(interfaceClass));
+		return getConfig(interfaceClass, fromFile, charset, true, null, createExample(interfaceClass));
 	}
 
 	private static <I extends XmlObjectModelling> I createExample(final Class<I> interfaceClass) {
-		final I result = newXmlObjectModelling(interfaceClass);
+		final I result = newInstance(interfaceClass);
 		// TODO implement a new xmlom with all fields fulfilled as example
 		// (attention to loops)
 		return result;
@@ -486,7 +504,9 @@ public final class XmlomUtil {
 	/**
 	 * Reads the content of configuration file in default file for the
 	 * interfaceClass. With charset <code>Constant.UTF8_CHARSET_NAME</code>. If does
-	 * not exist, write the default one, and gives it as return.
+	 * not exist, write the default one, and gives it as return.<br>
+	 * If configuration file has obfuscated parameters unprotected, it will be
+	 * rewritten to obfuscate it.
 	 *
 	 * @param interfaceClass
 	 * @param defaultContent
@@ -508,7 +528,9 @@ public final class XmlomUtil {
 
 	/**
 	 * Reads the configuration file in default file for the interfaceClass.If does
-	 * not exist, write the default one, and gives it as return.
+	 * not exist, write the default one, and gives it as return.<br>
+	 * If configuration file has obfuscated parameters unprotected, it will be
+	 * rewritten to obfuscate it.
 	 *
 	 * @param interfaceClass
 	 * @param charset
@@ -527,7 +549,7 @@ public final class XmlomUtil {
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final Charset charset,
 			final I[] defaultContent)
 			throws FileNotFoundException, NullPointerException, SecurityException, IOException, XmlInvalidLtException {
-		return getConfig(interfaceClass, FileUtil.defaultPropertyClassFilename(interfaceClass), charset,
+		return getConfig(interfaceClass, FileUtil.defaultPropertyClassFilename(interfaceClass), charset, true,
 				defaultContent);
 	}
 
@@ -538,6 +560,7 @@ public final class XmlomUtil {
 	 * @param interfaceClass
 	 * @param fromFile
 	 * @param charset
+	 * @param rewriteIfNotObfuscated
 	 * @param defaultContent
 	 * @return
 	 * @throws FileNotFoundException If <code>fromFile</code> is a directory rather
@@ -551,9 +574,9 @@ public final class XmlomUtil {
 	 *                               or write
 	 */
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final File fromFile,
-			final Charset charset, final I[] defaultContent)
+			final Charset charset, final boolean rewriteIfNotObfuscated, final I[] defaultContent)
 			throws FileNotFoundException, SecurityException, NullPointerException, XmlInvalidLtException, IOException {
-		return getConfig(interfaceClass, fromFile, charset, defaultContent, null);
+		return getConfig(interfaceClass, fromFile, charset, rewriteIfNotObfuscated, defaultContent, null);
 	}
 
 	/**
@@ -563,6 +586,7 @@ public final class XmlomUtil {
 	 * @param interfaceClass
 	 * @param fromFile
 	 * @param charset
+	 * @param rewriteIfNotObfuscated
 	 * @param defaultContent
 	 * @param exampleContent
 	 * @return
@@ -578,26 +602,36 @@ public final class XmlomUtil {
 	 *                               or write
 	 */
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final File fromFile,
-			final Charset charset, final I[] defaultContent, final I exampleContent)
+			final Charset charset, final boolean rewriteIfNotObfuscated, final I[] defaultContent,
+			final I exampleContent)
 			throws FileNotFoundException, SecurityException, NullPointerException, XmlInvalidLtException, IOException {
 		List<I> result = null;
 		final String filename = fromFile.getAbsolutePath();
 		try {
-			result = XmlomUtil.getObjectsFromFile(interfaceClass, filename, charset);
+			result = Xmlom.getObjectsFromFile(interfaceClass, filename, charset);
 		} catch (final FileNotFoundException e1) {
 //			System.err.println("xmlom util - " + e1.getMessage());
 			if (exampleContent != null) {
 				final File example = new File(fromFile.getAbsolutePath() + Constant.DEFAULT_EXAMPLE_EXTENSION);
 				if (!example.exists()) {
 //					System.err.println("xmlom util - config - writing - " + example);
-					XmlomUtil.sendToFile(example.getAbsolutePath(), charset, false, exampleContent);
+					Xmlom.sendToFile(example.getAbsolutePath(), charset, false, exampleContent);
 				}
 			}
 			if (defaultContent != null && !fromFile.exists()) {
 //				System.err.println("xmlom util - config - writing - " + filename);
-				XmlomUtil.sendToFile(filename, charset, false, defaultContent);
+				Xmlom.sendToFile(filename, charset, false, defaultContent);
 			}
 			result = Arrays.asList(defaultContent);
+		}
+		if (rewriteIfNotObfuscated) {
+			boolean obfuscated = true;
+			for (final I i : result) {
+				obfuscated &= isSerializationObfustated(i);
+			}
+			if (!obfuscated) {
+				Xmlom.sendToFile(filename, charset, false, result.toArray(new XmlObjectModelling[result.size()]));
+			}
 		}
 		return result;
 	}

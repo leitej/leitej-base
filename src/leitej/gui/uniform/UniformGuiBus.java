@@ -51,7 +51,7 @@ import leitej.gui.uniform.model.Value;
 import leitej.gui.util.ImageUtil;
 import leitej.util.AgnosticUtil;
 import leitej.util.data.InvokeSignature;
-import leitej.util.data.XmlomUtil;
+import leitej.xml.om.Xmlom;
 
 /**
  *
@@ -430,7 +430,7 @@ final class UniformGuiBus {
 
 	private static void eventListener(final InputEvent event, final InsetData insetData)
 			throws UniformGuiLtRtException {
-		final ActionInput actionInput = XmlomUtil.newXmlObjectModelling(ActionInput.class);
+		final ActionInput actionInput = Xmlom.newInstance(ActionInput.class);
 		try {
 			final List<Value> valueList = new ArrayList<>();
 			final OperationGroup operationGroup = insetData.getOperationGroupMapByComponent().get(event.getSource());
@@ -502,7 +502,7 @@ final class UniformGuiBus {
 			value.setPasswordInput(JPasswordField.class.cast(component).getPassword());
 		} else if (LtPictureComponent.class.isInstance(component)) {
 			if (MouseEvent.class.isInstance(event)) {
-				final Point point = XmlomUtil.newXmlObjectModelling(Point.class);
+				final Point point = Xmlom.newInstance(Point.class);
 				point.setX(MouseEvent.class.cast(event).getPoint().x);
 				point.setY(MouseEvent.class.cast(event).getPoint().y);
 				value.setPointInput(point);
@@ -515,7 +515,7 @@ final class UniformGuiBus {
 	}
 
 	private static Value newValue(final String index, final String elementId, final ActionEnum action) {
-		final Value value = XmlomUtil.newXmlObjectModelling(Value.class);
+		final Value value = Xmlom.newInstance(Value.class);
 		value.setIndex(index);
 		value.setElementId(elementId);
 		value.setAction(action);

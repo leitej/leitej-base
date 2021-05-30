@@ -36,8 +36,8 @@ import leitej.thread.XThreadData;
 import leitej.util.AgnosticUtil;
 import leitej.util.DateUtil;
 import leitej.util.data.Invoke;
-import leitej.util.data.XmlomUtil;
 import leitej.xml.om.XmlObjectModelling;
+import leitej.xml.om.Xmlom;
 
 /**
  * Data Transport Protocol (DTP)
@@ -127,11 +127,11 @@ public abstract class AbstractDtpHandler {
 					requestReceived = true;
 					rawDataList = RawData.endRequest();
 					if (rawDataList.size() > 0) {
-						dtpIM = XmlomUtil.newXmlObjectModelling(InternalMessage.class);
+						dtpIM = Xmlom.newInstance(InternalMessage.class);
 						dtpIM.setAction(InternalMessageAction.RAW_DATA_PORTS);
 						rawDataPorts = new RawDataPort[rawDataList.size()];
 						for (int i = 0; i < rawDataPorts.length; i++) {
-							rawDataPorts[i] = XmlomUtil.newXmlObjectModelling(RawDataPort.class);
+							rawDataPorts[i] = Xmlom.newInstance(RawDataPort.class);
 							rawDataPorts[i].setCallNumber(DateUtil.generateUniqueNumberPerJVM());
 							rawDataPorts[i].setId(rawDataList.get(i).getId());
 							rawDataListener = this.server.getRawDataListenerBindedPool().poll();
@@ -148,7 +148,7 @@ public abstract class AbstractDtpHandler {
 					}
 					requestReceived = false;
 					LOG.warn("#0", e);
-					dtpIM = XmlomUtil.newXmlObjectModelling(InternalMessage.class);
+					dtpIM = Xmlom.newInstance(InternalMessage.class);
 					dtpIM.setAction(InternalMessageAction.INTERNAL_ERROR);
 					dtpIM.setMessage(e.getMessage());
 				}
@@ -166,11 +166,11 @@ public abstract class AbstractDtpHandler {
 							this.comSession.flush();
 							rawDataList = RawData.endResponse();
 							if (rawDataList.size() > 0) {
-								dtpIM = XmlomUtil.newXmlObjectModelling(InternalMessage.class);
+								dtpIM = Xmlom.newInstance(InternalMessage.class);
 								dtpIM.setAction(InternalMessageAction.RAW_DATA_PORTS);
 								rawDataPorts = new RawDataPort[rawDataList.size()];
 								for (int i = 0; i < rawDataPorts.length; i++) {
-									rawDataPorts[i] = XmlomUtil.newXmlObjectModelling(RawDataPort.class);
+									rawDataPorts[i] = Xmlom.newInstance(RawDataPort.class);
 									rawDataPorts[i].setCallNumber(DateUtil.generateUniqueNumberPerJVM());
 									rawDataPorts[i].setId(rawDataList.get(i).getId());
 									rawDataListener = this.server.getRawDataListenerBindedPool().poll();

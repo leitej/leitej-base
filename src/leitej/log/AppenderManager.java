@@ -31,7 +31,7 @@ import leitej.exception.LtException;
 import leitej.exception.XmlInvalidLtException;
 import leitej.util.DateUtil;
 import leitej.util.StringUtil;
-import leitej.util.data.XmlomUtil;
+import leitej.xml.om.Xmlom;
 
 /**
  * AppenderManager
@@ -44,8 +44,8 @@ final class AppenderManager {
 
 	private static Config[] defaultConfig() {
 		final Config[] result = (Config[]) Array.newInstance(Config.class, 1);
-		final Config pl = XmlomUtil.newXmlObjectModelling(Config.class);
-		final ConfigFile plf = XmlomUtil.newXmlObjectModelling(ConfigFile.class);
+		final Config pl = Xmlom.newInstance(Config.class);
+		final ConfigFile plf = Xmlom.newInstance(ConfigFile.class);
 		plf.setFileName("app.log");
 		plf.setAppendFile(Boolean.TRUE);
 		plf.setDynName(ConfigDynFileName.DAILY);
@@ -79,7 +79,7 @@ final class AppenderManager {
 	private static AbstractAppender[] loadAppenders() {
 		final List<AbstractAppender> list = new ArrayList<>();
 		try {
-			final List<Config> props = XmlomUtil.getConfig(Config.class, defaultConfig());
+			final List<Config> props = Xmlom.getConfig(Config.class, defaultConfig());
 			if (props != null) {
 				for (final Config config : props) {
 					try {

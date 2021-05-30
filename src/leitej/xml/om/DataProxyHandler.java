@@ -52,17 +52,30 @@ final class DataProxyHandler extends AbstractDataProxyHandler<XmlObjectModelling
 	}
 
 	@Override
-	protected <O> O deObfuscate(final Obfuscate annot, final O value) {
-		return ObfuscateUtil.unHide(annot, value);
+	protected <O> O deObfuscate(final Obfuscate annotation, final O value) {
+		return ObfuscateUtil.unHide(annotation, value);
 	}
 
 	@Override
-	protected <O> O obfuscate(final Obfuscate annot, final O value) {
-		return ObfuscateUtil.hide(annot, value);
+	protected <O> O obfuscate(final Obfuscate annotation, final O value) {
+		return ObfuscateUtil.hide(annotation, value);
+	}
+
+	@Override
+	protected boolean isObfuscated(final Object value) {
+		return ObfuscateUtil.isObfuscated(value);
 	}
 
 	<I extends XmlObjectModelling> Class<I> getInterface() {
 		return getDataInterfaceClass();
+	}
+
+	boolean isSerializationObfustated() {
+		return isDataSerializeObfustated();
+	}
+
+	boolean isToObfuscate(final String dataName) {
+		return isDataToObfuscate(dataName);
 	}
 
 	List<String> getDataNames() {

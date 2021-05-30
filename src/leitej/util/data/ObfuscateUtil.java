@@ -151,14 +151,14 @@ public final class ObfuscateUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <O> O hide(final O value, final boolean useUsernameSalt, final boolean useHostnameSalt) {
-		if (!(value instanceof String)) {
-			throw new UnsupportedDataTypeLtRtException("#0", value.getClass().getCanonicalName());
-		}
 		final O result;
-		final String plain = String.class.cast(value);
-		if (plain == null) {
+		if (value == null) {
 			result = null;
 		} else {
+			if (!(value instanceof String)) {
+				throw new UnsupportedDataTypeLtRtException("#0", value.getClass().getCanonicalName());
+			}
+			final String plain = String.class.cast(value);
 			if (plain.startsWith(OBFUSCATE_PREFIX)) {
 				result = value;
 			} else {
@@ -189,14 +189,14 @@ public final class ObfuscateUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <O> O unHide(final O value, final boolean useUsernameSalt, final boolean useHostnameSalt) {
-		if (!(value instanceof String)) {
-			throw new UnsupportedDataTypeLtRtException("#0", value.getClass().getCanonicalName());
-		}
 		final O result;
-		final String obfuscated = String.class.cast(value);
-		if (obfuscated == null) {
+		if (value == null) {
 			result = null;
 		} else {
+			if (!(value instanceof String)) {
+				throw new UnsupportedDataTypeLtRtException("#0", value.getClass().getCanonicalName());
+			}
+			final String obfuscated = String.class.cast(value);
 			if (!obfuscated.startsWith(OBFUSCATE_PREFIX)) {
 				result = value;
 			} else {
@@ -216,6 +216,19 @@ public final class ObfuscateUtil {
 			}
 		}
 		return result;
+	}
+
+	public static boolean isObfuscated(final Object value) {
+		if (value == null) {
+			return true;
+		}
+		if (!(value instanceof String)) {
+			return false;
+		}
+		if (String.class.cast(value).startsWith(OBFUSCATE_PREFIX)) {
+			return true;
+		}
+		return false;
 	}
 
 }

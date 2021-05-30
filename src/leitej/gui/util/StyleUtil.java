@@ -20,7 +20,7 @@ import leitej.exception.IllegalArgumentLtRtException;
 import leitej.gui.uniform.model.Color;
 import leitej.util.ColorEnum;
 import leitej.util.ColorUtil;
-import leitej.util.data.XmlomUtil;
+import leitej.xml.om.Xmlom;
 
 /**
  *
@@ -29,7 +29,7 @@ import leitej.util.data.XmlomUtil;
 public final class StyleUtil {
 
 	public static final Color newColor(final ColorEnum color) {
-		final Color result = XmlomUtil.newXmlObjectModelling(Color.class);
+		final Color result = Xmlom.newInstance(Color.class);
 		result.setRed(color.redComponent());
 		result.setGreen(color.greenComponent());
 		result.setBlue(color.blueComponent());
@@ -41,7 +41,7 @@ public final class StyleUtil {
 		if (alpha < 0 || alpha >= 255) {
 			throw new IllegalArgumentLtRtException();
 		}
-		final Color result = XmlomUtil.newXmlObjectModelling(Color.class);
+		final Color result = Xmlom.newInstance(Color.class);
 		result.setRed(color.redComponent());
 		result.setGreen(color.greenComponent());
 		result.setBlue(color.blueComponent());
