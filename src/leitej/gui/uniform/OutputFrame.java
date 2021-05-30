@@ -42,7 +42,7 @@ import leitej.gui.uniform.model.TextAreaReplaceRange;
 import leitej.gui.uniform.model.TextAreaUpdate;
 import leitej.gui.util.StyleUtil;
 import leitej.util.ColorEnum;
-import leitej.util.data.XmlomUtil;
+import leitej.xml.om.Xmlom;
 
 /**
  *
@@ -80,49 +80,49 @@ public class OutputFrame extends UniformFrame {
 		super(null, closeOperation, gc);
 		final Frame frame = getFrame(title, iconImage, fontSize);
 		this.set(frame);
-		this.textAreaUpdate = XmlomUtil.newXmlObjectModelling(ElementUpdate.class);
+		this.textAreaUpdate = Xmlom.newInstance(ElementUpdate.class);
 		this.textAreaUpdate.setId(OUTPUT_TEXT_ID);
-		final TextAreaUpdate tmp = XmlomUtil.newXmlObjectModelling(TextAreaUpdate.class);
+		final TextAreaUpdate tmp = Xmlom.newInstance(TextAreaUpdate.class);
 		this.textAreaUpdate.setTextAreaUpdate(tmp);
-		this.textAreaReplaceRange = XmlomUtil.newXmlObjectModelling(TextAreaReplaceRange.class);
+		this.textAreaReplaceRange = Xmlom.newInstance(TextAreaReplaceRange.class);
 		this.textAreaReplaceRange.setText("");
 		this.textAreaReplaceRange.setStart(0);
 		cls();
 	}
 
 	protected Frame getFrame(final String title, final byte[] iconImage, final int fontSize) {
-		final Frame frame = XmlomUtil.newXmlObjectModelling(Frame.class);
-		final MetaData metaData = XmlomUtil.newXmlObjectModelling(MetaData.class);
+		final Frame frame = Xmlom.newInstance(Frame.class);
+		final MetaData metaData = Xmlom.newInstance(MetaData.class);
 		metaData.setTitle(title);
 		metaData.setIconImage(iconImage);
 		frame.setMetaData(metaData);
-		final Data data = XmlomUtil.newXmlObjectModelling(Data.class);
-		final Layout layout = XmlomUtil.newXmlObjectModelling(Layout.class);
+		final Data data = Xmlom.newInstance(Data.class);
+		final Layout layout = Xmlom.newInstance(Layout.class);
 		layout.setType(LayoutEnum.BORDER);
 		final List<Element> elementList = new ArrayList<>();
-		final Element element = XmlomUtil.newXmlObjectModelling(Element.class);
+		final Element element = Xmlom.newInstance(Element.class);
 		element.setId(OUTPUT_TEXT_ID);
 
-		final Style style = XmlomUtil.newXmlObjectModelling(Style.class);
-		final Font font = XmlomUtil.newXmlObjectModelling(Font.class);
+		final Style style = Xmlom.newInstance(Style.class);
+		final Font font = Xmlom.newInstance(Font.class);
 		font.setName(FontNameEnum.MONOSPACED);
 		font.setStyle(FontStyleEnum.PLAIN);
 		font.setSize(fontSize);
 		style.setFont(font);
-		final Background background = XmlomUtil.newXmlObjectModelling(Background.class);
+		final Background background = Xmlom.newInstance(Background.class);
 		background.setTransparent(false);
 		background.setColor(StyleUtil.newColor(ColorEnum.DIM_GRAY));
 		style.setBackground(background);
 		style.setForegroundColor(StyleUtil.newColor(ColorEnum.CYAN));
 		element.setStyle(style);
 
-		final TextArea textarea = XmlomUtil.newXmlObjectModelling(TextArea.class);
-		final Area area = XmlomUtil.newXmlObjectModelling(Area.class);
+		final TextArea textarea = Xmlom.newInstance(TextArea.class);
+		final Area area = Xmlom.newInstance(Area.class);
 		area.setRows(16);
 		area.setColumns(120);
 		textarea.setArea(area);
 		textarea.setEditable(false);
-		final Scroll scroll = XmlomUtil.newXmlObjectModelling(Scroll.class);
+		final Scroll scroll = Xmlom.newInstance(Scroll.class);
 		scroll.setVertical(ScrollPolicyEnum.ALWAYS);
 		scroll.setHorizontal(ScrollPolicyEnum.AS_NEEDED);
 		textarea.setScroll(scroll);

@@ -23,6 +23,7 @@ import java.util.Map;
 
 import leitej.exception.ClosedLtRtException;
 import leitej.exception.IllegalArgumentLtRtException;
+import leitej.exception.ImplementationLtRtException;
 import leitej.exception.LtmLtRtException;
 import leitej.exception.ObjectPoolLtException;
 import leitej.util.data.AbstractDataProxyHandler;
@@ -202,6 +203,11 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 	@Override
 	protected <O> O obfuscate(final Obfuscate annot, final O value) {
 		return ObfuscateUtil.hide(annot, value);
+	}
+
+	@Override
+	protected boolean isObfuscated(final Object value) {
+		throw new ImplementationLtRtException("Unexpecting use of this method!");
 	}
 
 	PreparedClass getPreparedClass() {

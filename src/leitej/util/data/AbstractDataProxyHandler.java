@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.ImplementationLtRtException;
@@ -207,9 +208,77 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 
 	protected abstract void set(String dataName, Object value);
 
-	protected abstract <O extends Object> O deObfuscate(Obfuscate annot, O value);
+	/**
+	 * DeObfuscate <code>value</code>, following <code>annotation</code> policy. If
+	 * <code>value</code> is not obfuscated returns <code>value</code>.
+	 *
+	 * @param annotation obfuscation policy
+	 * @param value      to deObfuscate
+	 * @return pain state, correspondent to the obfuscated <code>value</code>
+	 */
+	protected abstract <O extends Object> O deObfuscate(Obfuscate annotation, O value);
 
-	protected abstract <O extends Object> O obfuscate(Obfuscate annot, O value);
+	/**
+	 * Obfuscate <code>value</code>, following <code>annotation</code> policy. If
+	 * <code>value</code> is already obfuscated returns <code>value</code>.
+	 *
+	 * @param annotation obfuscation policy
+	 * @param value      to obfuscate
+	 * @return representation of <code>value</code> in obfuscate state
+	 */
+	protected abstract <O extends Object> O obfuscate(Obfuscate annotation, O value);
+
+	/**
+	 * Verify if <code>value</code> is obfuscated.
+	 *
+	 * @param value to verify
+	 * @return true if <code>value</code> is obfuscated
+	 */
+	protected abstract boolean isObfuscated(Object value);
+
+	/**
+	 * It iterates data with obfuscated annotation and check if is in obfuscated
+	 * state. If no data has to be obfuscated this method returns true.<br>
+	 * <br>
+	 * Attention: this method iterates through all linked
+	 * <code>AbstractDataProxyHandler</code> recursively starting from
+	 * <code>this</code>, it is protected to not check the same link twice.
+	 *
+	 * @return false if there is data that has be obfuscated and was load in plain
+	 *         state
+	 */
+	protected final boolean isDataSerializeObfustated() {
+		boolean result = true;
+		final Stack<AbstractDataProxyHandler<?>> toCheck = new Stack<>();
+		final List<AbstractDataProxyHandler<?>> blockLoop = new ArrayList<>();
+		toCheck.push(this);
+		blockLoop.add(this);
+		AbstractDataProxyHandler<?> dataHandler;
+		AbstractDataProxyHandler<?> dataHandlerAdd;
+		while (!toCheck.isEmpty()) {
+			dataHandler = toCheck.pop();
+			for (final Object method : dataHandler.obfuscateMap.keySet()) {
+				result &= dataHandler
+						.isObfuscated(dataHandler.get(dataHandler.dataNameGetter(Method.class.cast(method))));
+			}
+			if (result) {
+				Object data;
+				for (final Object dataName : dataHandler.dataNameList()) {
+					data = dataHandler.get(String.class.cast(dataName));
+					if (data != null && AbstractDataProxy.isProxyClass(data.getClass())) {
+						dataHandlerAdd = AbstractDataProxyHandler.class.cast(Proxy.getInvocationHandler(data));
+						if (!blockLoop.contains(dataHandlerAdd)) {
+							toCheck.push(dataHandlerAdd);
+							blockLoop.add(dataHandlerAdd);
+						}
+					}
+				}
+			} else {
+				toCheck.clear();
+			}
+		}
+		return result;
+	}
 
 	@SuppressWarnings("unchecked")
 	protected final <T extends I> Class<T> getDataInterfaceClass() {
@@ -226,6 +295,10 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 
 	protected final Method[] dataMethodsGetSet(final String dataName) {
 		return this.methodsGetSet.get(dataName);
+	}
+
+	protected final boolean isDataToObfuscate(final String dataName) {
+		return (this.obfuscateMap.get(dataMethodsGetSet(dataName)[0])) != null;
 	}
 
 	@Override

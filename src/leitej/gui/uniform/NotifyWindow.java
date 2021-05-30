@@ -45,7 +45,7 @@ import leitej.gui.uniform.model.Window;
 import leitej.gui.uniform.model.WindowMetaData;
 import leitej.gui.util.StyleUtil;
 import leitej.util.ColorEnum;
-import leitej.util.data.XmlomUtil;
+import leitej.xml.om.Xmlom;
 
 /**
  *
@@ -80,48 +80,48 @@ public final class NotifyWindow extends UniformWindow {
 		super(null, owner, gc);
 		final Window window = getWindow();
 		this.set(window);
-		this.textAreaUpdate = XmlomUtil.newXmlObjectModelling(ElementUpdate.class);
+		this.textAreaUpdate = Xmlom.newInstance(ElementUpdate.class);
 		this.textAreaUpdate.setId(OUTPUT_TEXT_ID);
-		final TextAreaUpdate tmp = XmlomUtil.newXmlObjectModelling(TextAreaUpdate.class);
+		final TextAreaUpdate tmp = Xmlom.newInstance(TextAreaUpdate.class);
 		this.textAreaUpdate.setTextAreaUpdate(tmp);
 	}
 
 	protected Window getWindow() {
-		final Window window = XmlomUtil.newXmlObjectModelling(Window.class);
-		final WindowMetaData windowMetaData = XmlomUtil.newXmlObjectModelling(WindowMetaData.class);
+		final Window window = Xmlom.newInstance(Window.class);
+		final WindowMetaData windowMetaData = Xmlom.newInstance(WindowMetaData.class);
 		windowMetaData.setAlwaysOnTop(true);
 		windowMetaData.setLocation(LocationEnum.BOTTOM_RIGHT);
 		windowMetaData.setLocationMargin(2);
 		window.setWindowMetaData(windowMetaData);
-		final Data data = XmlomUtil.newXmlObjectModelling(Data.class);
-		final Layout layout = XmlomUtil.newXmlObjectModelling(Layout.class);
+		final Data data = Xmlom.newInstance(Data.class);
+		final Layout layout = Xmlom.newInstance(Layout.class);
 		layout.setType(LayoutEnum.BORDER);
 		final List<Element> elementList = new ArrayList<>();
 
-		final Element element = XmlomUtil.newXmlObjectModelling(Element.class);
+		final Element element = Xmlom.newInstance(Element.class);
 		element.setId(OUTPUT_TEXT_ID);
-		final Style style = XmlomUtil.newXmlObjectModelling(Style.class);
-		final Border border = XmlomUtil.newXmlObjectModelling(Border.class);
+		final Style style = Xmlom.newInstance(Style.class);
+		final Border border = Xmlom.newInstance(Border.class);
 		border.setType(BorderTypeEnum.LINE);
-		final BorderThickness thickness = XmlomUtil.newXmlObjectModelling(BorderThickness.class);
+		final BorderThickness thickness = Xmlom.newInstance(BorderThickness.class);
 		thickness.setAll(2);
 		border.setThickness(thickness);
 		border.setColor(StyleUtil.newColor(ColorEnum.BLACK));
 		style.setBorder(border);
-		final Font font = XmlomUtil.newXmlObjectModelling(Font.class);
+		final Font font = Xmlom.newInstance(Font.class);
 		font.setName(FontNameEnum.MONOSPACED);
 		font.setStyle(FontStyleEnum.PLAIN);
 		font.setSize(12);
 		style.setFont(font);
-		final Background background = XmlomUtil.newXmlObjectModelling(Background.class);
+		final Background background = Xmlom.newInstance(Background.class);
 		background.setTransparent(false);
 		background.setColor(StyleUtil.newColor(ColorEnum.DIM_GRAY));
 		style.setBackground(background);
 		style.setForegroundColor(StyleUtil.newColor(ColorEnum.LIGHT_GRAY));
 		element.setStyle(style);
-		final TextArea textarea = XmlomUtil.newXmlObjectModelling(TextArea.class);
+		final TextArea textarea = Xmlom.newInstance(TextArea.class);
 		textarea.setEditable(false);
-		final Scroll scroll = XmlomUtil.newXmlObjectModelling(Scroll.class);
+		final Scroll scroll = Xmlom.newInstance(Scroll.class);
 		scroll.setVertical(ScrollPolicyEnum.NEVER);
 		scroll.setHorizontal(ScrollPolicyEnum.NEVER);
 		textarea.setScroll(scroll);

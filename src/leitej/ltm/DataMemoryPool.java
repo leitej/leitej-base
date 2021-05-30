@@ -28,8 +28,8 @@ import leitej.exception.XmlInvalidLtException;
 import leitej.util.AgnosticUtil;
 import leitej.util.data.AbstractObjectPool;
 import leitej.util.data.Invoke;
-import leitej.util.data.XmlomUtil;
 import leitej.util.machine.ShutdownHookUtil;
+import leitej.xml.om.Xmlom;
 
 /**
  * @author Julio Leite
@@ -44,11 +44,11 @@ public final class DataMemoryPool extends AbstractObjectPool<DataMemoryConnectio
 
 	static {
 		final DataMemoryConfig[] defaultContent = new DataMemoryConfig[] {
-				XmlomUtil.newXmlObjectModelling(DataMemoryConfig.class) };
+				Xmlom.newInstance(DataMemoryConfig.class) };
 		defaultContent[0].setMaxConnections(20);
 		defaultContent[0].setAutoForgetsInterfaceComponentMisses(false);
 		try {
-			CONFIG = XmlomUtil.getConfig(DataMemoryConfig.class, defaultContent).get(0);
+			CONFIG = Xmlom.getConfig(DataMemoryConfig.class, defaultContent).get(0);
 		} catch (NullPointerException | SecurityException | XmlInvalidLtException | IOException e) {
 			throw new SeppukuLtRtException(e);
 		}

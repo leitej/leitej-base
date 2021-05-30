@@ -63,7 +63,7 @@ import leitej.exception.KeyStoreLtException;
 import leitej.exception.SeppukuLtRtException;
 import leitej.exception.XmlInvalidLtException;
 import leitej.log.Logger;
-import leitej.util.data.XmlomUtil;
+import leitej.xml.om.Xmlom;
 
 /**
  * Cryptography
@@ -85,14 +85,14 @@ public final class Cryptography {
 			LOG.info("provider: #0", provider);
 		}
 		// load config
-		final Config defaultConfig = XmlomUtil.newXmlObjectModelling(Config.class);
+		final Config defaultConfig = Xmlom.newInstance(Config.class);
 		defaultConfig.setDefaultCertificateSignatureAlgorithm("SHA512WithRSA");
 		defaultConfig.setDefaultKeyStoreType("PKCS12");
 		defaultConfig.setDefaultSymmetricCipher("AES");
 		defaultConfig.setDefaultSymmetricKeyBitSize(256);
 		defaultConfig.setDefaultSymmetricIvBitSize(256);
 		try {
-			CONFIG = XmlomUtil.getConfig(Config.class, new Config[] { defaultConfig }).get(0);
+			CONFIG = Xmlom.getConfig(Config.class, new Config[] { defaultConfig }).get(0);
 		} catch (NullPointerException | SecurityException | XmlInvalidLtException | IOException e) {
 			throw new SeppukuLtRtException(e);
 		}

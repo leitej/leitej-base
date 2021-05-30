@@ -238,6 +238,14 @@ final class Producer {
 		for (final String dataName : dph.getDataNames()) {
 			data = dphData.get(dataName);
 			if (data != null && !"comments".equals(dataName)) {
+				if (dph.isToObfuscate(dataName) && !dph.isObfuscated(data)) {
+					try {
+						dph.invoke(o, dph.getMethodsGetSet(dataName)[1], new Object[] { data });
+						data = dphData.get(dataName);
+					} catch (final Throwable e) {
+						new XmlInvalidLtException(e);
+					}
+				}
 				this.sbTmpElmName.setLength(0);
 				this.sbTmpElmName.append(dataName);
 				printObject(data, this.sbTmpElmName);
