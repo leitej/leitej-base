@@ -52,7 +52,7 @@ import leitej.util.data.InvokeItf;
  */
 public class AgnosticThread extends Thread {
 
-	protected static final long SLEEP_TIME = 2000;
+	protected static final long SLEEP_TIME_MS = 2000;
 
 	private final boolean keepAlive;
 	private final String prefixName;
@@ -70,7 +70,7 @@ public class AgnosticThread extends Thread {
 
 	/**
 	 * Creates a new instance of AgnosticThread, to run invoke only once.
-	 * 
+	 *
 	 * @param name of thread
 	 */
 	public AgnosticThread(final String name) {
@@ -79,7 +79,7 @@ public class AgnosticThread extends Thread {
 
 	/**
 	 * Creates a new instance of AgnosticThread, with a thread name (null).
-	 * 
+	 *
 	 * @param keepAlive boolean defining if run invoke once or many
 	 */
 	public AgnosticThread(final boolean keepAlive) {
@@ -88,7 +88,7 @@ public class AgnosticThread extends Thread {
 
 	/**
 	 * Creates a new instance of AgnosticThread.
-	 * 
+	 *
 	 * @param name      of thread
 	 * @param keepAlive boolean defining if run invoke once or many
 	 */
@@ -106,9 +106,11 @@ public class AgnosticThread extends Thread {
 
 	/**
 	 * Creates a new instance of AgnosticThread, with a thread name (null) and to
-	 * run invoke only once.
-	 * 
-	 * @param invoke to work on
+	 * run invoke only once.<br/>
+	 * This is like a fire and forget, don't need to check the return of invocation
+	 * or is void.
+	 *
+	 * @param invoke to call
 	 */
 	public AgnosticThread(final InvokeItf invoke) {
 		this(new ThreadData(invoke));
@@ -117,7 +119,7 @@ public class AgnosticThread extends Thread {
 	/**
 	 * Creates a new instance of AgnosticThread, with a thread name (null) and to
 	 * run invoke only once.
-	 * 
+	 *
 	 * @param threadData to work on
 	 */
 	public AgnosticThread(final ThreadData threadData) {
@@ -164,7 +166,7 @@ public class AgnosticThread extends Thread {
 
 	/**
 	 * Use this method to put this thread working on parameter.
-	 * 
+	 *
 	 * @param invoke to work on
 	 * @throws AgnosticThreadLtException if is working on other invoke or already
 	 *                                   terminated
@@ -175,7 +177,7 @@ public class AgnosticThread extends Thread {
 
 	/**
 	 * Use this method to put this thread working on parameter.
-	 * 
+	 *
 	 * @param threadData to work on
 	 * @throws AgnosticThreadLtException if is working on other invoke or already
 	 *                                   terminated
@@ -200,7 +202,7 @@ public class AgnosticThread extends Thread {
 
 	/**
 	 * To know if has work to do and it's not done.
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public synchronized boolean isWorking() {
@@ -212,7 +214,7 @@ public class AgnosticThread extends Thread {
 	 */
 	protected void pause() {
 		try {
-			Thread.sleep(SLEEP_TIME);
+			Thread.sleep(SLEEP_TIME_MS);
 		} catch (final InterruptedException e) {
 			/* ignored */}
 	}
@@ -258,7 +260,7 @@ public class AgnosticThread extends Thread {
 	 * thread (which executes its <code>run</code> method).<br/>
 	 * <br/>
 	 * If this thread already started and still alive the call is a NOOP.
-	 * 
+	 *
 	 * @throws AgnosticThreadLtException if already terminated
 	 */
 	protected synchronized final void internalStart() throws AgnosticThreadLtException {
@@ -273,7 +275,7 @@ public class AgnosticThread extends Thread {
 
 	/**
 	 * Verifies if it is in {@link java.lang.Thread.State TERMINATED} state.
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public boolean isTerminated() {
@@ -283,7 +285,7 @@ public class AgnosticThread extends Thread {
 	/**
 	 * Closes this thread.<br/>
 	 * The thread that calls this method waits until this finished.
-	 * 
+	 *
 	 * @throws InterruptedException to stop the waits until finished
 	 */
 	public synchronized void close() throws InterruptedException {

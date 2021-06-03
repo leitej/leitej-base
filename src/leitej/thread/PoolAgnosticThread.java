@@ -34,10 +34,10 @@ import leitej.log.Logger;
 import leitej.util.AgnosticUtil;
 import leitej.util.DateUtil;
 import leitej.util.data.DateFieldEnum;
-import leitej.util.data.TimeTriggerImpl;
 import leitej.util.data.Invoke;
 import leitej.util.data.InvokeItf;
 import leitej.util.data.QueueBlockingFIFO;
+import leitej.util.data.TimeTriggerImpl;
 import leitej.util.machine.ShutdownHookUtil;
 
 /**
@@ -67,7 +67,7 @@ public final class PoolAgnosticThread {
 	/**
 	 * Default minimum threads running on the pool. (={@value})
 	 */
-	public static final int DEFAULT_MIN_NUM_THREAD = 0;
+	public static final int DEFAULT_MIN_NUM_THREAD = 64;
 	/**
 	 * Default maximum threads running on the pool. (={@value})
 	 */
@@ -178,22 +178,15 @@ public final class PoolAgnosticThread {
 	 * @param maxNumThread defines maximum threads running on the pool
 	 */
 	private PoolAgnosticThread(final int minNumThread, final int maxNumThread) {
+		if (minNumThread < 0 || maxNumThread < 1 || maxNumThread < minNumThread) {
+			throw new IllegalArgumentLtRtException();
+		}
 		this.prefixThreadName = "Pool_" + DateUtil.generateUniqueNumberPerJVM();
 		this.normalizerThreadName = this.prefixThreadName + "_NORMALIZER";
 		this.rescuerThreadName = this.prefixThreadName + "_RESCUER";
 		this.executionerThreadName = this.prefixThreadName + "_EXECUTIONER";
-		if (minNumThread >= 0) {
-			this.minNumThread = minNumThread;
-		} else {
-			this.minNumThread = DEFAULT_MIN_NUM_THREAD;
-		}
-		if (maxNumThread > this.minNumThread) {
-			this.maxNumThread = maxNumThread;
-		} else if (DEFAULT_MAX_NUM_THREAD > this.minNumThread) {
-			this.maxNumThread = DEFAULT_MAX_NUM_THREAD;
-		} else {
-			this.maxNumThread = this.minNumThread + 1;
-		}
+		this.minNumThread = minNumThread;
+		this.maxNumThread = maxNumThread;
 		this.numThread = 0;
 		this.threadMonitor = new PoolEmbebedAgnosticThread[this.maxNumThread];
 		this.threadWaitingQueue = new QueueBlockingFIFO<>(this.maxNumThread);
@@ -209,8 +202,8 @@ public final class PoolAgnosticThread {
 		try {
 			final XThreadData tdata = new XThreadData(
 					new Invoke(this, AgnosticUtil.getMethod(this, METHOD_NORMALIZER_JOB)),
-					new TimeTriggerImpl(DateFieldEnum.MINUTE, NORMALIZER_RUN_IN_MINUTELY_INTERVAL), this.normalizerThreadName,
-					ThreadPriorityEnum.MAXIMUM);
+					new TimeTriggerImpl(DateFieldEnum.MINUTE, NORMALIZER_RUN_IN_MINUTELY_INTERVAL),
+					this.normalizerThreadName, ThreadPriorityEnum.MAXIMUM);
 			this.normalizer.workOn(tdata);
 		} catch (final IllegalArgumentLtRtException e) {
 			throw new ImplementationLtRtException(e);
@@ -559,19 +552,21 @@ public final class PoolAgnosticThread {
 	 * @throws InterruptedException if interrupted while waiting
 	 */
 	private void stopThreadsPausedWithoutWork() throws InterruptedException {
-		PoolEmbebedAgnosticThread peat;
-		int count = (this.maxNumThread - this.minNumThread) / 3;
-		final int minimumLeft = (this.minNumThread > DEFAULT_MIN_NUM_THREAD) ? this.minNumThread
-				: DEFAULT_MIN_NUM_THREAD + 1;
-		while (count > 0 && this.threadWaitingQueue.size() > minimumLeft) {
-			try {
-				peat = poolThread();
-			} catch (final ClosedLtRtException e) {
-				throw new ImplementationLtRtException(e);
+		if (this.maxNumThread > this.minNumThread) {
+			PoolEmbebedAgnosticThread peat;
+			int count = (this.maxNumThread - this.minNumThread) / 3;
+			final int minimumLeft = (this.minNumThread > DEFAULT_MIN_NUM_THREAD) ? this.minNumThread
+					: DEFAULT_MIN_NUM_THREAD + 1;
+			while (count > 0 && this.threadWaitingQueue.size() > minimumLeft) {
+				try {
+					peat = poolThread();
+				} catch (final ClosedLtRtException e) {
+					throw new ImplementationLtRtException(e);
+				}
+				peat.closeAsync();
+				setThreadToDamaged(peat);
+				count--;
 			}
-			peat.closeAsync();
-			setThreadToDamaged(peat);
-			count--;
 		}
 	}
 
@@ -593,8 +588,8 @@ public final class PoolAgnosticThread {
 					if (xtd != null) {
 						try {
 							xtd.getResult();
-							xtd.setException(new PoolAgnosticThreadLtException("Thread '#0' stopped atypically with unknown reason",
-									peat.getName()));
+							xtd.setException(new PoolAgnosticThreadLtException(
+									"Thread '#0' stopped atypically with unknown reason", peat.getName()));
 						} catch (final ParallelLtRtException e) {
 							xtd.setException(new PoolAgnosticThreadLtException(e.getCause(),
 									"Thread '#0' stopped atypically with unknown reason", peat.getName()));
@@ -685,14 +680,17 @@ public final class PoolAgnosticThread {
 									/* ignored */}
 							}
 						} else {
-							new ImplementationLtRtException("Received a null when trying to get thread id: #0 (this shouldn't happen)", key);
+							new ImplementationLtRtException(
+									"Received a null when trying to get thread id: #0 (this shouldn't happen)", key);
 						}
 						if (ts != null) {
 							ts.updateTask();
 							// put task to work again
 							addTaskToWork(ts);
 						} else {
-							new ImplementationLtRtException("Received a null when trying to get task that worked on thread id: #0 (this shouldn't happen)", key);
+							new ImplementationLtRtException(
+									"Received a null when trying to get task that worked on thread id: #0 (this shouldn't happen)",
+									key);
 						}
 					}
 					synchronized (this.rescuer) {
