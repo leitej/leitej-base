@@ -129,7 +129,7 @@ public class XAgnosticThread extends AgnosticThread {
 			}
 		}
 		if (sleep == null) {
-			sleep = SLEEP_TIME;
+			sleep = SLEEP_TIME_MS;
 		}
 		if (sleep < 8) {
 			sleep = 1L;
