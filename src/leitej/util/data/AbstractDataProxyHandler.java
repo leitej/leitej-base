@@ -21,7 +21,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -254,7 +256,6 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 		toCheck.push(this);
 		blockLoop.add(this);
 		AbstractDataProxyHandler<?> dataHandler;
-		AbstractDataProxyHandler<?> dataHandlerAdd;
 		while (!toCheck.isEmpty()) {
 			dataHandler = toCheck.pop();
 			for (final Object method : dataHandler.obfuscateMap.keySet()) {
@@ -262,14 +263,17 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 						.isObfuscated(dataHandler.get(dataHandler.dataNameGetter(Method.class.cast(method))));
 			}
 			if (result) {
-				Object data;
-				for (final Object dataName : dataHandler.dataNameList()) {
-					data = dataHandler.get(String.class.cast(dataName));
-					if (data != null && AbstractDataProxy.isProxyClass(data.getClass())) {
-						dataHandlerAdd = AbstractDataProxyHandler.class.cast(Proxy.getInvocationHandler(data));
-						if (!blockLoop.contains(dataHandlerAdd)) {
-							toCheck.push(dataHandlerAdd);
-							blockLoop.add(dataHandlerAdd);
+				Object o;
+				for (final String dataName : dataHandler.dataNameList()) {
+					o = dataHandler.get(dataName);
+					if (o != null) {
+						if (AbstractDataProxy.isProxyClass(o.getClass())) {
+							flatten(AbstractDataProxyHandler.class.cast(Proxy.getInvocationHandler(o)), toCheck,
+									blockLoop);
+						} else if (Collection.class.isInstance(o)) {
+							flatten(Collection.class.cast(o).iterator(), toCheck, blockLoop);
+						} else if (o.getClass().isArray()) {
+							flatten((Object[]) o, toCheck, blockLoop);
 						}
 					}
 				}
@@ -278,6 +282,48 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 			}
 		}
 		return result;
+	}
+
+	private void flatten(final Iterator<?> data, final Stack<AbstractDataProxyHandler<?>> toCheck,
+			final List<AbstractDataProxyHandler<?>> blockLoop) {
+		Object o;
+		while (data.hasNext()) {
+			o = data.next();
+			if (o != null) {
+				if (AbstractDataProxy.isProxyClass(o.getClass())) {
+					flatten(AbstractDataProxyHandler.class.cast(Proxy.getInvocationHandler(o)), toCheck, blockLoop);
+				} else if (Collection.class.isInstance(o)) {
+					flatten(Collection.class.cast(o).iterator(), toCheck, blockLoop);
+				} else if (o.getClass().isArray()) {
+					flatten((Object[]) o, toCheck, blockLoop);
+				}
+			}
+		}
+	}
+
+	private void flatten(final Object[] data, final Stack<AbstractDataProxyHandler<?>> toCheck,
+			final List<AbstractDataProxyHandler<?>> blockLoop) {
+		Object o;
+		for (int i = 0; i < data.length; i++) {
+			o = data[i];
+			if (o != null) {
+				if (AbstractDataProxy.isProxyClass(o.getClass())) {
+					flatten(AbstractDataProxyHandler.class.cast(Proxy.getInvocationHandler(o)), toCheck, blockLoop);
+				} else if (Collection.class.isInstance(o)) {
+					flatten(Collection.class.cast(o).iterator(), toCheck, blockLoop);
+				} else if (o.getClass().isArray()) {
+					flatten((Object[]) o, toCheck, blockLoop);
+				}
+			}
+		}
+	}
+
+	private void flatten(final AbstractDataProxyHandler<?> data, final Stack<AbstractDataProxyHandler<?>> toCheck,
+			final List<AbstractDataProxyHandler<?>> blockLoop) {
+		if (!blockLoop.contains(data)) {
+			toCheck.push(data);
+			blockLoop.add(data);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
