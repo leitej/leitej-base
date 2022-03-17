@@ -16,24 +16,23 @@
 
 package leitej.ltm;
 
-import leitej.xml.om.XmlObjectModelling;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author Julio Leite
  *
  */
-public interface DataMemoryConfig extends XmlObjectModelling {
+@Inherited
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public abstract @interface Index {
 
-	int getMaxConnections();
+	public abstract String name() default "";
 
-	void setMaxConnections(int maxConnections);
-
-	boolean isAutoForgetsInterfaceComponentMisses();
-
-	void setAutoForgetsInterfaceComponentMisses(boolean autoForgetsInterfaceComponentMisses);
-
-	int getShutdownCompactMemoryEveryNDays();
-
-	void setShutdownCompactMemoryEveryNDays(int shutdownCompactMemoryEveryNDays);
+	public abstract int position() default 0;
 
 }

@@ -21,8 +21,11 @@ import java.sql.SQLException;
 
 import leitej.Constant;
 import leitej.exception.ClosedLtRtException;
+import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.LtmLtRtException;
 import leitej.exception.ObjectPoolLtException;
+import leitej.exception.SeppukuLtRtException;
+import leitej.log.Logger;
 import leitej.util.DateUtil;
 import leitej.util.data.BigBinary;
 import leitej.util.stream.RandomAccessBinary;
@@ -33,14 +36,28 @@ import leitej.util.stream.RandomAccessBinary;
  */
 public final class LargeMemory extends BigBinary implements RandomAccessBinary, Closeable {
 
+	private static final Logger LOG = Logger.getInstance();
+
 	private static final DataMemoryPool MEM_POOL = DataMemoryPool.getInstance();
 
+	static {
+		LargeMemoryTracker.intialize();
+	}
+
 	static boolean eraseAll() {
-		return BigBinary.clean(Constant.LTM_STREAM_DIR);
+		final boolean result = BigBinary.clean(Constant.LTM_STREAM_DIR);
+		if (!result) {
+			throw new SeppukuLtRtException(
+					new IllegalStateLtRtException("FAIL to delete all large memory: #0", Constant.LTM_STREAM_DIR));
+		}
+		LOG.warn("eraseAll: #0", Constant.LTM_STREAM_DIR);
+		LargeMemoryTracker.intialize();
+		return result;
 	}
 
 	public LargeMemory() throws LtmLtRtException {
 		super(Constant.LTM_STREAM_DIR, DateUtil.generateUniqueNumberPerJVM());
+		LOG.debug("#0", this);
 		DataMemoryConnection conn = null;
 		try {
 			try {
@@ -59,6 +76,11 @@ public final class LargeMemory extends BigBinary implements RandomAccessBinary, 
 
 	LargeMemory(final long id) {
 		super(Constant.LTM_STREAM_DIR, id);
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() + "-ID" + this.getId();
 	}
 
 }

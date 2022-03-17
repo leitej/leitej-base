@@ -109,15 +109,20 @@ public class ImageFrame extends UniformFrame {
 		return frame;
 	}
 
-	public synchronized void setImage(final BufferedImage image) throws GuiLtException, InterruptedException {
-		setImage(0, 0, image);
+	public void setImage(final BufferedImage image) throws GuiLtException, InterruptedException {
+		setImage(0, 0, image, this.middleImageFormat);
 	}
 
-	public synchronized void setImage(final int x, final int y, final BufferedImage image)
+	public void setImage(final BufferedImage image, final ImageFormatEnum format)
+			throws GuiLtException, InterruptedException {
+		setImage(0, 0, image, format);
+	}
+
+	public synchronized void setImage(final int x, final int y, final BufferedImage image, final ImageFormatEnum format)
 			throws GuiLtException, InterruptedException {
 		this.imageUpdate.getImageUpdate().getDataPosition().setX(x);
 		this.imageUpdate.getImageUpdate().getDataPosition().setY(y);
-		this.imageUpdate.getImageUpdate().setData(ImageUtil.encode(image, this.middleImageFormat));
+		this.imageUpdate.getImageUpdate().setData(ImageUtil.encode(image, format));
 		fastUpdate(this.imageUpdate);
 	}
 

@@ -33,7 +33,7 @@ dist/bcprov-jdk16-145.jar
 /classes/
 /lib/
 /lib_old/
-/data/
+/.data/
 /src-test/
 /src/leitej/sound/
 /src/leitej/vi/

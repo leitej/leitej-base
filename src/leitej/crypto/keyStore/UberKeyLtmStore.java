@@ -54,7 +54,7 @@ public final class UberKeyLtmStore extends AbstractDefaultKeyStore {
 			if (keyLtmStore == null) {
 				try {
 					final LtmFilter<KeyLtmStore> filter = new LtmFilter<>(KeyLtmStore.class, OPERATOR_JOIN.AND);
-					filter.prepare(OPERATOR.EQUAL).setAlias(alias);
+					filter.append(OPERATOR.EQUAL).setAlias(alias);
 					final Iterator<KeyLtmStore> found = LTM.search(filter);
 					if (found.hasNext()) {
 						result = true;
@@ -175,7 +175,7 @@ public final class UberKeyLtmStore extends AbstractDefaultKeyStore {
 			if (keyLtmStore == null) {
 				try {
 					final LtmFilter<KeyLtmStore> filter = new LtmFilter<>(KeyLtmStore.class, OPERATOR_JOIN.AND);
-					filter.prepare(OPERATOR.EQUAL).setAlias(alias);
+					filter.append(OPERATOR.EQUAL).setAlias(alias);
 					final Iterator<KeyLtmStore> found = LTM.search(filter);
 					if (!found.hasNext()) {
 						final KeyLtmStore createLtmStore = LTM.newRecord(KeyLtmStore.class);

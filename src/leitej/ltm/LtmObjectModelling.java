@@ -23,8 +23,8 @@ package leitej.ltm;
  */
 public abstract interface LtmObjectModelling {
 
-	public abstract long getId();
+	public abstract long getLtmId();
 
-	public abstract void setId(long id);
+	public abstract void setLtmId(long ltmId);
 
 }

@@ -23,6 +23,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.HashMap;
+import java.util.Map;
 
 import leitej.Constant;
 import leitej.exception.IllegalStateLtRtException;
@@ -38,21 +40,8 @@ final class LargeMemoryTracker {
 
 	private static final Logger LOG = Logger.getInstance();
 
-	static {
-		Constant.LTM_STREAM_DIR.mkdirs();
-	}
-
-	static void eraseAll() {
-		if (!LargeMemory.eraseAll()) {
-			throw new SeppukuLtRtException(
-					new IllegalStateLtRtException("FAIL to delete all large memory: #0", Constant.LTM_STREAM_DIR));
-		} else {
-			LOG.warn("eraseAll: #0", Constant.LTM_STREAM_DIR);
-		}
-		intialize();
-	}
-
-	private static final String TABLE_NAME = "\"" + HsqldbUtil.SCHEMA + "\".\"__large_memory_tracker__\"";
+	private static final String SCHEMA_QT = "\"" + HsqldbUtil.SCHEMA + "\"";
+	private static final String TABLE_NAME = SCHEMA_QT + ".\"__large_memory_tracker__\"";
 	private static final String COLUMN_LTM_NAME = "ltm_name";
 	private static final String COLUMN_LTM_ID = "ltm_id";
 	private static final String COLUMN_LM_ID = "lm_id";
@@ -61,6 +50,8 @@ final class LargeMemoryTracker {
 	private static final String COLUMN_LTM_ID_QT = "\"" + COLUMN_LTM_ID + "\"";
 	private static final String COLUMN_LM_ID_QT = "\"" + COLUMN_LM_ID + "\"";
 	private static final String COLUMN_LM_REL_QT = "\"" + COLUMN_LM_REL + "\"";
+	private static final String SET_COLUMN_LTM_ID_QT = "\"" + DataProxyHandler.LTM_ID + "\"";
+	private static final String SET_COLUMN_VALUE_QT = "\"" + DataProxyHandler.SET_VALUE + "\"";
 
 	private static final String CREATE_TABLE = "create table if not exists " + TABLE_NAME + " (                       "
 			+ COLUMN_LTM_NAME_QT + " " + HsqldbUtil.getHsqlType(Types.VARCHAR) + ",                                   "
@@ -76,6 +67,12 @@ final class LargeMemoryTracker {
 
 	private static final String CREATE_INDEX_3 = "create unique index if not exists \"ind3\" on " + TABLE_NAME + " (  "
 			+ COLUMN_LTM_NAME_QT + ", " + COLUMN_LTM_ID_QT + ", " + COLUMN_LM_ID_QT + ")";
+
+	private static final String CREATE_INDEX_4 = "create index if not exists \"ind4\" on " + TABLE_NAME + " (         "
+			+ COLUMN_LTM_NAME_QT + ")";
+
+	private static final String CREATE_INDEX_5 = "create unique index if not exists \"ind3\" on " + TABLE_NAME + " (  "
+			+ COLUMN_LTM_NAME_QT + ", " + COLUMN_LM_ID_QT + ")";
 
 	private static final String SELECT_REL = "select " + COLUMN_LM_REL_QT + " from " + TABLE_NAME + " where "
 			+ COLUMN_LTM_NAME_QT + " = ? and " + COLUMN_LTM_ID_QT + " = ? and " + COLUMN_LM_ID_QT + " = ?";
@@ -103,7 +100,11 @@ final class LargeMemoryTracker {
 
 	private static final String DELETE_REL = "delete from " + TABLE_NAME + " where " + COLUMN_LM_ID_QT + " = ?";
 
+	private static final Map<String, String> LTM_SET_CLEAR = new HashMap<>();
+
 	static void intialize() {
+		LOG.trace("mkdirs: #0", Constant.LTM_STREAM_DIR);
+		Constant.LTM_STREAM_DIR.mkdirs();
 		Connection conn = null;
 		try {
 			try {
@@ -137,6 +138,14 @@ final class LargeMemoryTracker {
 		LOG.trace("CREATE_INDEX_3: #0", CREATE_INDEX_3);
 		stt.execute(CREATE_INDEX_3);
 		stt.close();
+		stt = conn.createStatement();
+		LOG.trace("CREATE_INDEX_4: #0", CREATE_INDEX_4);
+		stt.execute(CREATE_INDEX_4);
+		stt.close();
+		stt = conn.createStatement();
+		LOG.trace("CREATE_INDEX_5: #0", CREATE_INDEX_5);
+		stt.execute(CREATE_INDEX_5);
+		stt.close();
 		conn.commit();
 	}
 
@@ -156,11 +165,12 @@ final class LargeMemoryTracker {
 				ioDel = (new LargeMemory(lmId)).delete();
 				if (!ioDel) {
 					LOG.warn("FAIL delete large memory: #0: #1", Constant.LTM_STREAM_DIR, lmId);
+				} else {
+					delPStt = conn.prepareStatement(DELETE_REL);
+					delPStt.setLong(1, lmId);
+					delPStt.executeUpdate();
+					delPStt.close();
 				}
-				delPStt = conn.prepareStatement(DELETE_REL);
-				delPStt.setLong(1, lmId);
-				delPStt.executeUpdate();
-				delPStt.close();
 			}
 			rs.close();
 			conn.commit();
@@ -240,6 +250,57 @@ final class LargeMemoryTracker {
 		final PreparedStatement pStt = conn.prepareStatement(UPDATE_ZERO_LTM_ID);
 		pStt.setString(1, ltmClass.getName());
 		pStt.setLong(2, ltmId);
+		pStt.executeUpdate();
+		pStt.close();
+		// do not commit
+	}
+
+	static void delFromLtmSetById(final Connection conn, final String tablenameSet, final Class<?> ltmClass,
+			final long ltmId) throws SQLException {
+		String query;
+		synchronized (LTM_SET_CLEAR) {
+			query = LTM_SET_CLEAR.get(tablenameSet);
+			if (query == null) {
+				query = "update " + TABLE_NAME + " set " + COLUMN_LM_REL_QT + " = " + COLUMN_LM_REL_QT + " - 1 where "
+						+ COLUMN_LTM_NAME_QT + " = ? and " + COLUMN_LTM_ID_QT + " = ? and " + COLUMN_LM_ID_QT
+						+ " in (select " + SET_COLUMN_VALUE_QT + " from " + SCHEMA_QT + ".\"" + tablenameSet
+						+ "\" where " + SET_COLUMN_LTM_ID_QT + " = ?)";
+				LTM_SET_CLEAR.put(tablenameSet, query);
+			}
+		}
+		LOG.trace("query: #0", query);
+		final PreparedStatement pStt = conn.prepareStatement(query);
+		pStt.setString(1, ltmClass.getName());
+		pStt.setLong(2, ltmId);
+		pStt.setLong(3, ltmId);
+		pStt.executeUpdate();
+		pStt.close();
+		// do not commit
+	}
+
+	static void delFromLtmColumnSetDrop(final Connection conn, final String tablenameSet, final String ltmClassName)
+			throws SQLException {
+		final String query = "update " + TABLE_NAME + " set " + COLUMN_LM_REL_QT + " = " + COLUMN_LM_REL_QT
+				+ " - 1 where " + COLUMN_LTM_NAME_QT + " = ? and (" + COLUMN_LTM_ID_QT + "," + COLUMN_LM_ID_QT
+				+ ") in (select " + SET_COLUMN_LTM_ID_QT + "," + SET_COLUMN_VALUE_QT + " from " + SCHEMA_QT + ".\""
+				+ tablenameSet + "\")";
+		LOG.trace("query: #0", query);
+		final PreparedStatement pStt = conn.prepareStatement(query);
+		pStt.setString(1, ltmClassName);
+		pStt.executeUpdate();
+		pStt.close();
+		// do not commit
+	}
+
+	static <T extends LtmObjectModelling> void delFromLtmColumnDrop(final Connection conn, final Class<T> ltmClass,
+			final String ltmTablename, final String columnName) throws SQLException {
+		final String query = "update " + TABLE_NAME + " set " + COLUMN_LM_REL_QT + " = " + COLUMN_LM_REL_QT
+				+ " - 1 where " + COLUMN_LTM_NAME_QT + " = ? and (" + COLUMN_LTM_ID_QT + "," + COLUMN_LM_ID_QT
+				+ ") in (select " + SET_COLUMN_LTM_ID_QT + ",\"" + columnName + "\" from " + SCHEMA_QT + ".\""
+				+ ltmTablename + "\" where \"" + columnName + "\" is not null)";
+		LOG.trace("query: #0", query);
+		final PreparedStatement pStt = conn.prepareStatement(query);
+		pStt.setString(1, ltmClass.getName());
 		pStt.executeUpdate();
 		pStt.close();
 		// do not commit

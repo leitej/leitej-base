@@ -64,7 +64,7 @@ public final class Constant {
 
 	// TODO pass the String to File to all representatives directories
 	public static final String DEFAULT_PROPERTIES_FILE_DIR = "meta-inf" + DEFAULT_FILE_SEPARATOR;
-	public static final String DEFAULT_DATA_FILE_DIR = "data" + DEFAULT_FILE_SEPARATOR;
+	public static final String DEFAULT_DATA_FILE_DIR = ".data" + DEFAULT_FILE_SEPARATOR;
 
 	public static final String DEFAULT_PROPERTIES_XML_FILE_EXT = ".xml";
 	public final static String DEFAULT_BACKUP_EXTENSION = ".bkp";

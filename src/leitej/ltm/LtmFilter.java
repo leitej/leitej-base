@@ -61,7 +61,7 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 		this.nextOp = null;
 	}
 
-	public T prepare(final OPERATOR op) {
+	public T append(final OPERATOR op) {
 		if (op == null) {
 			throw new NullPointerException();
 		}
@@ -84,18 +84,19 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 	}
 
 	void setDataFilter(final String dataName, final Object value, final boolean obfuscatedValue) {
-		final DataMemoryType type = DataMemoryType.getDataMemoryType(this.fHandler.getType(dataName));
+		final Class<?> returnClass = this.fHandler.getReturnClass(dataName);
+		final DataMemoryType type = DataMemoryType.getDataMemoryType(returnClass);
 		this.typeList.add(type);
 		if (DataMemoryType.LARGE_MEMORY.equals(type)) {
 			this.paramList.add(LargeMemory.class.cast(value).getId());
 		} else if (DataMemoryType.LONG_TERM_MEMORY.equals(type)) {
-			this.paramList.add(LtmObjectModelling.class.cast(value).getId());
+			this.paramList.add(LtmObjectModelling.class.cast(value).getLtmId());
 		} else {
 			this.paramList.add(value);
 		}
 		//
 		this.filter.append(" \"");
-		this.filter.append(dataName);
+		this.filter.append(DataMemoryUtil.genColumnName(dataName, returnClass));
 		this.filter.append("\" ");
 		switch (this.nextOp) {
 		case EQUAL:

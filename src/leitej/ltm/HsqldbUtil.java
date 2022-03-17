@@ -16,6 +16,7 @@
 
 package leitej.ltm;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
@@ -26,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +49,6 @@ final class HsqldbUtil {
 
 	private static final char TABLE_LTM_PREFIX = 'L';
 	private static final char TABLE_SET_PREFIX = 'S';
-	private static final char TABLE_MAP_PREFIX = 'M';
 
 	static final String SCHEMA = "ltm";
 	private static final MessageDigest CREATE_TABLENAME;
@@ -79,13 +80,6 @@ final class HsqldbUtil {
 		synchronized (CREATE_TABLENAME) {
 			return TABLE_SET_PREFIX + HexaUtil
 					.toHex(CREATE_TABLENAME.digest((setDataname + ltmClass.getName()).getBytes(Constant.UTF8_CHARSET)));
-		}
-	}
-
-	static <I extends LtmObjectModelling> String getTablenameMap(final Class<I> ltmClass, final String mapDataname) {
-		synchronized (CREATE_TABLENAME) {
-			return TABLE_MAP_PREFIX + HexaUtil
-					.toHex(CREATE_TABLENAME.digest((mapDataname + ltmClass.getName()).getBytes(Constant.UTF8_CHARSET)));
 		}
 	}
 
@@ -126,16 +120,22 @@ final class HsqldbUtil {
 				// get tables
 				final ResultSet rsTable = conn.getMetaData().getTables(null, SCHEMA, "%", new String[] { "TABLE" });
 				String tablename;
-				String remarks;
-				final List<String> dropTable = new ArrayList<>();
+				String remark;
+				final List<String> dropTableList = new ArrayList<>();
+				final List<String> dropTableRemarkList = new ArrayList<>();
+				final List<String> dropLtmClassList = new ArrayList<>();
 				while (rsTable.next()) {
 					tablename = rsTable.getString("TABLE_NAME");
-					remarks = rsTable.getString("REMARKS");
-					LOG.debug("schema: #0, remarks: #1, table: #2", SCHEMA, remarks, tablename);
-					if (DataMemoryConnection.isToEraseTable(remarks)) {
-						dropTable.add(tablename);
+					remark = rsTable.getString("REMARKS");
+					LOG.debug("schema: #0, remarks: #1, table: #2", SCHEMA, remark, tablename);
+					if (DataMemoryUtil.isToEraseTable(remark)) {
+						dropTableList.add(tablename);
+						dropTableRemarkList.add(remark);
+						if (tablename.charAt(0) == TABLE_LTM_PREFIX) {
+							dropLtmClassList.add(DataMemoryUtil.getLtmClassName(remark));
+						}
 					} else {
-						TABLE_COMMENT_MAP.put(tablename, remarks);
+						TABLE_COMMENT_MAP.put(tablename, remark);
 						TABLE_COLUMN_MAP.put(tablename, new ArrayList<String>());
 					}
 				}
@@ -156,17 +156,29 @@ final class HsqldbUtil {
 					LOG.debug("columnList: #0", columnList);
 				}
 				// drop tables
-				if (!dropTable.isEmpty()) {
+				if (!dropTableList.isEmpty()) {
 					String dropSql;
 					Statement stt;
-					for (final String droptable : dropTable) {
-						dropSql = "drop table " + droptable;
-						LOG.warn("erasing table: #0", droptable);
+					for (int i = 0; i < dropTableList.size(); i++) {
+						// update large memory tracker
+						if (dropTableList.get(i).charAt(0) == TABLE_SET_PREFIX) {
+							if (DataMemoryType.LARGE_MEMORY
+									.equals(DataMemoryUtil.getColumnSetDataMemoryType(dropTableRemarkList.get(i)))
+									&& !dropLtmClassList
+											.contains(DataMemoryUtil.getLtmClassName(dropTableRemarkList.get(i)))) {
+								LargeMemoryTracker.delFromLtmColumnSetDrop(conn, dropTableList.get(i),
+										DataMemoryUtil.getLtmClassName(dropTableRemarkList.get(i)));
+							}
+						} else {
+							LargeMemoryTracker.delFromLtmClassName(conn,
+									DataMemoryUtil.getLtmClassName(dropTableRemarkList.get(i)));
+						}
+						// drop the table
+						dropSql = "drop table " + dropTableList.get(i);
+						LOG.warn("erasing table: #0, remark: #1", dropTableList.get(i), dropTableRemarkList.get(i));
 						stt = conn.createStatement();
 						stt.execute(dropSql);
 						stt.close();
-						// TODO remove big binary files
-						// BigBinaryTracer.delFromLtmClassName(conn, ltmClassName);
 					}
 					conn.commit();
 				}
@@ -183,35 +195,41 @@ final class HsqldbUtil {
 	/*
 	 * WARN: shutdown is for all databases
 	 */
-	static final void dbShutdown() throws SQLException {
-		// TODO newConnection().createStatement().executeUpdate("SHUTDOWN COMPACT");
-		newConnection().createStatement().executeUpdate("SHUTDOWN");
+	static final void dbShutdown() throws SQLException, IOException {
+		if (CompactMemory.isToCompact()) {
+			LOG.warn("Iniciating Compact Memory");
+			newConnection().createStatement().executeUpdate("SHUTDOWN COMPACT");
+			CompactMemory.compactDone();
+		} else {
+			newConnection().createStatement().executeUpdate("SHUTDOWN");
+		}
 	}
 
 	private static void createTable(final Connection conn, final PreparedClass prepClass) throws SQLException {
 		final StringBuilder query = new StringBuilder();
-		// create table
+		// create table - ROW_ID, ...
 		query.append("create table \"");
 		query.append(SCHEMA);
 		query.append("\".\"");
 		query.append(prepClass.getTablename());
 		query.append("\" (\"");
-		query.append(DataProxyHandler.ID);
+		query.append(DataProxyHandler.LTM_ID);
 		query.append("\" bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY");
-		for (int i = 0; i < prepClass.getColumns().size(); i++) {
+		for (int i = 0; i < prepClass.getColumnNameList().size(); i++) {
 			query.append(", \"");
-			query.append(prepClass.getColumns().get(i));
+			query.append(prepClass.getColumnNameList().get(i));
 			query.append("\" ");
-			query.append(getHsqlType(prepClass.getColumnsTypes().get(i).getSqlType()));
+			query.append(getHsqlType(prepClass.getColumnTypeList().get(i).getSqlType()));
 		}
 		query.append(")");
-		// comment on table
+		// comment on table - class.name
 		query.append("; comment on table \"");
 		query.append(SCHEMA);
 		query.append("\".\"");
 		query.append(prepClass.getTablename());
 		query.append("\" is '");
-		query.append(prepClass.getInterface().getName());
+		final String remarks = DataMemoryUtil.genRemark(prepClass.getInterface());
+		query.append(remarks);
 		query.append("'");
 		final String createTable = query.toString();
 		LOG.debug("createTable: #0", createTable);
@@ -219,6 +237,105 @@ final class HsqldbUtil {
 		stt.execute(createTable);
 		stt.close();
 		conn.commit();
+		TABLE_COMMENT_MAP.put(prepClass.getTablename(), remarks);
+		TABLE_COLUMN_MAP.put(prepClass.getTablename(), new ArrayList<>(prepClass.getColumnNameList()));
+	}
+
+	static void createTableSet(final Connection conn, final PreparedClass prepClass, final String datanameSet)
+			throws SQLException {
+		final StringBuilder query = new StringBuilder();
+		final String setTablename = prepClass.getSetTablename(datanameSet);
+		final DataMemoryType setDataMemoryType = prepClass.getColumnsSetType(datanameSet);
+		final Class<?> setDataClass = prepClass.getColumnsSetClass(datanameSet);
+		final String setSqlType = getHsqlType(setDataMemoryType.getSqlType());
+		// create table - ROW_ID, LTM_ID, VALUE
+		query.append("create table \"");
+		query.append(SCHEMA);
+		query.append("\".\"");
+		query.append(setTablename);
+		query.append("\" (\"");
+		query.append(DataProxyHandler.SET_ID);
+		query.append("\" bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY");
+		query.append(", \"");
+		query.append(DataProxyHandler.LTM_ID);
+		query.append("\" ");
+		query.append(getHsqlType(DataMemoryType.LONG_TERM_MEMORY.getSqlType()));
+		query.append(", \"");
+		query.append(DataProxyHandler.SET_VALUE);
+		query.append("\" ");
+		query.append(setSqlType);
+		query.append(")");
+		// comment on table - class.name;data_name_set;data_name_set_type
+		query.append("; comment on table \"");
+		query.append(SCHEMA);
+		query.append("\".\"");
+		query.append(setTablename);
+		query.append("\" is '");
+		final String remarks = DataMemoryUtil.genRemark(prepClass.getInterface(), datanameSet, setDataMemoryType,
+				setDataClass);
+		query.append(remarks);
+		query.append("'");
+		// execute it
+		final String createSetTable = query.toString();
+		LOG.debug("createSetTable: #0", createSetTable);
+		final Statement stt = conn.createStatement();
+		stt.execute(createSetTable);
+		stt.close();
+		// create indexes
+		query.setLength(0);
+		// create index - LTM_ID
+		query.append("create index if not exists \"ind_");
+		query.append(setTablename);
+		query.append("_ltmid\" on \"");
+		query.append(SCHEMA);
+		query.append("\".\"");
+		query.append(setTablename);
+		query.append("\" (\"");
+		query.append(DataProxyHandler.LTM_ID);
+		query.append("\")");
+		// create index - LTM_ID - SET_VALUE
+		query.append("; create index if not exists \"ind_");
+		query.append(setTablename);
+		query.append("_ltmid_setvalue\" on \"");
+		query.append(SCHEMA);
+		query.append("\".\"");
+		query.append(setTablename);
+		query.append("\" (\"");
+		query.append(DataProxyHandler.LTM_ID);
+		query.append("\", \"");
+		query.append(DataProxyHandler.SET_VALUE);
+		query.append("\")");
+		// create index - SET_ID - LTM_ID
+		query.append("; create index if not exists \"ind_");
+		query.append(setTablename);
+		query.append("_setid_ltmid\" on \"");
+		query.append(SCHEMA);
+		query.append("\".\"");
+		query.append(setTablename);
+		query.append("\" (\"");
+		query.append(DataProxyHandler.SET_ID);
+		query.append("\", \"");
+		query.append(DataProxyHandler.LTM_ID);
+		query.append("\")");
+		// execute it
+		final String createSetIndex = query.toString();
+		LOG.debug("createSetIndex: #0", createSetIndex);
+		final Statement stti = conn.createStatement();
+		stti.execute(createSetIndex);
+		stti.close();
+		// persist
+		conn.commit();
+		TABLE_COMMENT_MAP.put(setTablename, remarks);
+		TABLE_COLUMN_MAP.put(setTablename, Arrays
+				.asList(new String[] { DataProxyHandler.SET_ID, DataProxyHandler.LTM_ID, DataProxyHandler.SET_VALUE }));
+	}
+
+	static DataMemoryType getColumnSetDataMemoryType(final String setTablename) {
+		return DataMemoryUtil.getColumnSetDataMemoryType(TABLE_COMMENT_MAP.get(setTablename));
+	}
+
+	static Class<?> getColumnSetParameterClass(final String setTablename) throws ClassNotFoundException {
+		return DataMemoryUtil.getColumnSetParameterClass(TABLE_COMMENT_MAP.get(setTablename));
 	}
 
 	private static void dropColumns(final Connection conn, final String tablename, final List<String> toRemove)
@@ -258,7 +375,7 @@ final class HsqldbUtil {
 				query.append(column);
 				query.append("\" ");
 				query.append(getHsqlType(
-						prepClass.getColumnsTypes().get(prepClass.getColumns().indexOf(column)).getSqlType()));
+						prepClass.getColumnTypeList().get(prepClass.getColumnNameList().indexOf(column)).getSqlType()));
 				query.append("; ");
 			}
 			final String addColumns = query.toString();
@@ -270,29 +387,38 @@ final class HsqldbUtil {
 		}
 	}
 
+	private static <T extends LtmObjectModelling> void delLargeMemory(final Connection conn, final Class<T> ltmClass,
+			final String ltmTablename, final List<String> toRemoveColumnNameList) throws SQLException {
+		String columnName;
+		for (int i = 0; i < toRemoveColumnNameList.size(); i++) {
+			columnName = toRemoveColumnNameList.get(i);
+			if (DataMemoryUtil.isColumnTypeLargeMemory(columnName)) {
+				LargeMemoryTracker.delFromLtmColumnDrop(conn, ltmClass, ltmTablename, columnName);
+			}
+		}
+	}
+
 	static void initialize(final Connection conn, final PreparedClass prepClass) throws SQLException {
 		LOG.trace("table: #0", prepClass.getTablename());
 		final List<String> columnList = TABLE_COLUMN_MAP.get(prepClass.getTablename());
 		// check if table already exists
 		if (columnList == null) {
 			createTable(conn, prepClass);
-			// TODO tabelas intermedias -set-map
 		} else {
 			if (DataMemoryPool.CONFIG.isAutoForgetsInterfaceComponentMisses()) {
 				final List<String> toRemove = new ArrayList<>();
 				toRemove.addAll(columnList);
-				toRemove.removeAll(prepClass.getColumns());
-				toRemove.remove(DataProxyHandler.ID);
+				toRemove.removeAll(prepClass.getColumnNameList());
+				toRemove.remove(DataProxyHandler.LTM_ID);
+				delLargeMemory(conn, prepClass.getInterface(), prepClass.getTablename(), toRemove);
 				dropColumns(conn, prepClass.getTablename(), toRemove);
 				columnList.removeAll(toRemove);
-				// TODO tabelas intermedias -set-map
 			}
 			final List<String> toAdd = new ArrayList<>();
-			toAdd.addAll(prepClass.getColumns());
+			toAdd.addAll(prepClass.getColumnNameList());
 			toAdd.removeAll(columnList);
 			addColumns(conn, prepClass, toAdd);
 			columnList.addAll(toAdd);
-			// TODO tabelas intermedias -set-map
 		}
 	}
 
@@ -304,6 +430,7 @@ final class HsqldbUtil {
 		stt.close();
 		conn.commit();
 		TABLE_COLUMN_MAP.clear();
+		TABLE_COMMENT_MAP.clear();
 		createSchema(conn);
 	}
 
@@ -435,7 +562,7 @@ final class HsqldbUtil {
 	}
 
 	static String getStatementSelectById(final String tablename) {
-		return "select * from \"" + SCHEMA + "\".\"" + tablename + "\" where \"" + DataProxyHandler.ID + "\" = ?";
+		return "select * from \"" + SCHEMA + "\".\"" + tablename + "\" where \"" + DataProxyHandler.LTM_ID + "\" = ?";
 	}
 
 	static String getStatementInsertNewRow(final String tablename) {
@@ -445,47 +572,71 @@ final class HsqldbUtil {
 		result.append("\".\"");
 		result.append(tablename);
 		result.append("\" default values; call identity()");
-		// TODO tabelas intermedias -set-map
 		return result.toString();
 	}
 
-	static String getStatementUpdateColumnById(final String tablename, final String dataname) {
+	static String getStatementUpdateColumnById(final String tablename, final String columnname) {
 		final StringBuilder result = new StringBuilder();
 		result.append("update \"");
 		result.append(SCHEMA);
 		result.append("\".\"");
 		result.append(tablename);
 		result.append("\" set \"");
-		result.append(dataname);
+		result.append(columnname);
 		result.append("\" = ? where \"");
-		result.append(DataProxyHandler.ID);
+		result.append(DataProxyHandler.LTM_ID);
 		result.append("\" = ?");
-		// TODO tabelas intermedias -set-map
 		return result.toString();
 	}
 
 	static String getStatementDeleteById(final String tablename) {
-		return "delete from \"" + SCHEMA + "\".\"" + tablename + "\" where \"" + DataProxyHandler.ID + "\" = ?";
-		// TODO tabelas intermedias -set-map
+		return "delete from \"" + SCHEMA + "\".\"" + tablename + "\" where \"" + DataProxyHandler.LTM_ID + "\" = ?";
 	}
 
-	static String getStatementCount(final String tablename, final String filter) {
-		return "select count(1) from \"" + SCHEMA + "\".\"" + tablename + "\" where " + filter;
+	static String getStatementSetClearByLtmId(final String tablenameSet) {
+		return "delete from \"" + SCHEMA + "\".\"" + tablenameSet + "\" where \"" + DataProxyHandler.LTM_ID + "\" = ?";
 	}
 
-	static String getStatementHasResult(final String tablename, final String filter) {
-		return "select \"" + DataProxyHandler.ID + "\" from \"" + SCHEMA + "\".\"" + tablename + "\" where " + filter
-				+ " limit 1";
+	static String getStatementSetCount(final String tablename, final long ltmId) {
+		return "select count(*) from \"" + SCHEMA + "\".\"" + tablename + "\" where \"" + DataProxyHandler.LTM_ID
+				+ "\" = " + String.valueOf(ltmId);
 	}
 
-	static String getStatementContains(final String tablename, final String filter) {
-		return "select \"" + DataProxyHandler.ID + "\" from \"" + SCHEMA + "\".\"" + tablename + "\" where \""
-				+ DataProxyHandler.ID + "\" in ? and " + filter;
+	static String getStatementSetHasResult(final String tablename, final long ltmId) {
+		return "select \"" + DataProxyHandler.LTM_ID + "\" from \"" + SCHEMA + "\".\"" + tablename + "\" where \""
+				+ DataProxyHandler.LTM_ID + "\" = " + String.valueOf(ltmId) + " limit 1";
+	}
+
+	static String getStatementSetContains(final String tablename, final long ltmId) {
+		return "select \"" + DataProxyHandler.SET_VALUE + "\" from \"" + SCHEMA + "\".\"" + tablename + "\" where \""
+				+ DataProxyHandler.LTM_ID + "\" = " + String.valueOf(ltmId) + " and \"" + DataProxyHandler.SET_VALUE
+				+ "\" = ? limit 1";
+	}
+
+	static String getStatementSetAdd(final String tablename, final String tablenameLtm, final long ltmId) {
+		return "insert into \"" + SCHEMA + "\".\"" + tablename + "\" (\"" + DataProxyHandler.LTM_ID + "\", \""
+				+ DataProxyHandler.SET_VALUE + "\") select a.\"" + DataProxyHandler.LTM_ID + "\", ? from \"" + SCHEMA
+				+ "\".\"" + tablenameLtm + "\" a where a.\"" + DataProxyHandler.LTM_ID + "\" = " + String.valueOf(ltmId)
+				+ " and not exists (select 1 from \"" + SCHEMA + "\".\"" + tablename + "\" b where b.\""
+				+ DataProxyHandler.LTM_ID + "\" = " + String.valueOf(ltmId) + " and b.\"" + DataProxyHandler.SET_VALUE
+				+ "\" = ? )";
+	}
+
+	static String getStatementSetRemove(final String tablename, final long ltmId) {
+		return "delete from \"" + SCHEMA + "\".\"" + tablename + "\" where \"" + DataProxyHandler.LTM_ID + "\" = "
+				+ String.valueOf(ltmId) + " and \"" + DataProxyHandler.SET_VALUE + "\" = ? ";
+	}
+
+	public static String getStatementSetIterator(final String tablename, final long ltmId) {
+		return "select \"" + DataProxyHandler.SET_ID + "\", \"" + DataProxyHandler.SET_VALUE + "\" from \"" + SCHEMA
+				+ "\".\"" + tablename + "\" where \"" + DataProxyHandler.SET_ID + "\" > ? and \""
+				+ DataProxyHandler.LTM_ID + "\" = " + String.valueOf(ltmId) + " order by \"" + DataProxyHandler.SET_ID
+				+ "\" asc limit 1";
 	}
 
 	static String getStatementScaledIterator(final String tablename, final String filter) {
-		return "select \"" + DataProxyHandler.ID + "\" from \"" + SCHEMA + "\".\"" + tablename + "\" where \""
-				+ DataProxyHandler.ID + "\" > ? and " + filter + " order by \"" + DataProxyHandler.ID
+		return "select \"" + DataProxyHandler.LTM_ID + "\" from \"" + SCHEMA + "\".\"" + tablename + "\" where \""
+				+ DataProxyHandler.LTM_ID + "\" > ? and " + filter + " order by \"" + DataProxyHandler.LTM_ID
 				+ "\" asc limit 1";
 	}
 

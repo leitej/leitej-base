@@ -215,8 +215,8 @@ public final class LtVault {
 		}
 		// assert vault has the internal secret iv for certificates
 		final LtmFilter<VaultSecretIV> filter = new LtmFilter<>(VaultSecretIV.class, OPERATOR_JOIN.AND);
-		filter.prepare(OPERATOR.EQUAL).setKeyLtmStoreAlias(this.keyLtmStoreAlias);
-		filter.prepare(OPERATOR.EQUAL).setAlias(VAULT_INTERNAL_CERTIFICATE_SECRET_IV_ENTRY_ALIAS);
+		filter.append(OPERATOR.EQUAL).setKeyLtmStoreAlias(this.keyLtmStoreAlias);
+		filter.append(OPERATOR.EQUAL).setAlias(VAULT_INTERNAL_CERTIFICATE_SECRET_IV_ENTRY_ALIAS);
 		final Iterator<VaultSecretIV> found = LTM.search(filter);
 		if (!found.hasNext()) {
 			setSecretIV(VAULT_INTERNAL_CERTIFICATE_SECRET_IV_ENTRY_ALIAS,
@@ -247,8 +247,8 @@ public final class LtVault {
 		VaultSecretIV result = this.vaultSecretIVLightCache.get(alias);
 		if (result == null) {
 			final LtmFilter<VaultSecretIV> filter = new LtmFilter<>(VaultSecretIV.class, OPERATOR_JOIN.AND);
-			filter.prepare(OPERATOR.EQUAL).setKeyLtmStoreAlias(this.keyLtmStoreAlias);
-			filter.prepare(OPERATOR.EQUAL).setAlias(alias);
+			filter.append(OPERATOR.EQUAL).setKeyLtmStoreAlias(this.keyLtmStoreAlias);
+			filter.append(OPERATOR.EQUAL).setAlias(alias);
 			final Iterator<VaultSecretIV> found = LTM.search(filter);
 			if (found.hasNext()) {
 				result = found.next();
@@ -325,8 +325,8 @@ public final class LtVault {
 		VaultCertificate result = this.vaultCertificateLightCache.get(alias);
 		if (result == null) {
 			final LtmFilter<VaultCertificate> filter = new LtmFilter<>(VaultCertificate.class, OPERATOR_JOIN.AND);
-			filter.prepare(OPERATOR.EQUAL).setKeyLtmStoreAlias(this.keyLtmStoreAlias);
-			filter.prepare(OPERATOR.EQUAL).setAlias(alias);
+			filter.append(OPERATOR.EQUAL).setKeyLtmStoreAlias(this.keyLtmStoreAlias);
+			filter.append(OPERATOR.EQUAL).setAlias(alias);
 			final Iterator<VaultCertificate> found = LTM.search(filter);
 			if (found.hasNext()) {
 				result = found.next();
