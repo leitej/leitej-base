@@ -42,13 +42,15 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 
 	private static final Map<Class<?>, PreparedClass> PREP_CLASS_MAP = new HashMap<>();
 
-	private static Short SCOPE = 0;
-	static final String ID = "id";
+	private static volatile short SCOPE = 0;
+	static final String LTM_ID = "ltmId";
+	static final String SET_ID = "setId";
+	static final String SET_VALUE = "setValue";
 
 	private static final DataMemoryPool MEM_POOL = DataMemoryPool.getInstance();
 
 	private static <T extends LtmObjectModelling> PreparedClass initialize(final DataMemoryConnection conn,
-			final DataProxyHandler dph) throws SQLException {
+			final DataProxyHandler dph) throws SQLException, ClassNotFoundException {
 		PreparedClass result;
 		final Class<T> ltmClass = dph.getDataInterfaceClass();
 		synchronized (ltmClass) {
@@ -66,7 +68,7 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 		DataMemoryConnection conn = null;
 		try {
 			conn = MEM_POOL.poll();
-			synchronized (SCOPE) {
+			synchronized (DataProxyHandler.class) {
 				SCOPE++;
 				PREP_CLASS_MAP.clear();
 				conn.eraseAll();
@@ -91,40 +93,51 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 		}
 	}
 
-	private final Short scope;
+	private final short scope;
 	private final PreparedClass preparedClass;
-	private final long id;
+	private final long ltmId;
 	private final Map<String, Object> data;
 	private LtmLtRtException occuredException;
 
 	protected <T extends LtmObjectModelling> DataProxyHandler(final Class<T> ltmClass)
 			throws IllegalArgumentLtRtException, ClosedLtRtException, ObjectPoolLtException, InterruptedException,
-			SQLException {
+			SQLException, ClassNotFoundException {
 		this(ltmClass, null);
 	}
 
 	protected <T extends LtmObjectModelling> DataProxyHandler(final Class<T> ltmClass, final Long id)
 			throws IllegalArgumentLtRtException, ClosedLtRtException, ObjectPoolLtException, InterruptedException,
-			SQLException {
+			SQLException, ClassNotFoundException {
 		super(ltmClass);
 		this.data = new HashMap<>();
 		DataMemoryConnection conn = null;
 		try {
 			conn = MEM_POOL.poll();
-			synchronized (SCOPE) {
+			synchronized (DataProxyHandler.class) {
 				this.scope = SCOPE;
 				this.preparedClass = initialize(conn, this);
 				if (id == null) {
-					this.id = conn.newRecord(this.preparedClass);
-					this.data.put(ID, this.id);
+					this.ltmId = conn.newRecord(this.preparedClass);
+					this.data.put(LTM_ID, this.ltmId);
 				} else {
-					this.id = id;
+					this.ltmId = id;
 					conn.fetchRecord(this, this.data);
 				}
 			}
 		} finally {
 			if (conn != null) {
 				MEM_POOL.offer(conn);
+			}
+		}
+	}
+
+	void isValid() {
+		synchronized (DataProxyHandler.class) {
+			if (this.occuredException != null) {
+				throw this.occuredException;
+			} else if (SCOPE != this.scope) {
+				this.occuredException = new LtmLtRtException("This object was erased from long term memory");
+				throw this.occuredException;
 			}
 		}
 	}
@@ -139,6 +152,10 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 			final Class<LtmObjectModelling> ltmClass = this.preparedClass.getLongTermMemoryClass(dataName);
 			if (ltmClass == null) {
 				result = this.data.get(dataName);
+				if (result == null && this.preparedClass.getColumnsSet().contains(dataName)) {
+					result = InitialSet.instantiateSet(this, dataName);
+					this.data.put(dataName, result);
+				}
 			} else {
 				final Object fetchId = this.data.get(dataName);
 				if (fetchId == null) {
@@ -148,19 +165,14 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 				}
 			}
 		}
-		// TODO tabelas intermedias -set-map
-		synchronized (SCOPE) {
-			if (!SCOPE.equals(this.scope)) {
-				throw new LtmLtRtException("This object was erased from long term memory");
-			}
-		}
+		this.isValid();
 		return result;
 	}
 
 	@Override
 	protected void set(final String dataName, final Object value) {
-		if (ID.equals(dataName)) {
-			throw new LtmLtRtException("#0 can not be changed", ID);
+		if (LTM_ID.equals(dataName) || this.preparedClass.getColumnsSet().contains(dataName)) {
+			throw new LtmLtRtException("#0 can not be changed", dataName);
 		}
 		synchronized (this) {
 			if (this.occuredException != null) {
@@ -170,7 +182,7 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 				DataMemoryConnection conn = null;
 				try {
 					conn = MEM_POOL.poll();
-					conn.updateRecord(this.preparedClass, this.id, dataName, value, this.data.get(dataName));
+					conn.updateRecord(this.preparedClass, this.ltmId, dataName, value, this.data.get(dataName));
 				} finally {
 					if (conn != null) {
 						MEM_POOL.offer(conn);
@@ -184,15 +196,10 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 			if (ltmClass == null || value == null) {
 				this.data.put(dataName, value);
 			} else {
-				this.data.put(dataName, LtmObjectModelling.class.cast(value).getId());
+				this.data.put(dataName, LtmObjectModelling.class.cast(value).getLtmId());
 			}
 		}
-		// TODO tabelas intermedias -set-map
-		synchronized (SCOPE) {
-			if (!SCOPE.equals(this.scope)) {
-				throw new LtmLtRtException("This object was erased from long term memory");
-			}
-		}
+		this.isValid();
 	}
 
 	@Override
@@ -218,15 +225,15 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 		return getDataInterfaceClass();
 	}
 
-	long getId() {
-		return this.id;
+	long getLtmId() {
+		return this.ltmId;
 	}
 
 	List<String> getDatanameList() {
 		return dataNameList();
 	}
 
-	Class<?> getType(final String dataname) {
+	Class<?> getReturnClass(final String dataname) {
 		return dataMethodsGetSet(dataname)[0].getReturnType();
 	}
 

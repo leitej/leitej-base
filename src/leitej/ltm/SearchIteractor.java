@@ -27,7 +27,7 @@ import leitej.exception.ObjectPoolLtException;
  * @author Julio Leite
  *
  */
-final class LtmIteractor<T extends LtmObjectModelling> implements Iterator<T> {
+final class SearchIteractor<T extends LtmObjectModelling> implements Iterator<T> {
 
 	private static final DataMemoryPool MEM_POOL = DataMemoryPool.getInstance();
 	private static final LongTermMemory LTM = LongTermMemory.getInstance();
@@ -38,7 +38,7 @@ final class LtmIteractor<T extends LtmObjectModelling> implements Iterator<T> {
 	private final DataMemoryType[] types;
 	private Long nextId;
 
-	LtmIteractor(final Class<T> ltmClass, final String queryFilter, final Object[] parameters,
+	SearchIteractor(final Class<T> ltmClass, final String queryFilter, final Object[] parameters,
 			final DataMemoryType[] types) {
 		this.ltmClass = ltmClass;
 		this.query = HsqldbUtil.getStatementScaledIterator(HsqldbUtil.getTablename(ltmClass), queryFilter);

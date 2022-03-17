@@ -268,7 +268,7 @@ public abstract class AbstractCslVault implements CslVaultItf {
 		final String alias = CertificateUtil.getAliasFrom(chain[position]);
 		CadastreIssuer result;
 		final LtmFilter<CadastreIssuer> filter = new LtmFilter<>(CadastreIssuer.class, OPERATOR_JOIN.AND);
-		filter.prepare(OPERATOR.EQUAL).setAlias(alias);
+		filter.append(OPERATOR.EQUAL).setAlias(alias);
 		final Iterator<CadastreIssuer> found = LTM.search(filter);
 		if (found.hasNext()) {
 			result = found.next();
@@ -341,7 +341,7 @@ public abstract class AbstractCslVault implements CslVaultItf {
 			Cadastre result = this.cadastreCache.get(aliasClientCertificate);
 			if (result == null) {
 				final LtmFilter<Cadastre> filter = new LtmFilter<>(Cadastre.class, OPERATOR_JOIN.AND);
-				filter.prepare(OPERATOR.EQUAL).setAlias(aliasClientCertificate);
+				filter.append(OPERATOR.EQUAL).setAlias(aliasClientCertificate);
 				final Iterator<Cadastre> found = LTM.search(filter);
 				if (!found.hasNext()) {
 					throw new CertificateLtException();

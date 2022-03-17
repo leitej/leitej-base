@@ -285,6 +285,9 @@ public class BigBinary implements RandomAccessBinary, Closeable {
 	}
 
 	public synchronized boolean delete() throws IOException {
+		if (!this.file.exists()) {
+			return true;
+		}
 		close();
 		return this.file.delete();
 	}

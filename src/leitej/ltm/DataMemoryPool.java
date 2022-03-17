@@ -43,10 +43,10 @@ public final class DataMemoryPool extends AbstractObjectPool<DataMemoryConnectio
 	private static final DataMemoryPool INSTANCE;
 
 	static {
-		final DataMemoryConfig[] defaultContent = new DataMemoryConfig[] {
-				Xmlom.newInstance(DataMemoryConfig.class) };
+		final DataMemoryConfig[] defaultContent = new DataMemoryConfig[] { Xmlom.newInstance(DataMemoryConfig.class) };
 		defaultContent[0].setMaxConnections(20);
 		defaultContent[0].setAutoForgetsInterfaceComponentMisses(false);
+		defaultContent[0].setShutdownCompactMemoryEveryNDays(30);
 		try {
 			CONFIG = Xmlom.getConfig(DataMemoryConfig.class, defaultContent).get(0);
 		} catch (NullPointerException | SecurityException | XmlInvalidLtException | IOException e) {
@@ -110,7 +110,7 @@ public final class DataMemoryPool extends AbstractObjectPool<DataMemoryConnectio
 		super.close();
 		try {
 			DataMemoryConnection.hibernate();
-		} catch (final SQLException e) {
+		} catch (final SQLException | IOException e) {
 			throw new ObjectPoolLtException(e);
 		}
 	}

@@ -108,7 +108,7 @@ enum DataMemoryType {
 		return result;
 	}
 
-	static DataMemoryType getDataMemoryType(final Class<?> type) {
+	static DataMemoryType getDataMemoryType(final Class<?> type) throws UnsupportedDataTypeLtRtException {
 		final DataMemoryType result;
 		if (Byte.class.isAssignableFrom(type) || byte.class.isAssignableFrom(type)) {
 			result = DataMemoryType.BYTE;

@@ -32,4 +32,8 @@ public interface DataMemoryConfig extends XmlObjectModelling {
 
 	void setAutoForgetsInterfaceComponentMisses(boolean autoForgetsInterfaceComponentMisses);
 
+	int getShutdownCompactMemoryEveryNDays();
+
+	void setShutdownCompactMemoryEveryNDays(int shutdownCompactMemoryEveryNDays);
+
 }

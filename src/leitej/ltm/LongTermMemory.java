@@ -48,6 +48,10 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 		return INSTANCE;
 	}
 
+	static DataProxyHandler getHandler(final LtmObjectModelling ltm) {
+		return INSTANCE.getInvocationHandler(ltm);
+	}
+
 	private static final <T extends LtmObjectModelling> Cache<Long, LtmObjectModelling> cache(final Class<T> ltmClass) {
 		Cache<Long, LtmObjectModelling> cache;
 		synchronized (CACHE) {
@@ -65,7 +69,7 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 	}
 
 	private static final <T extends LtmObjectModelling> void cachePut(final Class<T> ltmClass, final T ltm) {
-		cache(ltmClass).set(ltm.getId(), ltm);
+		cache(ltmClass).set(ltm.getLtmId(), ltm);
 	}
 
 	private static final <T extends LtmObjectModelling> void cacheDel(final Class<T> ltmClass, final long id) {
@@ -77,11 +81,12 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 		synchronized (CACHE) {
 			try {
 				DataProxyHandler.eraseAll();
-				for (final Cache<Long, LtmObjectModelling> cache : CACHE.values()) {
-					cache.clear();
-				}
 			} catch (ClosedLtRtException | ObjectPoolLtException | SQLException | InterruptedException e) {
 				throw new LtmLtRtException(e);
+			}
+			LOG.info("Clear long term memory cache");
+			for (final Cache<Long, LtmObjectModelling> cache : CACHE.values()) {
+				cache.clear();
 			}
 		}
 	}
@@ -99,7 +104,7 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 				return ltm;
 			}
 		} catch (IllegalArgumentLtRtException | ClosedLtRtException | ObjectPoolLtException | InterruptedException
-				| SQLException e) {
+				| SQLException | ClassNotFoundException e) {
 			throw new LtmLtRtException(e);
 		}
 	}
@@ -115,15 +120,15 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 				return ltm;
 			}
 		} catch (IllegalArgumentLtRtException | ClosedLtRtException | ObjectPoolLtException | InterruptedException
-				| SQLException e) {
+				| SQLException | ClassNotFoundException e) {
 			throw new LtmLtRtException(e);
 		}
 	}
 
 	public <T extends LtmObjectModelling> void forgets(final T record) throws LtmLtRtException {
-		final DataProxyHandler dph = INSTANCE.getInvocationHandler(record);
+		final DataProxyHandler dph = getInvocationHandler(record);
 		final Class<T> ltmClass = dph.getInterface();
-		final long id = record.getId();
+		final long id = record.getLtmId();
 		try {
 			synchronized (ltmClass) {
 				DataProxyHandler.delete(dph.getPreparedClass(), id);
@@ -136,7 +141,7 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 	}
 
 	public <T extends LtmObjectModelling> Iterator<T> search(final LtmFilter<T> ltmFilter) throws LtmLtRtException {
-		return new LtmIteractor<>(ltmFilter.getLTMClass(), ltmFilter.getQueryFilter(), ltmFilter.getParams(),
+		return new SearchIteractor<>(ltmFilter.getLTMClass(), ltmFilter.getQueryFilter(), ltmFilter.getParams(),
 				ltmFilter.getTypes());
 	}
 

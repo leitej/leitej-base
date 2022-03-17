@@ -16,34 +16,23 @@
 
 package leitej.ltm;
 
-import java.io.Serializable;
-import java.util.AbstractMap;
-import java.util.Map;
-import java.util.Set;
-
-import leitej.log.Logger;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author Julio Leite
  *
  */
-public final class LtmMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Serializable {
+@Inherited
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public abstract @interface Index {
 
-	private static final long serialVersionUID = -6140872290111701860L;
+	public abstract String name() default "";
 
-	private static final Logger LOG = Logger.getInstance();
-
-	// FIXME override more methods to do not force iterate all elements
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.util.AbstractMap#entrySet()
-	 */
-	@Override
-	public Set<Entry<K, V>> entrySet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public abstract int position() default 0;
 
 }

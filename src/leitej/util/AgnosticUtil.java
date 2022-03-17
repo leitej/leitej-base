@@ -435,6 +435,25 @@ public final class AgnosticUtil implements Serializable {
 		return out;
 	}
 
+	public static boolean classContains(final Class<?> clazz, final String dataName) {
+		boolean result = false;
+		if (clazz != null && dataName != null) {
+			final String methodGetterName;
+			synchronized (INSTANCE.sbTmp1) {
+				INSTANCE.sbTmp2.setLength(0);
+				INSTANCE.sbTmp2.append(dataName);
+				methodGetterName = writeGetterMethodName(INSTANCE.sbTmp1, INSTANCE.sbTmp2).toString();
+			}
+			final Method[][] methodsGetSet = getMethodsGetSet(clazz);
+			for (int i = 0; i < methodsGetSet.length; i++) {
+				if (methodGetterName.equals(methodsGetSet[i][0].getName())) {
+					result = true;
+				}
+			}
+		}
+		return result;
+	}
+
 	public static final StringBuilder writeDataGetterName(final StringBuilder out, final Method methodGet) {
 		out.setLength(0);
 		if (boolean.class.equals(methodGet.getReturnType()) && methodGet.getName().length() > 2) {

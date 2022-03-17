@@ -75,7 +75,7 @@ final class FilterHandler extends AbstractDataProxyHandler<LtmObjectModelling> {
 		this.filter = filter;
 	}
 
-	Class<?> getType(final String dataname) {
+	Class<?> getReturnClass(final String dataname) {
 		return dataMethodsGetSet(dataname)[0].getReturnType();
 	}
 
