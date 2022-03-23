@@ -49,6 +49,7 @@ final class PreparedClass {
 	private final String deleteById;
 
 	PreparedClass(final DataProxyHandler dph) throws ClassNotFoundException {
+		// TODO indexes - dph.getIndexes(dataname)
 		this.interfaceClass = dph.getInterface();
 		this.tablename = HsqldbUtil.getTablename(this.interfaceClass);
 		LOG.debug("interfaceClass: #0, tablename: #1", this.interfaceClass, this.tablename);

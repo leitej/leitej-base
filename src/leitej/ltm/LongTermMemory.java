@@ -142,7 +142,7 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 
 	public <T extends LtmObjectModelling> Iterator<T> search(final LtmFilter<T> ltmFilter) throws LtmLtRtException {
 		return new SearchIteractor<>(ltmFilter.getLTMClass(), ltmFilter.getQueryFilter(), ltmFilter.getParams(),
-				ltmFilter.getTypes());
+				ltmFilter.getTypes(), ltmFilter.isDescOrder());
 	}
 
 }

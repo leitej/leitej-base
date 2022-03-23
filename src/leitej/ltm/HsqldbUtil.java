@@ -236,6 +236,9 @@ final class HsqldbUtil {
 		final Statement stt = conn.createStatement();
 		stt.execute(createTable);
 		stt.close();
+		// TODO create indexes
+		query.setLength(0);
+		//
 		conn.commit();
 		TABLE_COMMENT_MAP.put(prepClass.getTablename(), remarks);
 		TABLE_COLUMN_MAP.put(prepClass.getTablename(), new ArrayList<>(prepClass.getColumnNameList()));
@@ -405,6 +408,7 @@ final class HsqldbUtil {
 		if (columnList == null) {
 			createTable(conn, prepClass);
 		} else {
+			// TODO validate index remove or add - prepClass get index
 			if (DataMemoryPool.CONFIG.isAutoForgetsInterfaceComponentMisses()) {
 				final List<String> toRemove = new ArrayList<>();
 				toRemove.addAll(columnList);
@@ -634,10 +638,10 @@ final class HsqldbUtil {
 				+ "\" asc limit 1";
 	}
 
-	static String getStatementScaledIterator(final String tablename, final String filter) {
+	static String getStatementScaledIterator(final String tablename, final String filter, final boolean desc) {
 		return "select \"" + DataProxyHandler.LTM_ID + "\" from \"" + SCHEMA + "\".\"" + tablename + "\" where \""
-				+ DataProxyHandler.LTM_ID + "\" > ? and " + filter + " order by \"" + DataProxyHandler.LTM_ID
-				+ "\" asc limit 1";
+				+ DataProxyHandler.LTM_ID + "\" > ? and " + filter + " order by \"" + DataProxyHandler.LTM_ID + "\" "
+				+ ((desc) ? "desc" : "asc") + " limit 1";
 	}
 
 }

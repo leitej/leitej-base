@@ -237,4 +237,8 @@ final class DataProxyHandler extends AbstractDataProxyHandler<LtmObjectModelling
 		return dataMethodsGetSet(dataname)[0].getReturnType();
 	}
 
+	Index[] getIndexes(final String dataname) {
+		return getAnnotations(dataname, Index.class);
+	}
+
 }

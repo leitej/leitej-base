@@ -46,6 +46,7 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 	private final StringBuilder filter;
 	private final OPERATOR_JOIN opJoin;
 	private OPERATOR nextOp;
+	private boolean orderDesc;
 
 	public LtmFilter(final Class<T> ltmClass, final OPERATOR_JOIN opJoin) {
 		if (opJoin == null) {
@@ -59,6 +60,7 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 		this.filter = new StringBuilder();
 		this.opJoin = opJoin;
 		this.nextOp = null;
+		this.orderDesc = false;
 	}
 
 	public T append(final OPERATOR op) {
@@ -152,10 +154,19 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 		this.filter.append(" ?");
 	}
 
+	public void newerFirst() {
+		this.orderDesc = true;
+	}
+
+	public void olderFirst() {
+		this.orderDesc = false;
+	}
+
 	public void reset() {
 		this.paramList.clear();
 		this.typeList.clear();
 		this.filter.setLength(0);
+		this.orderDesc = false;
 	}
 
 	Class<T> getLTMClass() {
@@ -172,6 +183,10 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 
 	DataMemoryType[] getTypes() {
 		return this.typeList.toArray(new DataMemoryType[this.typeList.size()]);
+	}
+
+	boolean isDescOrder() {
+		return this.orderDesc;
 	}
 
 }

@@ -17,6 +17,7 @@
 package leitej.util.data;
 
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -341,6 +342,15 @@ public abstract class AbstractDataProxyHandler<I> implements InvocationHandler, 
 
 	protected final Method[] dataMethodsGetSet(final String dataName) {
 		return this.methodsGetSet.get(dataName);
+	}
+
+	protected final <T extends Annotation> T[] getAnnotations(final String dataName, final Class<T> annotationClass) {
+		final Method[] methods = this.methodsGetSet.get(dataName);
+		T[] result = methods[0].getAnnotationsByType(annotationClass);
+		if (result == null || result.length == 0) {
+			result = methods[1].getAnnotationsByType(annotationClass);
+		}
+		return result;
 	}
 
 	protected final boolean isDataToObfuscate(final String dataName) {
