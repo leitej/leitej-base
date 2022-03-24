@@ -640,8 +640,8 @@ final class HsqldbUtil {
 
 	static String getStatementScaledIterator(final String tablename, final String filter, final boolean desc) {
 		return "select \"" + DataProxyHandler.LTM_ID + "\" from \"" + SCHEMA + "\".\"" + tablename + "\" where \""
-				+ DataProxyHandler.LTM_ID + "\" > ? and " + filter + " order by \"" + DataProxyHandler.LTM_ID + "\" "
-				+ ((desc) ? "desc" : "asc") + " limit 1";
+				+ DataProxyHandler.LTM_ID + "\" " + ((desc) ? "<" : ">") + " ? and " + filter + " order by \""
+				+ DataProxyHandler.LTM_ID + "\" " + ((desc) ? "desc" : "asc") + " limit 1";
 	}
 
 }
