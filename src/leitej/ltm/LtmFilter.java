@@ -174,7 +174,7 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 	}
 
 	String getQueryFilter() {
-		return this.filter.toString();
+		return " (" + this.filter.toString() + ") ";
 	}
 
 	Object[] getParams() {
