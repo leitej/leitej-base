@@ -83,6 +83,9 @@ public final class Cryptography {
 		// show providers available
 		for (final Provider provider : Security.getProviders()) {
 			LOG.info("provider: #0", provider);
+			for (final String key : provider.stringPropertyNames()) {
+				LOG.trace("key: #0, property: #1", key, provider.getProperty(key));
+			}
 		}
 		// load config
 		final Config defaultConfig = Xmlom.newInstance(Config.class);

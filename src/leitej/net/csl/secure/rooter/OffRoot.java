@@ -36,7 +36,7 @@ import leitej.crypto.Cryptography;
 import leitej.crypto.asymmetric.certificate.CertificateStreamUtil;
 import leitej.crypto.asymmetric.certificate.CertificateUtil;
 import leitej.crypto.keyStore.Password;
-import leitej.crypto.keyStore.UberKeyStore;
+import leitej.crypto.keyStore.DefaultKeyStore;
 import leitej.exception.CertificateLtException;
 import leitej.exception.CertificationRequestLtException;
 import leitej.exception.IllegalArgumentLtRtException;
@@ -75,15 +75,15 @@ public final class OffRoot {
 	private static final String MY_ENTRY_KEY_OLD_ALIAS = "__MY_ENTRY_KEY_OLD_ALIAS__";
 	private static final String MY_CONTINGENCY_ENTRY_KEY_ALIAS = "__MY_CONTINGENCY_ENTRY_KEY_ALIAS__";
 
-	private final UberKeyStore keystore;
+	private final DefaultKeyStore keystore;
 
 	public OffRoot(final Password password) throws KeyStoreLtException, IOException {
 		if (!FileUtil.exists(KEYSTORE_FILENAME)) {
 			LOG.warn("Creating keystore: #0", KEYSTORE_FILENAME);
-			this.keystore = UberKeyStore.create(KEYSTORE_FILENAME, password);
+			this.keystore = DefaultKeyStore.create(KEYSTORE_FILENAME, password);
 		} else {
 			LOG.info("Loading keystore: #0", KEYSTORE_FILENAME);
-			this.keystore = UberKeyStore.load(KEYSTORE_FILENAME, password);
+			this.keystore = DefaultKeyStore.load(KEYSTORE_FILENAME, password);
 		}
 		updateVault();
 	}

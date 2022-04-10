@@ -36,7 +36,7 @@ import leitej.crypto.Cryptography;
 import leitej.crypto.asymmetric.certificate.CertificateStreamUtil;
 import leitej.crypto.asymmetric.certificate.CertificateUtil;
 import leitej.crypto.keyStore.Password;
-import leitej.crypto.keyStore.UberKeyLtmStore;
+import leitej.crypto.keyStore.LtmKeyStore;
 import leitej.exception.CertificateLtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.exception.KeyStoreLtException;
@@ -75,7 +75,7 @@ public final class LtVault {
 	 *                     data
 	 */
 	public static final boolean exists(final String alias) throws IOException {
-		return UberKeyLtmStore.exists(alias);
+		return LtmKeyStore.exists(alias);
 	}
 
 	/**
@@ -155,10 +155,10 @@ public final class LtVault {
 			LtVault result = INSTANCE_MAP.get(alias);
 			if (result == null) {
 				if (create) {
-					result = new LtVault(alias, UberKeyLtmStore.create(alias, password));
+					result = new LtVault(alias, LtmKeyStore.create(alias, password));
 					result.deleteAllEntries();
 				} else {
-					result = new LtVault(alias, UberKeyLtmStore.load(alias, password));
+					result = new LtVault(alias, LtmKeyStore.load(alias, password));
 				}
 			} else {
 				if (create) {
@@ -177,9 +177,9 @@ public final class LtVault {
 	private final Cache<String, X509Certificate> certificateCache;
 
 	private final String keyLtmStoreAlias;
-	private final UberKeyLtmStore keyLtmStore;
+	private final LtmKeyStore keyLtmStore;
 
-	private LtVault(final String keyLtmStoreAlias, final UberKeyLtmStore keyLtmStore)
+	private LtVault(final String keyLtmStoreAlias, final LtmKeyStore keyLtmStore)
 			throws KeyStoreLtException, IOException {
 		this.keyLtmStoreAlias = keyLtmStoreAlias;
 		this.keyLtmStore = keyLtmStore;

@@ -38,6 +38,7 @@ final class PreparedClass {
 	private final List<String> columnNameList;
 	private final List<DataMemoryType> columnTypeList;
 	private final Map<String, Class<?>> columnMapLongTermMemory;
+	private final PreparedClassIndex pcIndex;
 	private final List<String> columnsSetTablename;
 	private final List<String> columnsSet;
 	private final List<DataMemoryType> columnsSetTypes;
@@ -49,7 +50,6 @@ final class PreparedClass {
 	private final String deleteById;
 
 	PreparedClass(final DataProxyHandler dph) throws ClassNotFoundException {
-		// TODO indexes - dph.getIndexes(dataname)
 		this.interfaceClass = dph.getInterface();
 		this.tablename = HsqldbUtil.getTablename(this.interfaceClass);
 		LOG.debug("interfaceClass: #0, tablename: #1", this.interfaceClass, this.tablename);
@@ -58,6 +58,7 @@ final class PreparedClass {
 		this.columnNameList = new ArrayList<>();
 		this.columnTypeList = new ArrayList<>();
 		this.columnMapLongTermMemory = new HashMap<>();
+		this.pcIndex = new PreparedClassIndex();
 		this.updateColumnById = new ArrayList<>();
 		this.columnsSet = new ArrayList<>();
 		this.columnsSetTablename = new ArrayList<>();
@@ -84,6 +85,7 @@ final class PreparedClass {
 					this.dataNameList.add(dataname);
 					final String columnName = DataMemoryUtil.genColumnName(dataname, dph.getReturnClass(dataname));
 					this.columnNameList.add(columnName);
+					this.pcIndex.add(dph.getIndexes(dataname), columnName);
 					this.columnTypeList.add(dataSqlType);
 					if (LtmObjectModelling.class.isAssignableFrom(dataType)) {
 						this.columnMapLongTermMemory.put(dataname, dataType);
@@ -126,6 +128,10 @@ final class PreparedClass {
 	@SuppressWarnings("unchecked")
 	<T extends LtmObjectModelling> Class<T> getLongTermMemoryClass(final String dataname) {
 		return (Class<T>) this.columnMapLongTermMemory.get(dataname);
+	}
+
+	PreparedClassIndex getIndexes() {
+		return this.pcIndex;
 	}
 
 	List<String> getColumnsSet() {

@@ -94,6 +94,8 @@ public final class Logger {
 		} catch (final Exception e) {
 			LOG.debug("when trying to show some info, received an exception: #0", e.getMessage());
 		}
+		// grab Java logging
+		JavaLogging.grab(new Logger(java.util.logging.Logger.class.getCanonicalName()));
 	}
 
 	public static final Logger getInstance() {

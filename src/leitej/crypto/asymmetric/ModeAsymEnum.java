@@ -23,13 +23,16 @@ import leitej.exception.ImplementationLtRtException;
  * @author Julio Leite
  */
 public enum ModeAsymEnum {
-	NONE;
+	NONE, ECB;
 
 	public String getName() {
 		String result;
 		switch (this) {
 		case NONE:
 			result = "NONE";
+			break;
+		case ECB:// the same as NONE
+			result = "ECB";
 			break;
 		default:
 			throw new ImplementationLtRtException(this.toString());

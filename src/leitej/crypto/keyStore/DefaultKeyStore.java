@@ -19,55 +19,16 @@ package leitej.crypto.keyStore;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
+import leitej.exception.ImplementationLtRtException;
 import leitej.exception.KeyStoreLtException;
-import leitej.exception.LtmLtRtException;
-import leitej.ltm.LargeMemory;
-import leitej.ltm.LongTermMemory;
-import leitej.ltm.LtmFilter;
-import leitej.ltm.LtmFilter.OPERATOR;
-import leitej.ltm.LtmFilter.OPERATOR_JOIN;
+import leitej.util.stream.FileUtil;
 
 /**
  *
  * @author Julio Leite
  */
-public final class UberKeyLtmStore extends AbstractDefaultKeyStore {
-
-	private static final LongTermMemory LTM = LongTermMemory.getInstance();
-	private static final Map<String, UberKeyLtmStore> INSTANCE_MAP = new HashMap<>();
-
-	/**
-	 *
-	 * @param alias the alias name
-	 * @return if the keystore exists
-	 * @throws IOException if there is an I/O or format problem with the keystore
-	 *                     data
-	 */
-	public static final boolean exists(final String alias) throws IOException {
-		boolean result = false;
-		synchronized (INSTANCE_MAP) {
-			final UberKeyLtmStore keyLtmStore = INSTANCE_MAP.get(alias);
-			if (keyLtmStore == null) {
-				try {
-					final LtmFilter<KeyLtmStore> filter = new LtmFilter<>(KeyLtmStore.class, OPERATOR_JOIN.AND);
-					filter.append(OPERATOR.EQUAL).setAlias(alias);
-					final Iterator<KeyLtmStore> found = LTM.search(filter);
-					if (found.hasNext()) {
-						result = true;
-					}
-				} catch (final LtmLtRtException e) {
-					throw new IOException(e);
-				}
-			} else {
-				result = true;
-			}
-		}
-		return result;
-	}
+public final class DefaultKeyStore extends AbstractDefaultKeyStore {
 
 	/**
 	 * Constructs a new object with a new <code>KeyStore</code> created, the
@@ -76,17 +37,10 @@ public final class UberKeyLtmStore extends AbstractDefaultKeyStore {
 	 * If a password is not given for integrity, then integrity checking is not
 	 * performed.
 	 *
-	 * @param alias    the alias name
+	 * @param filename a pathname string of the keystore file
 	 * @param password the password used to check the integrity of the keystore, the
 	 *                 password used to unlock the keystore, or <code>null</code>
-	 * @return a new UberKeyLtmStore
-	 * @throws IOException         if there is an I/O or format problem with the
-	 *                             keystore data, if a password is required but not
-	 *                             given, or if the given password was incorrect. If
-	 *                             the error is due to a wrong password, the
-	 *                             {@link Throwable#getCause cause} of the
-	 *                             <code>IOException</code> should be an
-	 *                             <code>UnrecoverableKeyException</code>
+	 * @return a new DefaultKeyStore
 	 * @throws KeyStoreLtException <br/>
 	 *                             +Cause KeyStoreException if a KeyStoreSpi
 	 *                             implementation for the specified type is not
@@ -96,25 +50,30 @@ public final class UberKeyLtmStore extends AbstractDefaultKeyStore {
 	 *                             provider list <br/>
 	 *                             +Cause NoSuchAlgorithmException if the algorithm
 	 *                             used to check the integrity of the keystore
-	 *                             cannot be found
+	 *                             cannot be found <br/>
 	 */
-	public static final UberKeyLtmStore create(final String alias, final Password password)
-			throws KeyStoreLtException, IOException {
-		return newUberKeyLtmStore(true, alias, password);
+	public static final DefaultKeyStore create(final String filename, final Password password)
+			throws KeyStoreLtException {
+		try {
+			return newDefaultKeyStore(true, filename, password);
+		} catch (final IOException e) {
+			throw new ImplementationLtRtException(e);
+		}
 	}
 
 	/**
-	 * Constructs a new object with a new <code>KeyStore</code> loaded.<br/>
+	 * Constructs a new object with a new <code>KeyStore</code> loaded from the
+	 * given <code>filename</code> argument.<br/>
 	 * <br/>
 	 * A password may be given to unlock the keystore (e.g. the keystore resides on
 	 * a hardware token device), or to check the integrity of the keystore data. If
 	 * a password is not given for integrity checking, then integrity checking is
 	 * not performed.
 	 *
-	 * @param alias    the alias name
+	 * @param filename a pathname string of the keystore file
 	 * @param password the password used to check the integrity of the keystore, the
 	 *                 password used to unlock the keystore, or <code>null</code>
-	 * @return a new UberKeyLtmStore
+	 * @return a new DefaultKeyStore
 	 * @throws IOException         if there is an I/O or format problem with the
 	 *                             keystore data, if a password is required but not
 	 *                             given, or if the given password was incorrect. If
@@ -135,18 +94,18 @@ public final class UberKeyLtmStore extends AbstractDefaultKeyStore {
 	 *                             +Cause CertificateException if any of the
 	 *                             certificates in the keystore could not be loaded
 	 */
-	public static final UberKeyLtmStore load(final String alias, final Password password)
+	public static final DefaultKeyStore load(final String filename, final Password password)
 			throws KeyStoreLtException, IOException {
-		return newUberKeyLtmStore(false, alias, password);
+		return newDefaultKeyStore(false, filename, password);
 	}
 
 	/**
 	 *
 	 * @param create   if true creates an empty keystore
-	 * @param alias    the alias name
+	 * @param filename a pathname string of the keystore file
 	 * @param password the password used to check the integrity of the keystore, the
 	 *                 password used to unlock the keystore, or <code>null</code>
-	 * @return a new UberKeyLtmStore
+	 * @return a new DefaultKeyStore
 	 * @throws IOException         if there is an I/O or format problem with the
 	 *                             keystore data, if a password is required but not
 	 *                             given, or if the given password was incorrect. If
@@ -167,89 +126,68 @@ public final class UberKeyLtmStore extends AbstractDefaultKeyStore {
 	 *                             +Cause CertificateException if any of the
 	 *                             certificates in the keystore could not be loaded
 	 */
-	private static final UberKeyLtmStore newUberKeyLtmStore(final boolean create, final String alias,
+	private static final DefaultKeyStore newDefaultKeyStore(final boolean create, final String filename,
 			final Password password) throws KeyStoreLtException, IOException {
-		LargeMemory ltmStore;
-		synchronized (INSTANCE_MAP) {
-			UberKeyLtmStore keyLtmStore = INSTANCE_MAP.get(alias);
-			if (keyLtmStore == null) {
-				try {
-					final LtmFilter<KeyLtmStore> filter = new LtmFilter<>(KeyLtmStore.class, OPERATOR_JOIN.AND);
-					filter.append(OPERATOR.EQUAL).setAlias(alias);
-					final Iterator<KeyLtmStore> found = LTM.search(filter);
-					if (!found.hasNext()) {
-						final KeyLtmStore createLtmStore = LTM.newRecord(KeyLtmStore.class);
-						createLtmStore.setAlias(alias);
-						ltmStore = createLtmStore.getKeyStore();
-					} else {
-						ltmStore = found.next().getKeyStore();
-						if (create) {
-							ltmStore.open();
-							ltmStore.setLength(0);
-							ltmStore.close();
-						}
-					}
-				} catch (final LtmLtRtException e) {
-					throw new IOException(e);
-				}
-				ltmStore.open();
-				final InputStream is = ((create) ? null : ltmStore.newInputStream());
-				try {
-					keyLtmStore = new UberKeyLtmStore(is, ltmStore, password);
-				} finally {
-					if (is != null) {
-						is.close();
-						ltmStore.close();
-					}
-				}
-				INSTANCE_MAP.put(alias, keyLtmStore);
-			} else {
-				if (create) {
-					keyLtmStore.deleteAllEntries();
-					keyLtmStore.persist();
-				}
+		final InputStream is = ((create) ? null : FileUtil.openFileBinaryInputStream(filename));
+		try {
+			return new DefaultKeyStore(is, filename, password);
+		} finally {
+			if (is != null) {
+				is.close();
 			}
-			return keyLtmStore;
 		}
 	}
 
-	private final LargeMemory ltmStore;
+	private final String filename;
 
 	/**
-	 * @param is
-	 * @param password
-	 * @throws KeyStoreLtException
-	 * @throws IOException
+	 *
+	 * @param is       if null creates an empty keystore
+	 * @param filename a pathname string of the keystore file
+	 * @param password the password used to check the integrity of the keystore, the
+	 *                 password used to unlock the keystore, or <code>null</code>
+	 * @throws IOException         if there is an I/O or format problem with the
+	 *                             keystore data, if a password is required but not
+	 *                             given, or if the given password was incorrect. If
+	 *                             the error is due to a wrong password, the
+	 *                             {@link Throwable#getCause cause} of the
+	 *                             <code>IOException</code> should be an
+	 *                             <code>UnrecoverableKeyException</code>
+	 * @throws KeyStoreLtException <br/>
+	 *                             +Cause KeyStoreException if a KeyStoreSpi
+	 *                             implementation for the specified type is not
+	 *                             available from the specified provider <br/>
+	 *                             +Cause NoSuchProviderException if the specified
+	 *                             provider is not registered in the security
+	 *                             provider list <br/>
+	 *                             +Cause NoSuchAlgorithmException if the algorithm
+	 *                             used to check the integrity of the keystore
+	 *                             cannot be found <br/>
+	 *                             +Cause CertificateException if any of the
+	 *                             certificates in the keystore could not be loaded
 	 */
-	private UberKeyLtmStore(final InputStream is, final LargeMemory ltmStore, final Password password)
+	private DefaultKeyStore(final InputStream is, final String filename, final Password password)
 			throws KeyStoreLtException, IOException {
 		super(is, password);
-		this.ltmStore = ltmStore;
+		this.filename = filename;
 	}
 
 	@Override
-	protected byte[] getKeyStoredData() throws IOException {
-		this.ltmStore.open();
-		final byte[] result = new byte[(int) this.ltmStore.length()];
-		this.ltmStore.readFully(0, result);
-		this.ltmStore.close();
-		return result;
-	}
-
-	@Override
-	public void persist() throws KeyStoreLtException, IOException {
+	public final void persist() throws KeyStoreLtException, IOException {
 		OutputStream os = null;
 		try {
-			this.ltmStore.open();
-			this.ltmStore.setLength(0);
-			os = this.ltmStore.newOutputStream();
+			os = FileUtil.openFileBinaryOutputStream(this.filename, false);
 			super.store(os);
 		} finally {
 			if (os != null) {
 				os.close();
 			}
-			this.ltmStore.close();
 		}
+	}
+
+	@Override
+	protected byte[] getKeyStoredData() throws IOException {
+		return FileUtil.readAllAtOnce(this.filename);
 	}
 
 }

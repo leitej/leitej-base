@@ -54,8 +54,8 @@ public class CipherRSA {
 			throw new IllegalArgumentLtRtException();
 		}
 		try {
-			this.cipherEncPbc = Cryptography.getCipher(CipherAsymEnum.RSA, ModeAsymEnum.NONE, padding);
-			this.cipherDecPvd = Cryptography.getCipher(CipherAsymEnum.RSA, ModeAsymEnum.NONE, padding);
+			this.cipherEncPbc = Cryptography.getCipher(CipherAsymEnum.RSA, ModeAsymEnum.ECB, padding);
+			this.cipherDecPvd = Cryptography.getCipher(CipherAsymEnum.RSA, ModeAsymEnum.ECB, padding);
 		} catch (final NoSuchAlgorithmException e) {
 			throw new ImplementationLtRtException(e);
 		} catch (final NoSuchProviderException e) {

@@ -209,7 +209,7 @@ public final class Password {
 
 	@Override
 	public final Object clone() {
-		throw new ImplementationLtRtException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

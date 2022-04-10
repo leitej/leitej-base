@@ -58,6 +58,7 @@ final class HsqldbUtil {
 
 	static {
 		try {
+			System.setProperty("hsqldb.reconfig_logging", "false");
 			Class.forName("org.hsqldb.jdbc.JDBCDriver");
 		} catch (final ClassNotFoundException e) {
 			throw new SeppukuLtRtException(e);

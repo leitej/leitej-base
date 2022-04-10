@@ -16,17 +16,20 @@
 
 package leitej.crypto.keyStore;
 
+import leitej.ltm.Index;
 import leitej.ltm.LargeMemory;
 import leitej.ltm.LtmObjectModelling;
 
 /**
+ * LongTermMemory KeyStore
  *
  * @author Julio Leite
  */
-public interface KeyLtmStore extends LtmObjectModelling {
+public interface LKS extends LtmObjectModelling {
 
 	public static final String FIELD_ALIAS = "alias";
 
+	@Index
 	public String getAlias();
 
 	public void setAlias(String alias);
