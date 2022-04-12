@@ -48,4 +48,8 @@ public abstract interface Config extends XmlObjectModelling {
 
 	public abstract void setFile(ConfigFile file);
 
+	public abstract Boolean getJavaLoggingLevelDefine();
+
+	public abstract void setJavaLoggingLevelDefine(Boolean javaLoggingLevelDefine);
+
 }

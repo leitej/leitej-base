@@ -16,59 +16,95 @@
 
 package leitej.log;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Handler;
-import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
+
+import leitej.Constant;
+import leitej.util.stream.ChunkInputStream;
 
 /**
  * @author Julio Leite
  *
  */
-final class JavaLogging extends Handler {
+public final class JavaLogging extends Handler {
 
-	private static final int OFF = Level.OFF.intValue();
-	private static final int WARNING = Level.WARNING.intValue();
-	private static final int INFO = Level.INFO.intValue();
-	private static final int FINE = Level.FINE.intValue();
-	private static final int ALL = Level.ALL.intValue();
+	private static Logger LOG;
 
-	static void grab(final Logger log) {
-		final java.util.logging.Logger lGlobal = java.util.logging.Logger.getGlobal();
-		final Handler[] handlers = lGlobal.getHandlers();
-		for (int i = 0; i < handlers.length; i++) {
-			lGlobal.removeHandler(handlers[i]);
+	static void grab(final Logger log, final Config config) {
+		LOG = log;
+		final LogManager lm = LogManager.getLogManager();
+		log.trace("previous default handler: #0", lm.getProperty("handlers"));
+		LevelEnum logLevel;
+		Map<String, LevelEnum> packageLogLevel;
+		if (config == null) {
+			logLevel = Constant.DEFAULT_LOG_LEVEL;
+			packageLogLevel = null;
+		} else {
+			logLevel = config.getLogLevel();
+			packageLogLevel = config.getPackageLogLevel();
 		}
-		lGlobal.addHandler(new JavaLogging(log));
-	}
-
-	private final Logger log;
-
-	JavaLogging(final Logger log) {
-		this.log = log;
+		final InputStream is = new JavaLoggingConfigInputStream(logLevel, packageLogLevel);
+		lm.reset();
+		try {
+			lm.readConfiguration(is);
+			is.close();
+			LOG.debug("Java Logging Set");
+		} catch (final IOException e) {
+			LOG.error("#0", e);
+			LOG.warn("Java Logging write SUPPRESS!");
+		}
 	}
 
 	@Override
 	public void publish(final LogRecord record) {
-		final int level = record.getLevel().intValue();
-		if (OFF < level && level <= WARNING) {
-			this.log.warn("#0 - #1", record.getLoggerName(), record.getMessage());
-		} else if (WARNING < level && level <= INFO) {
-			this.log.info("#0 - #1", record.getLoggerName(), record.getMessage());
-		} else if (INFO < level && level <= FINE) {
-			this.log.debug("#0 - #1", record.getLoggerName(), record.getMessage());
-		} else if (FINE < level && level <= ALL) {
-			this.log.trace("#0 - #1", record.getLoggerName(), record.getMessage());
-		}
+		LOG.appendJavaLogging(record);
 	}
 
 	@Override
 	public void flush() {
-		// empty
+		// no-op
 	}
 
 	@Override
 	public void close() throws SecurityException {
-		// empty
+		// no-op
+	}
+
+	private static class JavaLoggingConfigInputStream extends ChunkInputStream {
+
+		private final Iterator<Entry<String, LevelEnum>> packageLogLevel;
+
+		public JavaLoggingConfigInputStream(final LevelEnum logLevel, final Map<String, LevelEnum> packageLogLevel) {
+			if (packageLogLevel == null) {
+				this.packageLogLevel = null;
+			} else {
+				this.packageLogLevel = packageLogLevel.entrySet().iterator();
+			}
+			feed("handlers= leitej.log.JavaLogging\n".getBytes());
+			feed((".level= " + logLevel.getJavaLoggingLevel() + "\n").getBytes());
+		}
+
+		@Override
+		protected void waitFeed() {
+			if (this.packageLogLevel == null) {
+				close();
+			} else {
+				if (this.packageLogLevel.hasNext()) {
+					final Entry<String, LevelEnum> entry = this.packageLogLevel.next();
+					feed((entry.getKey().trim() + ".level = " + entry.getValue().getJavaLoggingLevel() + "\n")
+							.getBytes());
+				} else {
+					close();
+				}
+			}
+		}
+
 	}
 
 }

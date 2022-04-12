@@ -16,6 +16,8 @@
 
 package leitej.log;
 
+import java.util.logging.LogRecord;
+
 import leitej.exception.ImplementationLtRtException;
 import leitej.util.AgnosticUtil;
 import leitej.util.DateUtil;
@@ -94,8 +96,12 @@ public final class Logger {
 		} catch (final Exception e) {
 			LOG.debug("when trying to show some info, received an exception: #0", e.getMessage());
 		}
-		// grab Java logging
-		JavaLogging.grab(new Logger(java.util.logging.Logger.class.getCanonicalName()));
+		try {
+			// grab Java logging
+			JavaLogging.grab(new Logger("java.log"), AppenderManager.JAVA_LOGGING_CONFIG);
+		} catch (final Exception e) {
+			LOG.warn("Ignoring Java Logging Grab - error: #0", e.getMessage());
+		}
 	}
 
 	public static final Logger getInstance() {
@@ -214,9 +220,19 @@ public final class Logger {
 	 */
 	private void append(final LevelEnum level, final String msg, final Object... args) {
 		if (!CLOSED) {
-			this.appenderMng.print(level, Thread.currentThread().getName(), msg, args);
+			this.appenderMng.print(null, level, Thread.currentThread().getName(), msg, args);
 		} else {
 			System.err.println("LOG_CLOSED - " + level + " - " + Thread.currentThread().getName() + " - " + msg);
+		}
+	}
+
+	void appendJavaLogging(final LogRecord record) {
+		if (!CLOSED) {
+			this.appenderMng.print(record, LevelEnum.fromJavaLoggingLevel(record.getLevel().intValue()),
+					"Thread-" + record.getThreadID(), record.getMessage());
+		} else {
+			System.err.println("LOG_CLOSED - " + LevelEnum.fromJavaLoggingLevel(record.getLevel().intValue())
+					+ " - thread-" + record.getThreadID() + " - " + record.getMessage());
 		}
 	}
 

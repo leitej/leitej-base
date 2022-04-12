@@ -16,6 +16,10 @@
 
 package leitej.log;
 
+import java.util.logging.Level;
+
+import leitej.exception.ImplementationLtRtException;
+
 /**
  * Level enumerator to be used by {@link leitej.log.Logger Logger}.
  *
@@ -24,4 +28,45 @@ package leitej.log;
  */
 public enum LevelEnum {
 	NONE, ERROR, WARN, INFO, DEBUG, TRACE, ALL;
+
+	static final LevelEnum fromJavaLoggingLevel(final int level) {
+		if (Level.ALL.intValue() == level) {
+			return ALL;
+		} else if (Level.ALL.intValue() > level && level < Level.FINEST.intValue()) {
+			return TRACE;
+		} else if (Level.FINEST.intValue() >= level && level < Level.FINE.intValue()) {
+			return TRACE;
+		} else if (Level.FINE.intValue() >= level && level < Level.INFO.intValue()) {
+			return DEBUG;
+		} else if (Level.INFO.intValue() >= level && level < Level.WARNING.intValue()) {
+			return INFO;
+		} else if (Level.WARNING.intValue() >= level && level < Level.SEVERE.intValue()) {
+			return WARN;
+		} else if (Level.SEVERE.intValue() >= level && level < Level.OFF.intValue()) {
+			return ERROR;
+		} else {
+			return NONE;
+		}
+	}
+
+	final String getJavaLoggingLevel() {
+		switch (this) {
+		case NONE:
+			return "OFF";
+		case ERROR:
+			return "SEVERE";
+		case WARN:
+			return "WARNING";
+		case INFO:
+			return "CONFIG";
+		case DEBUG:
+			return "FINER";
+		case TRACE:
+			return "FINEST";
+		case ALL:
+			return "ALL";
+		default:
+			throw new ImplementationLtRtException("miss: #0", this);
+		}
+	}
 }

@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.LogRecord;
 
 import leitej.Constant;
 import leitej.exception.LtException;
@@ -41,9 +42,10 @@ import leitej.xml.om.Xmlom;
 final class AppenderManager {
 
 	private static final AbstractAppender[] APPENDERS = loadAppenders();
+	static Config JAVA_LOGGING_CONFIG;
 
 	private static Config[] defaultConfig() {
-		final Config[] result = (Config[]) Array.newInstance(Config.class, 1);
+		final Config[] result = (Config[]) Array.newInstance(Config.class, 2);
 		final Config pl = Xmlom.newInstance(Config.class);
 		final ConfigFile plf = Xmlom.newInstance(ConfigFile.class);
 		plf.setFileName("app.log");
@@ -59,6 +61,13 @@ final class AppenderManager {
 		pll.put("leitej", LevelEnum.INFO);
 		pl.setPackageLogLevel(pll);
 		result[0] = pl;
+		final Config javaLog = Xmlom.newInstance(Config.class);
+		javaLog.setJavaLoggingLevelDefine(true);
+		javaLog.setLogLevel(Constant.DEFAULT_LOG_LEVEL);
+		final Map<String, LevelEnum> pllJLog = new HashMap<>();
+		pllJLog.put("com.xyz.foo.level", LevelEnum.ERROR);
+		javaLog.setPackageLogLevel(pllJLog);
+		result[1] = javaLog;
 		return result;
 	}
 
@@ -83,7 +92,11 @@ final class AppenderManager {
 			if (props != null) {
 				for (final Config config : props) {
 					try {
-						list.add(newLogAppender(config));
+						if (config.getJavaLoggingLevelDefine() == null || !config.getJavaLoggingLevelDefine()) {
+							list.add(newLogAppender(config));
+						} else {
+							JAVA_LOGGING_CONFIG = config;
+						}
 					} catch (final UnsupportedEncodingException | FileNotFoundException e) {
 						(new LtException(e, "Can't open an appender log")).printStackTrace();
 					}
@@ -120,10 +133,17 @@ final class AppenderManager {
 		this.signLogLevelGlobal = signLogLevel;
 	}
 
-	void print(final LevelEnum level, final String threadName, final String msg, final Object... args) {
+	void print(final LogRecord record, final LevelEnum level, final String threadName, final String msg,
+			final Object... args) {
 		if (level.ordinal() <= this.signLogLevelGlobal.ordinal()) {
 			final String signLog;
-			if (LevelEnum.INFO.compareTo(level) < 0) {
+			if (record != null) {
+				if (LevelEnum.INFO.compareTo(level) < 0) {
+					signLog = record.getSourceClassName() + "." + record.getSourceMethodName();
+				} else {
+					signLog = record.getSourceClassName();
+				}
+			} else if (LevelEnum.INFO.compareTo(level) < 0) {
 				// sign with more information as a new throwable can give (like method invoked)
 				signLog = (new Throwable()).getStackTrace()[3].toString();
 			} else {
