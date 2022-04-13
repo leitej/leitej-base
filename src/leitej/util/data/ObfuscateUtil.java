@@ -93,7 +93,7 @@ public final class ObfuscateUtil {
 		System.arraycopy(moreBytes, 0, ENTROPY, firstBytes.length, ENTROPY_GEN_STEP_SIZE);
 	}
 
-	private static void xor(final byte[] bytes, final byte[] salt, final boolean fullSalt) {
+	public static void xor(final byte[] bytes, final byte[] salt, final boolean fullSalt) {
 		int iLimit;
 		if (fullSalt && salt.length > bytes.length) {
 			iLimit = salt.length;
