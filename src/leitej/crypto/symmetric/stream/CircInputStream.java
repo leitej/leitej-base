@@ -81,10 +81,10 @@ public final class CircInputStream extends InputStream {
 		if (read == -1) {
 			return -1;
 		}
-		this.byteArray[0] = (byte) (read & 0xff);
+		this.byteArray[0] = (byte) read;
 		while (this.blockCipher.process(this.byteArray, 0, 1, this.byteArrayOut, 0) == 0) {
 		}
-		return this.byteArrayOut[0];
+		return this.byteArrayOut[0] & 0xff;
 	}
 
 	@Override
