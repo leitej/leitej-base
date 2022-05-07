@@ -19,6 +19,7 @@ package leitej.log;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
@@ -71,7 +72,7 @@ class AppenderDynFileName extends AbstractAppender {
 	}
 
 	@Override
-	void close() {
+	public void close() throws IOException {
 		if (this.out != null) {
 			this.out.flush();
 			this.out.close();
@@ -92,18 +93,17 @@ class AppenderDynFileName extends AbstractAppender {
 
 	private void updateOut() {
 		if (!DateUtil.isFuture(this.expireDate)) {
-			close();
+			try {
+				close();
+			} catch (final IOException e1) {
+				e1.printStackTrace();
+			}
 			final String fileName = DateUtil.format(DateUtil.now(), this.dynamicFileNameFormat) + this.staticFileName;
 			try {
 				this.out = new PrintStream(new FileOutputStream(new File(this.pathFile, fileName), this.appendFile),
 						false, this.charsetName);
 				this.expireDate = this.dateTimer.nextTrigger();
-			} catch (final UnsupportedEncodingException e) {
-				if (this.lastError == null || !this.lastError.equals(fileName)) {
-					e.printStackTrace();
-					this.lastError = fileName;
-				}
-			} catch (final FileNotFoundException e) {
+			} catch (final UnsupportedEncodingException | FileNotFoundException e) {
 				if (this.lastError == null || !this.lastError.equals(fileName)) {
 					e.printStackTrace();
 					this.lastError = fileName;

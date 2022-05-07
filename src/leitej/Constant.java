@@ -18,6 +18,7 @@ package leitej;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
 import leitej.log.LevelEnum;
@@ -47,6 +48,8 @@ public final class Constant {
 	public static final long EXA = PETA * KILO;
 	public static final BigInteger ZETTA = BigInteger.valueOf(EXA).multiply(BigInteger.valueOf(KILO));
 	public static final BigInteger YOTTA = ZETTA.multiply(BigInteger.valueOf(KILO));
+
+	public static final boolean IS_BIG_ENDIAN_NATIVE = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
 
 	public static final BigInteger BIGINTEGER_MAX_LONG_VALUE = BigInteger.valueOf(Long.MAX_VALUE);
 

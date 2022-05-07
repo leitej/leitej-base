@@ -16,8 +16,8 @@
 
 package leitej.ltm;
 
-import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -92,7 +92,6 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 	}
 
 	private LongTermMemory() {
-		super(Serializable.class);
 		LOG.debug("new instance");
 	}
 
@@ -141,8 +140,14 @@ public final class LongTermMemory extends AbstractDataProxy<LtmObjectModelling, 
 	}
 
 	public <T extends LtmObjectModelling> Iterator<T> search(final LtmFilter<T> ltmFilter) throws LtmLtRtException {
-		return new SearchIteractor<>(ltmFilter.getLTMClass(), ltmFilter.getQueryFilter(), ltmFilter.getParams(),
-				ltmFilter.getTypes(), ltmFilter.isDescOrder());
+		Iterator<T> result;
+		if (HsqldbUtil.exists(HsqldbUtil.getTableName(ltmFilter.getLTMClass()))) {
+			result = new SearchIteractor<>(ltmFilter.getLTMClass(), ltmFilter.getQueryFilter(), ltmFilter.getParams(),
+					ltmFilter.getTypes(), ltmFilter.isDescOrder());
+		} else {
+			result = Collections.emptyIterator();
+		}
+		return result;
 	}
 
 }

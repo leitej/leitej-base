@@ -18,6 +18,7 @@ package leitej.ltm;
 
 import java.math.BigDecimal;
 import java.sql.Types;
+import java.util.Date;
 
 import leitej.exception.UnsupportedDataTypeLtRtException;
 
@@ -26,7 +27,8 @@ import leitej.exception.UnsupportedDataTypeLtRtException;
  *
  */
 enum DataMemoryType {
-	BYTE, SHORT, INT, LONG, BIG_DECIMAL, DOUBLE, FLOAT, BOOLEAN, ENUM, STRING, BINARY, LARGE_MEMORY, LONG_TERM_MEMORY;
+	BYTE, SHORT, INT, LONG, BIG_DECIMAL, DOUBLE, FLOAT, BOOLEAN, ENUM, STRING, BINARY, DATE, LARGE_MEMORY,
+	LONG_TERM_MEMORY;
 
 	int getSqlType() {
 		int result;
@@ -64,6 +66,9 @@ enum DataMemoryType {
 		case BINARY:
 			result = Types.LONGVARBINARY;
 			break;
+		case DATE:
+			result = Types.BIGINT;
+			break;
 		case LARGE_MEMORY:
 			result = Types.BIGINT;
 			break;
@@ -86,6 +91,7 @@ enum DataMemoryType {
 		case BIG_DECIMAL:
 		case DOUBLE:
 		case FLOAT:
+		case DATE:
 			result = true;
 			break;
 		default:
@@ -132,6 +138,8 @@ enum DataMemoryType {
 			result = DataMemoryType.STRING;
 		} else if (type.isArray() && (byte.class.isAssignableFrom(type.getComponentType()))) {
 			result = DataMemoryType.BINARY;
+		} else if (Date.class.isAssignableFrom(type)) {
+			result = DataMemoryType.DATE;
 		} else if (LargeMemory.class.isAssignableFrom(type)) {
 			result = DataMemoryType.LARGE_MEMORY;
 		} else if (LtmObjectModelling.class.isAssignableFrom(type)) {

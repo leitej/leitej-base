@@ -16,8 +16,6 @@
 
 package leitej.xml.om;
 
-import java.io.Serializable;
-
 import leitej.util.data.AbstractDataProxy;
 
 /**
@@ -35,7 +33,6 @@ final class DataProxy extends AbstractDataProxy<XmlObjectModelling, DataProxyHan
 	}
 
 	private DataProxy() {
-		super(Serializable.class);
 	}
 
 	/**

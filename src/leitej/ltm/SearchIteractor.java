@@ -41,7 +41,7 @@ final class SearchIteractor<T extends LtmObjectModelling> implements Iterator<T>
 	SearchIteractor(final Class<T> ltmClass, final String queryFilter, final Object[] parameters,
 			final DataMemoryType[] types, final boolean orderDesc) {
 		this.ltmClass = ltmClass;
-		this.query = HsqldbUtil.getStatementScaledIterator(HsqldbUtil.getTablename(ltmClass), queryFilter, orderDesc);
+		this.query = HsqldbUtil.getStatementScaledIterator(HsqldbUtil.getTableName(ltmClass), queryFilter, orderDesc);
 		this.parameters = parameters;
 		this.types = types;
 		this.nextId = fetchNextId(((orderDesc) ? Long.MAX_VALUE : Long.MIN_VALUE));

@@ -17,6 +17,7 @@
 package leitej.ltm;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import leitej.exception.IllegalStateLtRtException;
@@ -93,6 +94,8 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 			this.paramList.add(LargeMemory.class.cast(value).getId());
 		} else if (DataMemoryType.LONG_TERM_MEMORY.equals(type)) {
 			this.paramList.add(LtmObjectModelling.class.cast(value).getLtmId());
+		} else if (DataMemoryType.DATE.equals(type)) {
+			this.paramList.add(Date.class.cast(value).getTime());
 		} else {
 			this.paramList.add(value);
 		}

@@ -18,6 +18,7 @@ package leitej.ltm;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -161,6 +162,8 @@ final class DataMemoryUtil {
 					value = Enum.valueOf(dph.getReturnClass(dataName).asSubclass(Enum.class), String.class.cast(value));
 				} else if (DataMemoryType.LARGE_MEMORY.equals(columnTypeList.get(i))) {
 					value = getLargeMemory(Long.class.cast(value));
+				} else if (DataMemoryType.DATE.equals(columnTypeList.get(i))) {
+					value = new Date(Long.class.cast(value));
 				}
 				proxyData.put(dataName, value);
 			}
@@ -175,6 +178,8 @@ final class DataMemoryUtil {
 			it.setNext(LTM.fetch(it.getDataClass().asSubclass(LtmObjectModelling.class), Long.class.cast(value)));
 		} else if (it.getDataType().equals(DataMemoryType.LARGE_MEMORY)) {
 			it.setNext(getLargeMemory(Long.class.cast(value)));
+		} else if (it.getDataType().equals(DataMemoryType.DATE)) {
+			it.setNext(new Date(Long.class.cast(value)));
 		} else if (it.getDataType().equals(DataMemoryType.ENUM)) {
 			it.setNext(Enum.valueOf(it.getClass().asSubclass(Enum.class), String.class.cast(value)));
 		} else {

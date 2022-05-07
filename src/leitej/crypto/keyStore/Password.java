@@ -212,10 +212,4 @@ public final class Password {
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
-	public final void finalize() throws Throwable {
-		destroy();
-		super.finalize();
-	}
-
 }

@@ -29,6 +29,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,6 +38,7 @@ import leitej.Constant;
 import leitej.exception.SeppukuLtRtException;
 import leitej.exception.UnsupportedDataTypeLtRtException;
 import leitej.log.Logger;
+import leitej.ltm.PreparedClassIndex.IndexColumn;
 import leitej.util.HexaUtil;
 
 /**
@@ -49,11 +51,14 @@ final class HsqldbUtil {
 
 	private static final char TABLE_LTM_PREFIX = 'L';
 	private static final char TABLE_SET_PREFIX = 'S';
+	private static final char TABLE_IDX_PREFIX = 'I';
 
 	static final String SCHEMA = "ltm";
-	private static final MessageDigest CREATE_TABLENAME;
+	private static final MessageDigest GEN_NAME;
+	private static final int GEN_NAME_SIZE;
 
 	private static final Map<String, String> TABLE_COMMENT_MAP = new HashMap<>();
+	private static final Map<String, List<String>> TABLE_INDEX_MAP = new HashMap<>();
 	private static final Map<String, List<String>> TABLE_COLUMN_MAP = new HashMap<>();
 
 	static {
@@ -64,24 +69,46 @@ final class HsqldbUtil {
 			throw new SeppukuLtRtException(e);
 		}
 		try {
-			CREATE_TABLENAME = MessageDigest.getInstance("SHA-384");
+			GEN_NAME = MessageDigest.getInstance("SHA-384");
+			// hash bit size to byte, multiply by 2 hexadecimal format, plus one first char
+			GEN_NAME_SIZE = ((384 / 8) * 2) + 1;
 		} catch (final NoSuchAlgorithmException e) {
 			throw new IllegalStateException(e);
 		}
 	}
 
-	static <I extends LtmObjectModelling> String getTablename(final Class<I> ltmClass) {
-		synchronized (CREATE_TABLENAME) {
+	static <I extends LtmObjectModelling> String getTableName(final Class<I> ltmClass) {
+		synchronized (GEN_NAME) {
+			GEN_NAME.reset();
 			return TABLE_LTM_PREFIX
-					+ HexaUtil.toHex(CREATE_TABLENAME.digest(ltmClass.getName().getBytes(Constant.UTF8_CHARSET)));
+					+ HexaUtil.toHex(GEN_NAME.digest(ltmClass.getName().getBytes(Constant.UTF8_CHARSET)));
 		}
 	}
 
-	static <I extends LtmObjectModelling> String getTablenameSet(final Class<I> ltmClass, final String setDataname) {
-		synchronized (CREATE_TABLENAME) {
+	static <I extends LtmObjectModelling> String getTableSetName(final Class<I> ltmClass, final String setDataname) {
+		synchronized (GEN_NAME) {
+			GEN_NAME.reset();
 			return TABLE_SET_PREFIX + HexaUtil
-					.toHex(CREATE_TABLENAME.digest((setDataname + ltmClass.getName()).getBytes(Constant.UTF8_CHARSET)));
+					.toHex(GEN_NAME.digest((setDataname + ltmClass.getName()).getBytes(Constant.UTF8_CHARSET)));
 		}
+	}
+
+	static String getIndexName(final String tableName, final Iterator<IndexColumn> columns) {
+		synchronized (GEN_NAME) {
+			GEN_NAME.reset();
+			while (columns.hasNext()) {
+				GEN_NAME.update(columns.next().getColumnName().getBytes(Constant.UTF8_CHARSET));
+			}
+			GEN_NAME.update(tableName.getBytes(Constant.UTF8_CHARSET));
+			return TABLE_IDX_PREFIX + HexaUtil.toHex(GEN_NAME.digest());
+		}
+	}
+
+	private static boolean hasIndexNameFormat(final String indexName) {
+		if (indexName.length() == GEN_NAME_SIZE && indexName.charAt(0) == TABLE_IDX_PREFIX) {
+			return indexName.matches("^I[A-Fa-f0-9]{" + (GEN_NAME_SIZE - 1) + "}$");
+		}
+		return false;
 	}
 
 	static final Connection newConnection() throws SQLException {
@@ -137,16 +164,35 @@ final class HsqldbUtil {
 						}
 					} else {
 						TABLE_COMMENT_MAP.put(tablename, remark);
+						TABLE_INDEX_MAP.put(tablename, new ArrayList<String>());
 						TABLE_COLUMN_MAP.put(tablename, new ArrayList<String>());
 					}
 				}
 				rsTable.close();
+				// get indexes
+				ResultSet rsIndex;
+				List<String> indexList;
+				String indexName;
+				for (final Entry<String, List<String>> entry : TABLE_INDEX_MAP.entrySet()) {
+					LOG.debug("indexes for tablename: #0", entry.getKey());
+					rsIndex = conn.getMetaData().getIndexInfo(null, SCHEMA, entry.getKey(), false, false);
+					indexList = entry.getValue();
+					while (rsIndex.next()) {
+						indexName = rsIndex.getString("INDEX_NAME");
+						if (rsIndex.getShort("ORDINAL_POSITION") == 1 && rsIndex.getBoolean("NON_UNIQUE")
+								&& hasIndexNameFormat(indexName)) {
+							indexList.add(indexName);
+						}
+					}
+					rsIndex.close();
+					LOG.debug("indexList: #0", indexList);
+				}
 				// get columns
 				ResultSet rsColumn;
 				List<String> columnList;
 				String columnName;
 				for (final Entry<String, List<String>> entry : TABLE_COLUMN_MAP.entrySet()) {
-					LOG.debug("tablename: #0", entry.getKey());
+					LOG.debug("columns for tablename: #0", entry.getKey());
 					rsColumn = conn.getMetaData().getColumns(null, SCHEMA, entry.getKey(), "%");
 					columnList = entry.getValue();
 					while (rsColumn.next()) {
@@ -237,12 +283,28 @@ final class HsqldbUtil {
 		final Statement stt = conn.createStatement();
 		stt.execute(createTable);
 		stt.close();
-		// TODO create indexes
-		query.setLength(0);
-		//
+		// create indexes
+		final PreparedClassIndex prepClassIndex = prepClass.getIndexes();
+		final Iterator<String> indexNames = prepClassIndex.getIndexesNameIterator();
+		if (indexNames.hasNext()) {
+			String createIndex;
+			Statement sttIndex;
+			do {
+				createIndex = prepClassIndex.getSttCreate(indexNames.next());
+				LOG.debug("createIndex: #0", createIndex);
+				sttIndex = conn.createStatement();
+				sttIndex.execute(createIndex);
+				sttIndex.close();
+			} while (indexNames.hasNext());
+		}
+		// persist
 		conn.commit();
 		TABLE_COMMENT_MAP.put(prepClass.getTablename(), remarks);
 		TABLE_COLUMN_MAP.put(prepClass.getTablename(), new ArrayList<>(prepClass.getColumnNameList()));
+	}
+
+	static boolean exists(final String tableName) {
+		return TABLE_COMMENT_MAP.containsKey(tableName);
 	}
 
 	static void createTableSet(final Connection conn, final PreparedClass prepClass, final String datanameSet)
@@ -391,6 +453,41 @@ final class HsqldbUtil {
 		}
 	}
 
+	private static void dropIndex(final Connection conn, final String tablename, final List<String> toRemove)
+			throws SQLException {
+		if (!toRemove.isEmpty()) {
+			final StringBuilder query = new StringBuilder();
+			for (final String indexName : toRemove) {
+				query.append("drop index \"");
+				query.append(SCHEMA);
+				query.append("\".\"");
+				query.append(indexName);
+				query.append("\"; ");
+			}
+			final String dropIndex = query.toString();
+			LOG.debug("dropIndex: #0", dropIndex);
+			final Statement stt = conn.createStatement();
+			stt.execute(dropIndex);
+			stt.close();
+			conn.commit();
+		}
+	}
+
+	private static void addIndexes(final Connection conn, final PreparedClassIndex prepClassIndex,
+			final List<String> toAdd) throws SQLException {
+		if (!toAdd.isEmpty()) {
+			String createIndex;
+			for (final String indexName : toAdd) {
+				createIndex = prepClassIndex.getSttCreate(indexName);
+				LOG.debug("createIndex: #0", createIndex);
+				final Statement stt = conn.createStatement();
+				stt.execute(createIndex);
+				stt.close();
+			}
+			conn.commit();
+		}
+	}
+
 	private static <T extends LtmObjectModelling> void delLargeMemory(final Connection conn, final Class<T> ltmClass,
 			final String ltmTablename, final List<String> toRemoveColumnNameList) throws SQLException {
 		String columnName;
@@ -409,21 +506,35 @@ final class HsqldbUtil {
 		if (columnList == null) {
 			createTable(conn, prepClass);
 		} else {
-			// TODO validate index remove or add - prepClass get index
+			final List<String> indexList = TABLE_INDEX_MAP.get(prepClass.getTablename());
+			// drop indexes
+			final List<String> indexesToRemove = new ArrayList<>();
+			indexesToRemove.addAll(indexList);
+			indexesToRemove.removeAll(prepClass.getIndexes().getIndexesNameCollection());
+			dropIndex(conn, prepClass.getTablename(), indexesToRemove);
+			indexList.removeAll(indexesToRemove);
+			// drop columns
 			if (DataMemoryPool.CONFIG.isAutoForgetsInterfaceComponentMisses()) {
-				final List<String> toRemove = new ArrayList<>();
-				toRemove.addAll(columnList);
-				toRemove.removeAll(prepClass.getColumnNameList());
-				toRemove.remove(DataProxyHandler.LTM_ID);
-				delLargeMemory(conn, prepClass.getInterface(), prepClass.getTablename(), toRemove);
-				dropColumns(conn, prepClass.getTablename(), toRemove);
-				columnList.removeAll(toRemove);
+				final List<String> columnsToRemove = new ArrayList<>();
+				columnsToRemove.addAll(columnList);
+				columnsToRemove.removeAll(prepClass.getColumnNameList());
+				columnsToRemove.remove(DataProxyHandler.LTM_ID);
+				delLargeMemory(conn, prepClass.getInterface(), prepClass.getTablename(), columnsToRemove);
+				dropColumns(conn, prepClass.getTablename(), columnsToRemove);
+				columnList.removeAll(columnsToRemove);
 			}
-			final List<String> toAdd = new ArrayList<>();
-			toAdd.addAll(prepClass.getColumnNameList());
-			toAdd.removeAll(columnList);
-			addColumns(conn, prepClass, toAdd);
-			columnList.addAll(toAdd);
+			// add columns
+			final List<String> columnsToAdd = new ArrayList<>();
+			columnsToAdd.addAll(prepClass.getColumnNameList());
+			columnsToAdd.removeAll(columnList);
+			addColumns(conn, prepClass, columnsToAdd);
+			columnList.addAll(columnsToAdd);
+			// add indexes
+			final List<String> indexesToAdd = new ArrayList<>();
+			indexesToAdd.addAll(prepClass.getIndexes().getIndexesNameCollection());
+			indexesToAdd.removeAll(indexList);
+			addIndexes(conn, prepClass.getIndexes(), indexesToAdd);
+			indexList.addAll(indexesToAdd);
 		}
 	}
 
@@ -525,6 +636,25 @@ final class HsqldbUtil {
 			}
 		}
 		return result;
+	}
+
+	static String getStatementCreateIndex(final String indexName, final String tableName,
+			final Iterator<IndexColumn> columns) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append("create index if not exists \"");
+		sb.append(indexName);
+		sb.append("\" on \"");
+		sb.append(SCHEMA);
+		sb.append("\".\"");
+		sb.append(tableName);
+		sb.append("\" (\"");
+		sb.append(columns.next().getColumnName());
+		while (columns.hasNext()) {
+			sb.append("\", \"");
+			sb.append(columns.next().getColumnName());
+		}
+		sb.append("\");");
+		return sb.toString();
 	}
 
 	static void setPrepStt(final PreparedStatement pStt, final DataMemoryType[] types, final Object[] parameters)

@@ -285,29 +285,26 @@ public class BigBinary implements RandomAccessBinary, Closeable {
 	}
 
 	public synchronized boolean delete() throws IOException {
+		if (this.binaryFile != null) {
+			this.binaryFile.close();
+			this.binaryFile = null;
+		}
 		if (!this.file.exists()) {
 			return true;
 		}
-		close();
 		return this.file.delete();
 	}
 
 	@Override
 	public synchronized void close() throws IOException {
+		if (this.isTemporary) {
+			delete();
+			return;
+		}
 		if (this.binaryFile != null) {
 			this.binaryFile.close();
 			this.binaryFile = null;
 		}
-	}
-
-	@Override
-	protected final void finalize() throws Throwable {
-		if (this.isTemporary) {
-			delete();
-		} else {
-			close();
-		}
-		super.finalize();
 	}
 
 }

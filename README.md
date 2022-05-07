@@ -11,7 +11,6 @@ You can find the compiled code and dependencies in [dist](./dist/). And the API 
 ### Prerequisites
 
 Java Runtime Environment installed.
-Tested with [OpenJDK8](https://openjdk.java.net/).
 
 ## License
 

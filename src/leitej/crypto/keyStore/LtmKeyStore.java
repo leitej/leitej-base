@@ -180,6 +180,7 @@ public final class LtmKeyStore extends AbstractDefaultKeyStore {
 					if (!found.hasNext()) {
 						final LKS createLtmStore = LTM.newRecord(LKS.class);
 						createLtmStore.setAlias(alias);
+						createLtmStore.setKeyStore(new LargeMemory());
 						ltmStore = createLtmStore.getKeyStore();
 					} else {
 						ltmStore = found.next().getKeyStore();

@@ -51,7 +51,7 @@ final class PreparedClass {
 
 	PreparedClass(final DataProxyHandler dph) throws ClassNotFoundException {
 		this.interfaceClass = dph.getInterface();
-		this.tablename = HsqldbUtil.getTablename(this.interfaceClass);
+		this.tablename = HsqldbUtil.getTableName(this.interfaceClass);
 		LOG.debug("interfaceClass: #0, tablename: #1", this.interfaceClass, this.tablename);
 		final List<String> datanameList = dph.getDatanameList();
 		this.dataNameList = new ArrayList<>();
@@ -74,7 +74,7 @@ final class PreparedClass {
 			if (!DataProxyHandler.LTM_ID.equals(dataname)) {
 				if (Set.class.isAssignableFrom(dataType)) {
 					this.columnsSet.add(dataname);
-					columnExtendTableName = HsqldbUtil.getTablenameSet(this.interfaceClass, dataname);
+					columnExtendTableName = HsqldbUtil.getTableSetName(this.interfaceClass, dataname);
 					this.columnsSetTablename.add(columnExtendTableName);
 					this.columnsSetTypes.add(HsqldbUtil.getColumnSetDataMemoryType(columnExtendTableName));
 					this.columnsSetClass.add(HsqldbUtil.getColumnSetParameterClass(columnExtendTableName));
@@ -103,6 +103,8 @@ final class PreparedClass {
 		LOG.debug("insertNewRow: #0", this.insertNewRow);
 		this.deleteById = HsqldbUtil.getStatementDeleteById(this.tablename);
 		LOG.debug("deleteById: #0", this.deleteById);
+		// prepare indexes
+		this.pcIndex.prepare(this.tablename);
 	}
 
 	Class<LtmObjectModelling> getInterface() {

@@ -16,11 +16,14 @@
 
 package leitej.ltm;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import leitej.exception.IllegalStateLtRtException;
 
 /**
  * @author Julio Leite
@@ -29,12 +32,32 @@ import java.util.TreeSet;
 final class PreparedClassIndex {
 
 	private final Map<String, SortedSet<IndexColumn>> indexMap;
+	private final Map<String, String> indexCreateMap;
+	private boolean prepared;
 
 	PreparedClassIndex() {
 		this.indexMap = new HashMap<>();
+		this.indexCreateMap = new HashMap<>();
+		this.prepared = false;
+	}
+
+	synchronized void prepare(final String tableName) {
+		if (this.prepared) {
+			throw new IllegalStateLtRtException();
+		}
+		this.prepared = true;
+		String indexName;
+		for (final SortedSet<IndexColumn> indexColumns : this.indexMap.values()) {
+			indexName = HsqldbUtil.getIndexName(tableName, indexColumns.iterator());
+			this.indexCreateMap.put(indexName,
+					HsqldbUtil.getStatementCreateIndex(indexName, tableName, indexColumns.iterator()));
+		}
 	}
 
 	synchronized void add(final Index[] indexes, final String columnName) {
+		if (this.prepared) {
+			throw new IllegalStateLtRtException();
+		}
 		if (indexes != null && columnName != null) {
 			Index index;
 			for (int i = 0; i < indexes.length; i++) {
@@ -42,6 +65,7 @@ final class PreparedClassIndex {
 				SortedSet<IndexColumn> set = this.indexMap.get(index.name());
 				if (set == null) {
 					set = new TreeSet<>();
+					this.indexMap.put(index.name(), set);
 				}
 				set.add(new IndexColumn(index.position(), columnName));
 			}
@@ -49,11 +73,24 @@ final class PreparedClassIndex {
 	}
 
 	Iterator<String> getIndexesNameIterator() {
-		return this.indexMap.keySet().iterator();
+		if (!this.prepared) {
+			throw new IllegalStateLtRtException();
+		}
+		return this.indexCreateMap.keySet().iterator();
 	}
 
-	Iterator<IndexColumn> getIndexesColumnIterator(final String indexName) {
-		return this.indexMap.get(indexName).iterator();
+	Collection<String> getIndexesNameCollection() {
+		if (!this.prepared) {
+			throw new IllegalStateLtRtException();
+		}
+		return this.indexCreateMap.keySet();
+	}
+
+	String getSttCreate(final String indexName) {
+		if (!this.prepared) {
+			throw new IllegalStateLtRtException();
+		}
+		return this.indexCreateMap.get(indexName);
 	}
 
 	static final class IndexColumn implements Comparable<IndexColumn> {

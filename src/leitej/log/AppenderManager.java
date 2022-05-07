@@ -110,7 +110,11 @@ final class AppenderManager {
 
 	static void close() {
 		for (int i = 0; i < APPENDERS.length; i++) {
-			APPENDERS[i].close();
+			try {
+				APPENDERS[i].close();
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

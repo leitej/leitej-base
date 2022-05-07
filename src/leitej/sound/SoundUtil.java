@@ -14,38 +14,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package leitej.log;
+package leitej.sound;
 
 import java.io.IOException;
-import java.io.PrintStream;
+import java.io.OutputStream;
+
+import leitej.log.Logger;
 
 /**
- * AppenderConsole
- *
  * @author Julio Leite
+ *
  */
-final class AppenderConsole extends AbstractAppender {
+public final class SoundUtil {
 
-	private PrintStream out = null;
+	private static final Logger LOG = Logger.getInstance();
 
-	AppenderConsole(final Config lp) {
-		super(lp);
-		this.out = System.out;
+	public static void beep() throws IOException {
+		beep(1600, 750, 1.0);
 	}
 
-	@Override
-	void outPrint(final boolean newRecord, final String txt) {
-		if (this.out != null) {
-			this.out.print(txt);
-		}
-	}
-
-	@Override
-	public void close() throws IOException {
-		if (this.out != null) {
-			this.out.flush();
-			this.out.close();
-			this.out = null;
+	public static void beep(final int hertz, final int durationMS, final double volume) throws IOException {
+		LOG.debug("hertz: #0, durationMS: #1, volume: #2", hertz, durationMS, volume);
+		final OutputStream speaker = new SpeakerStream(ConstantSound.PCM_8KHZ_8BIT_MONO);
+		try {
+			for (int i = 0; i < durationMS * 8; i++) {
+				final double angle = i / (ConstantSound.PCM_8KHZ_8BIT_MONO.getSampleRate() / hertz) * 2.0 * Math.PI;
+				speaker.write((int) (Math.sin(angle) * 127.0d * volume));
+			}
+		} finally {
+			speaker.close();
 		}
 	}
 

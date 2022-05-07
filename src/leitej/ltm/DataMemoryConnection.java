@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.Map;
 
 import leitej.exception.IllegalStateLtRtException;
@@ -157,6 +158,12 @@ final class DataMemoryConnection {
 			} else {
 				HsqldbUtil.setPrepStt(pStt, 1, type.getSqlType(), LtmObjectModelling.class.cast(value).getLtmId());
 			}
+		} else if (DataMemoryType.DATE.equals(type)) {
+			if (value == null) {
+				HsqldbUtil.setPrepStt(pStt, 1, type.getSqlType(), null);
+			} else {
+				HsqldbUtil.setPrepStt(pStt, 1, type.getSqlType(), Date.class.cast(value).getTime());
+			}
 		} else {
 			HsqldbUtil.setPrepStt(pStt, 1, type.getSqlType(), value);
 		}
@@ -276,6 +283,8 @@ final class DataMemoryConnection {
 			return LtmObjectModelling.class.cast(o).getLtmId();
 		} else if (dataType.equals(DataMemoryType.LARGE_MEMORY)) {
 			return LargeMemory.class.cast(o).getId();
+		} else if (dataType.equals(DataMemoryType.DATE)) {
+			return Date.class.cast(o).getTime();
 		} else if (dataType.equals(DataMemoryType.ENUM)) {
 			return o.toString();
 		} else {

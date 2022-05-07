@@ -111,7 +111,7 @@ public final class DtpServer {
 				try {
 					while (!this.closed) {
 						try {
-							handler = (AbstractDtpHandler) this.handlerClass.newInstance();
+							handler = (AbstractDtpHandler) this.handlerClass.getDeclaredConstructor().newInstance();
 							synchronized (handler) {
 								handler.startAsync(this.comServer.accept(), this);
 								synchronized (this.handlers) {

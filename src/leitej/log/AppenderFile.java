@@ -19,6 +19,7 @@ package leitej.log;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
@@ -49,7 +50,7 @@ class AppenderFile extends AbstractAppender {
 	}
 
 	@Override
-	void close() {
+	public void close() throws IOException {
 		if (this.out != null) {
 			this.out.flush();
 			this.out.close();

@@ -16,6 +16,7 @@
 
 package leitej.log;
 
+import java.io.Closeable;
 import java.lang.reflect.Array;
 import java.util.Date;
 import java.util.Map;
@@ -29,7 +30,7 @@ import leitej.util.StringUtil;
  *
  * @author Julio Leite
  */
-abstract class AbstractAppender {
+abstract class AbstractAppender implements Closeable {
 
 	private static String[] getHierarchicalSignLog(final String logSignClean) {
 		String[] result = null;
@@ -134,14 +135,6 @@ abstract class AbstractAppender {
 		}
 	}
 
-	@Override
-	public final void finalize() throws Throwable {
-		close();
-		super.finalize();
-	}
-
 	abstract void outPrint(final boolean newRecord, final String txt);
-
-	abstract void close();
 
 }
