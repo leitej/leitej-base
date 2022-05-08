@@ -72,6 +72,23 @@ import leitej.xml.om.Xmlom;
  */
 public final class Cryptography {
 
+	/*
+	 * REMOVE dependencies
+	 * 
+	 * import sun.security.pkcs10.PKCS10; import sun.security.provider.X509Factory;
+	 * import sun.security.x509.AlgorithmId; import
+	 * sun.security.x509.BasicConstraintsExtension; import
+	 * sun.security.x509.CertificateAlgorithmId; import
+	 * sun.security.x509.CertificateExtensions; import
+	 * sun.security.x509.CertificateSerialNumber; import
+	 * sun.security.x509.CertificateValidity; import
+	 * sun.security.x509.CertificateVersion; import
+	 * sun.security.x509.CertificateX509Key; import
+	 * sun.security.x509.KeyUsageExtension; import sun.security.x509.X500Name;
+	 * import sun.security.x509.X509CertImpl; import sun.security.x509.X509CertInfo;
+	 *
+	 */
+
 	private static final Logger LOG = Logger.getInstance();
 
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();

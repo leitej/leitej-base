@@ -6,4 +6,4 @@
 ### Prerequisites
 
 Java Runtime Environment installed.  
-Tested with [OpenJDK8](https://openjdk.java.net/).
+Tested with [OpenJDK](https://openjdk.java.net/).
