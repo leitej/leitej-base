@@ -47,11 +47,16 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import leitej.crypto.asymmetric.CipherAsymEnum;
 import leitej.crypto.asymmetric.ModeAsymEnum;
 import leitej.crypto.asymmetric.PaddingAsymEnum;
+import leitej.crypto.asymmetric.signature.SignatureEnum;
 import leitej.crypto.hash.HMacEnum;
 import leitej.crypto.hash.MessageDigestEnum;
+import leitej.crypto.keyStore.KeyStoreEnum;
+import leitej.crypto.symmetric.CipherEnum;
 import leitej.crypto.symmetric.ModeEnum;
 import leitej.crypto.symmetric.PBEEnum;
 import leitej.crypto.symmetric.PBEEnum.IterationCountEnum;
@@ -72,23 +77,6 @@ import leitej.xml.om.Xmlom;
  */
 public final class Cryptography {
 
-	/*
-	 * REMOVE dependencies
-	 * 
-	 * import sun.security.pkcs10.PKCS10; import sun.security.provider.X509Factory;
-	 * import sun.security.x509.AlgorithmId; import
-	 * sun.security.x509.BasicConstraintsExtension; import
-	 * sun.security.x509.CertificateAlgorithmId; import
-	 * sun.security.x509.CertificateExtensions; import
-	 * sun.security.x509.CertificateSerialNumber; import
-	 * sun.security.x509.CertificateValidity; import
-	 * sun.security.x509.CertificateVersion; import
-	 * sun.security.x509.CertificateX509Key; import
-	 * sun.security.x509.KeyUsageExtension; import sun.security.x509.X500Name;
-	 * import sun.security.x509.X509CertImpl; import sun.security.x509.X509CertInfo;
-	 *
-	 */
-
 	private static final Logger LOG = Logger.getInstance();
 
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -97,6 +85,9 @@ public final class Cryptography {
 	private static final Config CONFIG;
 
 	static {
+		final Provider bcProvider = new BouncyCastleProvider();
+		Security.addProvider(bcProvider);
+		LOG.info("#0", bcProvider);
 		// show providers available
 		for (final Provider provider : Security.getProviders()) {
 			LOG.info("provider: #0", provider);
@@ -118,7 +109,30 @@ public final class Cryptography {
 		}
 	}
 
+	// just to access the class to run static initialization
+	private static void access() {
+	}
+
 	private Cryptography() {
+	}
+
+	/*
+	 * Policy
+	 */
+
+	/**
+	 *
+	 * @return true if JVM has Unrestricted Policy Files
+	 */
+	public static boolean hasUnrestrictedPolicyFiles() {
+		boolean result = false;
+		try {
+			result = Cipher.getMaxAllowedKeyLength(
+					getTransformation(CipherEnum.Blowfish, ModeEnum.ECB, PaddingEnum.NoPadding)) == Integer.MAX_VALUE;
+		} catch (final NoSuchAlgorithmException e) {
+			LOG.error("#0", e);
+		}
+		return result;
 	}
 
 	/*
@@ -139,9 +153,9 @@ public final class Cryptography {
 	 * @throws NoSuchProviderException
 	 * @throws NoSuchPaddingException
 	 */
-	public static Cipher getCipher(final String cipherAlgorithm, final ModeEnum mode, final PaddingEnum padding)
+	public static Cipher getCipher(final CipherEnum cipherAlgorithm, final ModeEnum mode, final PaddingEnum padding)
 			throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
-		return Cipher.getInstance(getTransformation(cipherAlgorithm, mode, padding));
+		return Cipher.getInstance(getTransformation(cipherAlgorithm, mode, padding), ProviderEnum.BC.getName());
 	}
 
 	/**
@@ -154,7 +168,7 @@ public final class Cryptography {
 	 */
 	public static Cipher getCipher(final StreamCipherEnum algorithm)
 			throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
-		return Cipher.getInstance(algorithm.getName());
+		return Cipher.getInstance(algorithm.getName(), ProviderEnum.BC.getName());
 	}
 
 	/**
@@ -170,14 +184,14 @@ public final class Cryptography {
 	public static Cipher getCipher(final CipherAsymEnum algorithm, final ModeAsymEnum mode,
 			final PaddingAsymEnum padding)
 			throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
-		return Cipher.getInstance(getTransformation(algorithm, mode, padding));
+		return Cipher.getInstance(getTransformation(algorithm, mode, padding), ProviderEnum.BC.getName());
 	}
 
-	private static String getTransformation(final String cipherAlgorithm, final ModeEnum mode,
+	private static String getTransformation(final CipherEnum cipherAlgorithm, final ModeEnum mode,
 			final PaddingEnum padding) {
 		synchronized (SB_TMP) {
 			SB_TMP.setLength(0);
-			return SB_TMP.append(cipherAlgorithm).append("/").append(mode.getName()).append("/")
+			return SB_TMP.append(cipherAlgorithm.getName()).append("/").append(mode.getName()).append("/")
 					.append(padding.getName()).toString();
 		}
 	}
@@ -201,7 +215,7 @@ public final class Cryptography {
 	 */
 	public static Cipher getCipher(final PBEEnum algorithm)
 			throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
-		return Cipher.getInstance(algorithm.getName());
+		return Cipher.getInstance(algorithm.getName(), ProviderEnum.BC.getName());
 	}
 
 	/*
@@ -212,20 +226,20 @@ public final class Cryptography {
 		return CONFIG.getDefaultSymmetricKeyBitSize();
 	}
 
-	public static SecretKey keyProduce(final String cipherAlgorithm, final byte[] keyBytes)
+	public static SecretKey keyProduce(final CipherEnum cipherAlgorithm, final byte[] keyBytes)
 			throws IllegalArgumentLtRtException {
 		if (cipherAlgorithm == null || keyBytes == null) {
 			throw new IllegalArgumentLtRtException();
 		}
-		return new SecretKeySpec(keyBytes, cipherAlgorithm);
+		return new SecretKeySpec(keyBytes, cipherAlgorithm.getName());
 	}
 
-	public static SecretKey keyGenerate(final String cipherAlgorithm, final int bitkeysize)
+	public static SecretKey keyGenerate(final CipherEnum cipherAlgorithm, final int bitkeysize)
 			throws IllegalArgumentLtRtException, NoSuchAlgorithmException, NoSuchProviderException {
 		if (cipherAlgorithm == null || bitkeysize < 1) {
 			throw new IllegalArgumentLtRtException();
 		}
-		final KeyGenerator generator = KeyGenerator.getInstance(cipherAlgorithm);
+		final KeyGenerator generator = KeyGenerator.getInstance(cipherAlgorithm.getName(), ProviderEnum.BC.getName());
 		generator.init(bitkeysize);
 		return generator.generateKey();
 	}
@@ -276,7 +290,7 @@ public final class Cryptography {
 			throw new IllegalArgumentLtRtException();
 		}
 		final PBEKeySpec pbeSpec = new PBEKeySpec(password, salt, iterationCount);
-		final SecretKeyFactory keyFact = SecretKeyFactory.getInstance(algorithm.getName());
+		final SecretKeyFactory keyFact = SecretKeyFactory.getInstance(algorithm.getName(), ProviderEnum.BC.getName());
 		return keyFact.generateSecret(pbeSpec);
 	}
 
@@ -294,7 +308,7 @@ public final class Cryptography {
 
 	public static MessageDigest getMessageDigest(final MessageDigestEnum digestAlgorithm)
 			throws NoSuchAlgorithmException, NoSuchProviderException {
-		return MessageDigest.getInstance(digestAlgorithm.getName());
+		return MessageDigest.getInstance(digestAlgorithm.getName(), ProviderEnum.BC.getName());
 	}
 
 	/*
@@ -302,7 +316,7 @@ public final class Cryptography {
 	 */
 
 	public static Mac getHmac(final HMacEnum hmacAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException {
-		return Mac.getInstance(hmacAlgorithm.getName());
+		return Mac.getInstance(hmacAlgorithm.getName(), ProviderEnum.BC.getName());
 	}
 
 	public static SecretKey hmacKeyProduce(final HMacEnum hmacAlgorithm, final byte[] hMacKeyBytes)
@@ -318,7 +332,7 @@ public final class Cryptography {
 		if (hmacAlgorithm == null || bitkeysize < 1) {
 			throw new IllegalArgumentLtRtException();
 		}
-		final KeyGenerator generator = KeyGenerator.getInstance(hmacAlgorithm.getName());
+		final KeyGenerator generator = KeyGenerator.getInstance(hmacAlgorithm.getName(), ProviderEnum.BC.getName());
 		generator.init(bitkeysize);
 		return generator.generateKey();
 	}
@@ -331,9 +345,9 @@ public final class Cryptography {
 		return CONFIG.getDefaultCertificateSignatureAlgorithm();
 	}
 
-	public static Signature getSignature(final String signatureAlgorithm)
+	public static Signature getSignature(final SignatureEnum signatureAlgorithm)
 			throws NoSuchAlgorithmException, NoSuchProviderException {
-		return Signature.getInstance(signatureAlgorithm);
+		return Signature.getInstance(signatureAlgorithm.getName(), ProviderEnum.BC.getName());
 	}
 
 	/*
@@ -342,9 +356,14 @@ public final class Cryptography {
 
 	public static final class RSA {
 
+		static {
+			Cryptography.access();
+		}
+
 		public static KeyPair keyPairProduce(final BigInteger modulus, final BigInteger publicExponent,
 				final BigInteger privateExponent) throws NoSuchAlgorithmException, NoSuchProviderException {
-			final KeyFactory keyFactory = KeyFactory.getInstance(CipherAsymEnum.RSA.getName());
+			final KeyFactory keyFactory = KeyFactory.getInstance(CipherAsymEnum.RSA.getName(),
+					ProviderEnum.BC.getName());
 			final RSAPublicKeySpec pubKeySpec = new RSAPublicKeySpec(modulus, publicExponent);
 			final RSAPrivateKeySpec privKeySpec = new RSAPrivateKeySpec(modulus, privateExponent);
 			try {
@@ -378,7 +397,8 @@ public final class Cryptography {
 				throw new IllegalArgumentLtRtException();
 			}
 			synchronized (SECURE_RANDOM) {
-				final KeyPairGenerator generator = KeyPairGenerator.getInstance(CipherAsymEnum.RSA.getName());
+				final KeyPairGenerator generator = KeyPairGenerator.getInstance(CipherAsymEnum.RSA.getName(),
+						ProviderEnum.BC.getName());
 				try {
 					generator.initialize(new RSAKeyGenParameterSpec(bitkeysize, publicExponent), SECURE_RANDOM);
 				} catch (final InvalidAlgorithmParameterException e) {
@@ -393,7 +413,8 @@ public final class Cryptography {
 			if (bitkeysize < 1) {
 				throw new IllegalArgumentLtRtException();
 			}
-			final KeyPairGenerator generator = KeyPairGenerator.getInstance(CipherAsymEnum.RSA.getName());
+			final KeyPairGenerator generator = KeyPairGenerator.getInstance(CipherAsymEnum.RSA.getName(),
+					ProviderEnum.BC.getName());
 			generator.initialize(bitkeysize);
 			return generator.generateKeyPair();
 		}
@@ -406,12 +427,17 @@ public final class Cryptography {
 
 	public static final class ElGamal {
 
+		static {
+			Cryptography.access();
+		}
+
 		public static KeyPair keyPairGenerate(final int bitkeysize)
 				throws IllegalArgumentLtRtException, NoSuchAlgorithmException, NoSuchProviderException {
 			if (bitkeysize < 1) {
 				throw new IllegalArgumentLtRtException();
 			}
-			final KeyPairGenerator generator = KeyPairGenerator.getInstance(CipherAsymEnum.ElGamal.getName());
+			final KeyPairGenerator generator = KeyPairGenerator.getInstance(CipherAsymEnum.ElGamal.getName(),
+					ProviderEnum.BC.getName());
 			generator.initialize(bitkeysize);
 			return generator.generateKeyPair();
 		}
@@ -432,14 +458,20 @@ public final class Cryptography {
 	 * @param providerEnum
 	 * @return
 	 * @throws KeyStoreLtException <br/>
-	 *                             +Cause KeyStoreException if no Provider supports
-	 *                             a KeyStoreSpi implementation for the specified
-	 *                             type
+	 *                             +Cause KeyStoreException if a KeyStoreSpi
+	 *                             implementation for the specified type is not
+	 *                             available from the specified provider <br/>
+	 *                             +Cause NoSuchProviderException if the specified
+	 *                             provider is not registered in the security
+	 *                             provider list
 	 */
-	public static KeyStore getKeyStore(final String keyStore) throws KeyStoreLtException {
+	public static KeyStore getKeyStore(final KeyStoreEnum keyStoreEnum, final ProviderEnum providerEnum)
+			throws KeyStoreLtException {
 		try {
-			return KeyStore.getInstance(keyStore);
+			return KeyStore.getInstance(keyStoreEnum.getName(), providerEnum.getName());
 		} catch (final KeyStoreException e) {
+			throw new KeyStoreLtException(e);
+		} catch (final NoSuchProviderException e) {
 			throw new KeyStoreLtException(e);
 		}
 	}
