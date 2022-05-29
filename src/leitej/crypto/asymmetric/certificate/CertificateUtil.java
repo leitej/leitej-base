@@ -255,15 +255,14 @@ public final class CertificateUtil {
 	 * Generates a X.509 certificate version 3 - self signed (root for a chain of
 	 * certificates).
 	 *
-	 * @param issuerDN           common name
+	 * @param issuerDN          common name
 	 * @param keys
-	 * @param signatureAlgorithm the name of the signature algorithm used
-	 * @param validAfter         the date and time after which the certificate is
-	 *                           valid
-	 * @param expireDate         the date and time after which the certificate
-	 *                           expires
-	 * @param pathLenConstraint  specifies the depth of the certification path (if
-	 *                           >-1 create as certificate authority)
+	 * @param validAfter        the date and time after which the certificate is
+	 *                          valid
+	 * @param expireDate        the date and time after which the certificate
+	 *                          expires
+	 * @param pathLenConstraint specifies the depth of the certification path (if
+	 *                          &#62;-1 create as certificate authority)
 	 * @return generated certificate
 	 * @throws CertificateLtException <br/>
 	 *                                +Cause OperatorCreationException
@@ -290,7 +289,7 @@ public final class CertificateUtil {
 	 * @param expireDate         the date and time after which the certificate
 	 *                           expires
 	 * @param pathLenConstraint  specifies the depth of the certification path (if
-	 *                           >-1 create as certificate authority)
+	 *                           &#62;-1 create as certificate authority)
 	 * @return generated certificate
 	 * @throws CertificateLtException <br/>
 	 *                                +Cause OperatorCreationException
@@ -532,7 +531,7 @@ public final class CertificateUtil {
 	 * @param expireDate
 	 * @param requestLink
 	 * @param pathLenConstraint  specifies the depth of the certification path (if
-	 *                           >-1 create as certificate authority)
+	 *                           &#62;-1 create as certificate authority)
 	 * @return a new array with the new link
 	 * @throws CertificateLtException <br/>
 	 *                                +Cause CertificateChainLtException if issuer
@@ -589,7 +588,7 @@ public final class CertificateUtil {
 	 * @param expireDate         the date and time after which the certificate
 	 *                           expires
 	 * @param pathLenConstraint  specifies the depth of the certification path (if
-	 *                           >-1 create as certificate authority)
+	 *                           &#62;-1 create as certificate authority)
 	 * @return the new certificate
 	 * @throws CertificateLtException <br/>
 	 *                                +Cause CertificateChainLtException if issuer

@@ -39,7 +39,7 @@ public class HashOutputStream extends AbstractHashOutputStream {
 
 	/**
 	 *
-	 * @param os
+	 * @param out
 	 * @param digestAlgorithm
 	 * @param stepLength      auto verify digest at <code>stepLength</code> length
 	 *                        of data

@@ -45,7 +45,6 @@ public final class QueueBlockingFIFO<E> implements Serializable {
 	/**
 	 * Creates a new instance of FIFOBlockingQueue.
 	 *
-	 * @param name     of this queue
 	 * @param capacity the capacity of this queue
 	 * @throws IllegalArgumentException If capacity is less than 1
 	 */

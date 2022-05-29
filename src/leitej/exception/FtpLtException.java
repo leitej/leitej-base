@@ -35,7 +35,7 @@ public class FtpLtException extends LtException {
 	/**
 	 * Creates a new instance of <code>FtpLtException</code>.
 	 *
-	 * @param message The error message.
+	 * @param code    The error message.
 	 * @param objects To use if needed to build the message.
 	 */
 	public FtpLtException(final CodeEnum code, final Object... objects) {
@@ -47,7 +47,7 @@ public class FtpLtException extends LtException {
 	 * Creates a new instance of <code>FtpLtException</code>.
 	 *
 	 * @param cause   The nested exception.
-	 * @param message The error message.
+	 * @param code    The error message.
 	 * @param objects To use if needed to build the message.
 	 */
 	public FtpLtException(final Throwable cause, final CodeEnum code, final Object... objects) {

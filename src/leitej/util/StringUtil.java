@@ -51,7 +51,7 @@ public final class StringUtil {
 	 *
 	 * @param str string to change
 	 * @return changed
-	 * @throws IndexOutOfBoundsException if <code>str</code> has length < 1
+	 * @throws IndexOutOfBoundsException if <code>str</code> has length &#60; 1
 	 */
 	public static StringBuffer firstCharacterToUpperCase(final StringBuffer str) throws IndexOutOfBoundsException {
 		str.setCharAt(0, Character.toUpperCase(str.charAt(0)));
@@ -64,7 +64,7 @@ public final class StringUtil {
 	 *
 	 * @param str string to change
 	 * @return changed
-	 * @throws IndexOutOfBoundsException if <code>str</code> has length < 1
+	 * @throws IndexOutOfBoundsException if <code>str</code> has length &#60; 1
 	 */
 	public static StringBuilder firstCharacterToUpperCase(final StringBuilder str) throws IndexOutOfBoundsException {
 		str.setCharAt(0, Character.toUpperCase(str.charAt(0)));
@@ -77,7 +77,7 @@ public final class StringUtil {
 	 *
 	 * @param str string to change
 	 * @return changed
-	 * @throws IndexOutOfBoundsException if <code>str</code> has length < 1
+	 * @throws IndexOutOfBoundsException if <code>str</code> has length &#60; 1
 	 */
 	public static StringBuffer firstCharacterToLowerCase(final StringBuffer str) throws IndexOutOfBoundsException {
 		str.setCharAt(0, Character.toLowerCase(str.charAt(0)));
@@ -90,7 +90,7 @@ public final class StringUtil {
 	 *
 	 * @param str string to change
 	 * @return changed
-	 * @throws IndexOutOfBoundsException if <code>str</code> has length < 1
+	 * @throws IndexOutOfBoundsException if <code>str</code> has length &#60; 1
 	 */
 	public static StringBuilder firstCharacterToLowerCase(final StringBuilder str) throws IndexOutOfBoundsException {
 		str.setCharAt(0, Character.toLowerCase(str.charAt(0)));
@@ -140,8 +140,7 @@ public final class StringUtil {
 
 	public static String concatObjects(final String msg, final String regex, final Object[] args)
 			throws PatternSyntaxException {
-		if (args == null || args.length == 0 || msg == null || regex == null || msg.length() == 0
-				|| regex.length() == 0) {
+		if (args == null || args.length == 0 || msg == null || regex == null || msg.length() == 0 || regex.length() == 0) {
 			return msg;
 		}
 		final StringBuilder resultText = new StringBuilder(32);
@@ -232,7 +231,7 @@ public final class StringUtil {
 	 * Converts a CharSequence into a byte array.<br/>
 	 * Respecting that which char results in two bytes.
 	 *
-	 * @param chars to convert
+	 * @param cs characters to convert
 	 * @return converted byte array
 	 */
 	public static byte[] toByteArray(final CharSequence cs) {

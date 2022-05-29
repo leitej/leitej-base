@@ -34,7 +34,6 @@ public final class CommunicationFactory extends
 
 	/**
 	 *
-	 * @param cslVault with key and certificate
 	 */
 	public CommunicationFactory() {
 		super(ConstantNet.DEFAULT_VELOCITY, ConstantNet.DEFAULT_SIZE_PER_SENTENCE, ConstantNet.DEFAULT_TIMEOUT_MS);
@@ -42,7 +41,6 @@ public final class CommunicationFactory extends
 
 	/**
 	 *
-	 * @param cslVault        with key and certificate
 	 * @param velocity        byte per second (0 infinite)
 	 * @param sizePerSentence number of bytes per read step (0 infinite)
 	 * @param msTimeOut       the specified timeout, in milliseconds (0 infinite)

@@ -277,12 +277,11 @@ public final class XmlProducer implements Closeable {
 	}
 
 	/**
-	 * Generates an attribute.
+	 * Generates an attribute, well formatted to be inserted on a open tag.
 	 *
 	 * @param dest  to write the attribute
 	 * @param name  attribute name
 	 * @param value attribute value
-	 * @return attribute well formatted to be inserted on a open tag
 	 * @throws XmlInvalidLtException If is writing a corrupted XML
 	 */
 	public synchronized void genAttribute(final StringBuilder dest, final CharSequence name, final CharSequence value)
