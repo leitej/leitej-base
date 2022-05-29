@@ -20,20 +20,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Scanner;
 
+import org.bouncycastle.asn1.pkcs.CertificationRequest;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.jcajce.provider.asymmetric.x509.CertificateFactory;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+
 import leitej.exception.CertificateLtException;
-import sun.security.pkcs10.PKCS10;
-import sun.security.provider.X509Factory;
 
 /**
  *
@@ -42,6 +42,8 @@ import sun.security.provider.X509Factory;
 public final class CertificateStreamUtil {
 
 	private static final String MIME_LINE_FEED = "\r\n";
+	private static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
+	private static final String END_CERT = "-----END CERTIFICATE-----";
 
 	private CertificateStreamUtil() {
 	}
@@ -57,18 +59,17 @@ public final class CertificateStreamUtil {
 	 * @param os
 	 * @param certificates
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause CertificateEncodingException if an
-	 *                                encoding error occurs
-	 * @throws IOException            if an I/O error occurs
+	 *                                +Cause IOException if an encoding cannot be
+	 *                                generated
 	 */
-	public static void writeX509Certificates(final OutputStream os, final X509Certificate... certificates)
+	public static void writeX509Certificates(final OutputStream os, final X509CertificateHolder... certificates)
 			throws CertificateLtException, IOException {
 		try {
-			for (final Certificate certificate : certificates) {
+			for (final X509CertificateHolder certificate : certificates) {
 				os.write(certificate.getEncoded());
 				os.flush();
 			}
-		} catch (final CertificateEncodingException e) {
+		} catch (final IOException e) {
 			throw new CertificateLtException(e);
 		}
 	}
@@ -85,17 +86,21 @@ public final class CertificateStreamUtil {
 	 * @throws IOException                  if an I/O error occurred
 	 * @throws CertificateEncodingException if an encoding error occurs
 	 */
-	public static void writeX509CertificatesPEM(final Writer writer, final X509Certificate... certificates)
-			throws IOException, CertificateEncodingException {
+	public static void writeX509CertificatesPEM(final Writer writer, final X509CertificateHolder... certificates)
+			throws CertificateLtException {
 		final Base64.Encoder encoder = Base64.getMimeEncoder(64, MIME_LINE_FEED.getBytes());
-		for (final Certificate cert : certificates) {
-			writer.write(X509Factory.BEGIN_CERT);
-			writer.write(MIME_LINE_FEED);
-			writer.write(encoder.encodeToString(cert.getEncoded()));
-			writer.write(MIME_LINE_FEED);
-			writer.write(X509Factory.END_CERT);
-			writer.write(MIME_LINE_FEED);
-			writer.flush();
+		try {
+			for (final X509CertificateHolder cert : certificates) {
+				writer.write(BEGIN_CERT);
+				writer.write(MIME_LINE_FEED);
+				writer.write(encoder.encodeToString(cert.getEncoded()));
+				writer.write(MIME_LINE_FEED);
+				writer.write(END_CERT);
+				writer.write(MIME_LINE_FEED);
+				writer.flush();
+			}
+		} catch (final IOException e) {
+			throw new CertificateLtException(e);
 		}
 	}
 
@@ -110,10 +115,10 @@ public final class CertificateStreamUtil {
 	 * @param certificationRequests
 	 * @throws IOException If an I/O error occurred
 	 */
-	public static void writePKCS10CertificationRequestPEM(final Writer writer, final PKCS10... certificationRequests)
-			throws IOException {
+	public static void writeCertificationRequestPEM(final Writer writer,
+			final CertificationRequest... certificationRequests) throws IOException {
 		final Base64.Encoder encoder = Base64.getMimeEncoder(64, MIME_LINE_FEED.getBytes());
-		for (final PKCS10 request : certificationRequests) {
+		for (final CertificationRequest request : certificationRequests) {
 			writer.write("-----BEGIN CERTIFICATE REQUEST-----");
 			writer.write(MIME_LINE_FEED);
 			writer.write(encoder.encodeToString(request.getEncoded()));
@@ -131,45 +136,27 @@ public final class CertificateStreamUtil {
 	/**
 	 * Generates a certificate object and initialises it with the data read from the
 	 * input stream <code>is</code>.<br/>
-	 * This method uses {@link java.security.cert.CertificateFactory
-	 * CertificateFactory}.<br/>
 	 * <br/>
 	 * The certificate provided in <code>is</code> must be DER-encoded and may be
 	 * supplied in binary or printable (Base64) encoding. If the certificate is
 	 * provided in Base64 encoding, it must be bounded at the beginning by
 	 * -----BEGIN CERTIFICATE-----, and must be bounded at the end by -----END
-	 * CERTIFICATE-----.<br/>
-	 * <br/>
-	 * Note that if the given input stream does not support
-	 * {@link java.io.InputStream#mark(int) mark} and
-	 * {@link java.io.InputStream#reset() reset}, this method will consume the
-	 * entire input stream. Otherwise, each call to this method consumes one
-	 * certificate and the read position of the input stream is positioned to the
-	 * next available byte after the inherent end-of-certificate marker. If the data
-	 * in the input stream does not contain an inherent end-of-certificate marker
-	 * (other than EOF) and there is trailing data after the certificate is parsed,
-	 * a <code>CertificateException</code> is thrown.
+	 * CERTIFICATE-----.
 	 *
 	 * @param is an input stream with the X509 certificate data
 	 * @return the X509 certificate object initialised with the data from the input
 	 *         stream
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause CertificateException if it's type is
-	 *                                not X.509 or a CertificateFactorySpi
-	 *                                implementation for the specified algorithm is
-	 *                                not available from the specified provider or
-	 *                                on parsing errors
+	 *                                +Cause CertificateException on parsing or
+	 *                                encoding errors<br/>
+	 *                                +Cause IOException in the event of corrupted
+	 *                                data, or an incorrect structure
 	 */
-	public static X509Certificate readX509Certificate(final InputStream is) throws CertificateLtException {
+	public static X509CertificateHolder readX509Certificate(final InputStream is) throws CertificateLtException {
 		try {
-			// create the certificate factory
-			CertificateFactory fact;
-			fact = CertificateFactory.getInstance(TypeEnum.X509.getName());
-			// read certificate
-			final Certificate certificate = fact.generateCertificate(is);
-			CertificateUtil.verifyTypeX509(certificate);
-			return X509Certificate.class.cast(certificate);
-		} catch (final CertificateException e) {
+			// create the certificate factory, read certificate, convert
+			return new X509CertificateHolder((new CertificateFactory()).engineGenerateCertificate(is).getEncoded());
+		} catch (final CertificateException | IOException e) {
 			throw new CertificateLtException(e);
 		}
 	}
@@ -180,49 +167,25 @@ public final class CertificateStreamUtil {
 
 	/**
 	 * Returns an array of the X509 certificates read from the given input stream
-	 * <code>is</code>.<br/>
-	 * This method uses {@link java.security.cert.CertificateFactory
-	 * CertificateFactory}.<br/>
-	 * <br/>
-	 * The <code>is</code> may contain a sequence of DER-encoded certificates in the
-	 * formats described for {@link #generateCertificate(java.io.InputStream)
-	 * generateCertificate}. In addition, <code>is</code> may contain a PKCS#7
-	 * certificate chain. This is a PKCS#7 <i>SignedData</i> object, with the only
-	 * significant field being <i>certificates</i>. In particular, the signature and
-	 * the contents are ignored. This format allows multiple certificates to be
-	 * downloaded at once. If no certificates are present, an empty collection is
-	 * returned.<br/>
-	 * <br/>
-	 * Note that if the given input stream does not support
-	 * {@link java.io.InputStream#mark(int) mark} and
-	 * {@link java.io.InputStream#reset() reset}, this method will consume the
-	 * entire input stream.
+	 * <code>is</code>.
 	 *
 	 * @param is the input stream with the X509 certificates
-	 * @return an array of java.security.cert.X509Certificate objects initialised
-	 *         with the data from the input stream
+	 * @return an array of X509 certificate initialized with the data from the input
+	 *         stream
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause CertificateException if any of the
-	 *                                certificate is not a X.509 type or a
-	 *                                CertificateFactorySpi implementation for the
-	 *                                specified algorithm is not available from the
-	 *                                specified provider or on parsing errors
+	 *                                +Cause CertificateException on parsing or
+	 *                                encoding errors<br/>
+	 *                                +Cause IOException in the event of corrupted
+	 *                                data, or an incorrect structure
 	 */
-	public static X509Certificate[] readX509Certificates(final InputStream is) throws CertificateLtException {
+	public static X509CertificateHolder[] readX509Certificates(final InputStream is) throws CertificateLtException {
 		try {
-			// create the certificate factory
-			final CertificateFactory fact = CertificateFactory.getInstance(TypeEnum.X509.getName());
-			X509Certificate[] result;
 			// read certificates
-			final Collection<? extends Certificate> tmp = fact.generateCertificates(is);
-			if (tmp == null) {
-				return new X509Certificate[0];
-			}
-			result = new X509Certificate[tmp.size()];
+			final Collection<?> certificates = (new CertificateFactory()).engineGenerateCertificates(is);
+			final X509CertificateHolder[] result = new X509CertificateHolder[certificates.size()];
 			int i = 0;
-			for (final Certificate certificate : tmp) {
-				CertificateUtil.verifyTypeX509(certificate);
-				result[i++] = X509Certificate.class.cast(certificate);
+			for (final Iterator<?> iterator = certificates.iterator(); iterator.hasNext(); i++) {
+				result[i] = CertificateUtil.convert(Certificate.class.cast(iterator.next()));
 			}
 			return result;
 		} catch (final CertificateException e) {
@@ -239,24 +202,17 @@ public final class CertificateStreamUtil {
 	 *
 	 * @param scanner
 	 * @return the certification request
-	 * @throws IOException            for low level errors reading the data
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause SignatureException when the signature
-	 *                                is invalid <br/>
-	 *                                +Cause NoSuchAlgorithmException when the
-	 *                                signature algorithm is not supported in this
-	 *                                environment <br/>
-	 *                                +Cause CertificateEncodingException when
-	 *                                invalid syntax
+	 *                                +Cause IOException in the event of corrupted
+	 *                                data, or an incorrect structure
 	 */
-	public static PKCS10 readPKCS10CertificationRequestPEM(final Scanner scanner)
-			throws IOException, CertificateLtException {
+	public static CertificationRequest readCertificationRequestPEM(final Scanner scanner) throws CertificateLtException {
 		final Base64.Decoder decoder = Base64.getMimeDecoder();
 		scanner.useDelimiter(".");
 		final String linePattern = ".*" + MIME_LINE_FEED;
 		final String header = scanner.findWithinHorizon(linePattern, 128);
 		if (header == null || !header.matches("-----BEGIN.+CERTIFICATE REQUEST-----" + MIME_LINE_FEED)) {
-			throw new CertificateLtException(new CertificateEncodingException("Invalid syntax"));
+			throw new CertificateLtException(new IOException("Invalid syntax"));
 		}
 		final StringBuilder sb = new StringBuilder();
 		String line = scanner.findWithinHorizon(linePattern, 128);
@@ -266,11 +222,12 @@ public final class CertificateStreamUtil {
 			line = scanner.findWithinHorizon(linePattern, 128);
 		}
 		if (line == null || !line.matches("-----END.+CERTIFICATE REQUEST-----" + MIME_LINE_FEED)) {
-			throw new CertificateLtException(new CertificateEncodingException("Invalid syntax"));
+			throw new CertificateLtException(new IOException("Invalid syntax"));
 		}
 		try {
-			return new PKCS10(decoder.decode(sb.toString()));
-		} catch (SignatureException | NoSuchAlgorithmException e) {
+			final PKCS10CertificationRequest csrBuilder = new PKCS10CertificationRequest(decoder.decode(sb.toString()));
+			return csrBuilder.toASN1Structure();
+		} catch (final IOException e) {
 			throw new CertificateLtException(e);
 		}
 	}

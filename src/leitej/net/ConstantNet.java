@@ -37,7 +37,7 @@ public final class ConstantNet {
 
 	public static final int INITIATE_COMMUNICATION_TIMEOUT_MS = (int) (15 * DateUtil.ONE_SECOND_IN_MS);
 
-	public static final int DEFAULT_DTP_PORT = 26;
+	public static final int DEFAULT_DTP_PORT = 2626;
 	public static final int DEFAULT_DTP_BACKLOG = 0;
 	public static final InetAddress DEFAULT_DTP_BIND_ADDR = null;
 

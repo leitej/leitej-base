@@ -22,10 +22,13 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.security.InvalidKeyException;
-import java.security.cert.X509Certificate;
+
+import org.bouncycastle.cert.X509CertificateHolder;
 
 import leitej.crypto.asymmetric.CipherRSA;
 import leitej.crypto.asymmetric.PaddingAsymEnum;
+import leitej.crypto.asymmetric.certificate.CertificateUtil;
+import leitej.exception.CertificateLtException;
 import leitej.exception.ConnectionLtException;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.KeyStoreLtException;
@@ -76,10 +79,10 @@ public final class CommunicationSecureHost extends AbstractCommunicationSecureSe
 				sendConfirmationByte(out);
 			}
 
-			final X509Certificate clientCertificate = readRemoteIdentification(in, out);
+			final X509CertificateHolder clientCertificate = readRemoteIdentification(in, out);
 			sendMyIdentification(in, out);
 
-			final CipherRSA cipherRSA = new CipherRSA(clientCertificate.getPublicKey(),
+			final CipherRSA cipherRSA = new CipherRSA(CertificateUtil.extract(clientCertificate),
 					getFactory().getCslVault().getCslPrivateKey(), PaddingAsymEnum.OAEPWithSHA512AndMGF1Padding);
 			this.remoteKeyBlock = readRemoteHalfStateKeyBlock(in, cipherRSA);
 			getFactory().getCslVault().saltIn(this.remoteKeyBlock, clientCertificate);
@@ -91,11 +94,7 @@ public final class CommunicationSecureHost extends AbstractCommunicationSecureSe
 
 			readRemoteKeyBlock(in, this.remoteKeyBlock);
 			sendMyKeyBlock(out, this.myKeyBlock);
-		} catch (final IOException e) {
-			throw new ConnectionLtException(e);
-		} catch (final KeyStoreLtException e) {
-			throw new ConnectionLtException(e);
-		} catch (final InvalidKeyException e) {
+		} catch (final IOException | KeyStoreLtException | InvalidKeyException | CertificateLtException e) {
 			throw new ConnectionLtException(e);
 		}
 	}

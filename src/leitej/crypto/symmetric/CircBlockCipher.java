@@ -59,7 +59,7 @@ public final class CircBlockCipher {
 
 	private boolean initialized;
 
-	public CircBlockCipher(final String cipherAlgorithm) {
+	public CircBlockCipher(final CipherEnum cipherAlgorithm) {
 		try {
 			this.cipher = Cryptography.getCipher(cipherAlgorithm, ModeEnum.ECB, PaddingEnum.NoPadding);
 		} catch (final NoSuchAlgorithmException e) {
@@ -142,8 +142,8 @@ public final class CircBlockCipher {
 		int x;
 		for (int i = this.blockByteSize - 1; i >= 0; i--) {
 			if (i >= this.blockByteSize - this.nBlockBuffer.length) {
-				x = (this.iv[i] & 0xff)
-						+ (this.nBlockBuffer[i - (this.blockByteSize - this.nBlockBuffer.length)] & 0xff) + carry;
+				x = (this.iv[i] & 0xff) + (this.nBlockBuffer[i - (this.blockByteSize - this.nBlockBuffer.length)] & 0xff)
+						+ carry;
 			} else {
 				x = (this.iv[i] & 0xff) + carry;
 			}
@@ -179,7 +179,7 @@ public final class CircBlockCipher {
 			// encryptMode == true -> src = plain-text & dst = cipher-text
 			// encryptMode == false -> src = cipher-text & dst = plain-text
 			if (this.rotatePositionFlag == this.encryptMode) {// rotatePositionFlag && encryptMode ||
-																// !rotatePositionFlag && !encryptMode
+				// !rotatePositionFlag && !encryptMode
 				this.irc[this.consumerPointer + i] = dst[dstOff + i];
 			} else {
 				this.irc[this.consumerPointer + i] = src[srcOff + i];
@@ -195,8 +195,7 @@ public final class CircBlockCipher {
 				this.counterIrc[i] = (byte) (this.counter[i] ^ this.irc[i]);
 			}
 			try {
-				if (this.cipher.update(this.counterIrc, 0, this.blockByteSize, this.counterIrcOut,
-						0) != this.blockByteSize) {
+				if (this.cipher.update(this.counterIrc, 0, this.blockByteSize, this.counterIrcOut, 0) != this.blockByteSize) {
 					throw new ImplementationLtRtException();
 				}
 			} catch (final ShortBufferException e) {

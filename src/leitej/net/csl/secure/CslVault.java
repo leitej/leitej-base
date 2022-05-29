@@ -19,6 +19,7 @@ package leitej.net.csl.secure;
 import java.io.IOException;
 
 import leitej.crypto.keyStore.Password;
+import leitej.exception.CertificateLtException;
 import leitej.exception.ExpiredDataLtException;
 import leitej.exception.KeyStoreLtException;
 import leitej.net.csl.secure.vault.AbstractCslVault;
@@ -36,8 +37,10 @@ final class CslVault extends AbstractCslVault {
 	 * @throws ExpiredDataLtException if at the first load of the vault, the primary
 	 *                                application trusted anchor does not pass
 	 *                                verification procedure
+	 * @throws CertificateLtException
 	 */
-	public CslVault(final Password password) throws KeyStoreLtException, IOException, ExpiredDataLtException {
+	public CslVault(final Password password)
+			throws KeyStoreLtException, IOException, ExpiredDataLtException, CertificateLtException {
 		super(password);
 		if (!hasCslKey()) {
 			// TODO:

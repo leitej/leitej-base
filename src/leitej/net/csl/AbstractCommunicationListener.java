@@ -77,10 +77,14 @@ public abstract class AbstractCommunicationListener<F extends AbstractCommunicat
 	 */
 	public final H accept() throws SocketException, SecurityException, ConnectionLtException {
 		try {
-			final Socket socket = this.serverSocket.accept();
-			// TODO: build some blacked list IP for denial when in abuse, closing the socket
-			// write here
-			// the list can be accessed and populated at session class
+			Socket socket;
+			do {
+				socket = this.serverSocket.accept();
+				if (!allowSession(socket.getInetAddress())) {
+					socket.close();
+					socket = null;
+				}
+			} while (socket == null);
 			return getCommunicationSessionHost(this.factory, socket);
 		} catch (final SocketException e) {
 			throw e;
@@ -88,6 +92,15 @@ public abstract class AbstractCommunicationListener<F extends AbstractCommunicat
 			throw new ConnectionLtException(e);
 		}
 	}
+
+	/**
+	 * Mechanism to close socket immediately after accept from server socket, that
+	 * can be used to distinguish/filter some abusive IP.
+	 *
+	 * @param inetAddress
+	 * @return
+	 */
+	protected abstract boolean allowSession(InetAddress inetAddress);
 
 	/**
 	 * instantiates and initiates communication session host side

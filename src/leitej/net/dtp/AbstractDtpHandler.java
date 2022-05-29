@@ -66,16 +66,7 @@ public abstract class AbstractDtpHandler {
 	protected abstract XmlObjectModelling responder(XmlObjectModelling request);
 
 	/**
-	 * Takes the decision of release the arguments.<br />
-	 * Is invoked after process and send the result of responder method.
-	 *
-	 * @param request  of the remote correspondent
-	 * @param response result of responder method
-	 */
-	protected abstract void releaseDeal(XmlObjectModelling request, XmlObjectModelling response);
-
-	/**
-	 * This method is invoked in finally block at the end of dealing process.
+	 * Method invoked at the end of dealing process, ending this handler.
 	 */
 	protected abstract void finalizeHandler();
 
@@ -135,15 +126,13 @@ public abstract class AbstractDtpHandler {
 							rawDataPorts[i].setCallNumber(DateUtil.generateUniqueNumberPerJVM());
 							rawDataPorts[i].setId(rawDataList.get(i).getId());
 							rawDataListener = this.server.getRawDataListenerBindedPool().poll();
-							setReceiveInputStreamAsync(rawDataListener, rawDataList.get(i),
-									rawDataPorts[i].getCallNumber());
+							setReceiveInputStreamAsync(rawDataListener, rawDataList.get(i), rawDataPorts[i].getCallNumber());
 							rawDataPorts[i].setPort(rawDataListener.getPort());
 						}
 						dtpIM.setRawDataPorts(rawDataPorts);
 					}
 				} catch (final ConnectionLtException e) {
-					if (this.closed
-							|| (e.getCause() != null && SocketTimeoutException.class.equals(e.getCause().getClass()))) {
+					if (this.closed || (e.getCause() != null && SocketTimeoutException.class.equals(e.getCause().getClass()))) {
 						throw new ClosedLtRtException(e);
 					}
 					requestReceived = false;
@@ -174,8 +163,7 @@ public abstract class AbstractDtpHandler {
 									rawDataPorts[i].setCallNumber(DateUtil.generateUniqueNumberPerJVM());
 									rawDataPorts[i].setId(rawDataList.get(i).getId());
 									rawDataListener = this.server.getRawDataListenerBindedPool().poll();
-									handleSendAsync(rawDataListener, rawDataList.get(i),
-											rawDataPorts[i].getCallNumber());
+									handleSendAsync(rawDataListener, rawDataList.get(i), rawDataPorts[i].getCallNumber());
 									rawDataPorts[i].setPort(rawDataListener.getPort());
 								}
 								dtpIM.setRawDataPorts(rawDataPorts);
@@ -183,7 +171,6 @@ public abstract class AbstractDtpHandler {
 								this.comSession.flush();
 								dtpIM = null;
 							}
-							releaseDeal(request, response);
 						} else {
 							internalClose();
 						}
@@ -211,8 +198,8 @@ public abstract class AbstractDtpHandler {
 			final long callNumber) {
 		LOG.trace("initialized");
 		try {
-			this.server.getRawDataThreadPool().workOn(new XThreadData(
-					new Invoke(this, METHOD_SET_RECEIVE_INPUT_STREAM, rawDataListener, rawData, callNumber)));
+			this.server.getRawDataThreadPool().workOn(
+					new XThreadData(new Invoke(this, METHOD_SET_RECEIVE_INPUT_STREAM, rawDataListener, rawData, callNumber)));
 		} catch (final PoolAgnosticThreadLtException e) {
 			throw new ImplementationLtRtException(e);
 		}
@@ -249,8 +236,8 @@ public abstract class AbstractDtpHandler {
 			final long callNumber) {
 		LOG.trace("initialized");
 		try {
-			this.server.getRawDataThreadPool().workOn(new XThreadData(
-					new Invoke(this, METHOD_HANDLE_SEND_RAW_DATA, rawDataListener, rawData, callNumber)));
+			this.server.getRawDataThreadPool()
+					.workOn(new XThreadData(new Invoke(this, METHOD_HANDLE_SEND_RAW_DATA, rawDataListener, rawData, callNumber)));
 		} catch (final PoolAgnosticThreadLtException e) {
 			throw new ImplementationLtRtException(e);
 		}
@@ -273,8 +260,8 @@ public abstract class AbstractDtpHandler {
 
 	static {
 		try {
-			METHOD_HANDLE_SEND_RAW_DATA = AgnosticUtil.getMethod(AbstractDtpHandler.class,
-					METHOD_NAME_HANDLE_SEND_RAW_DATA, RawDataListener.class, RawData.class, long.class);
+			METHOD_HANDLE_SEND_RAW_DATA = AgnosticUtil.getMethod(AbstractDtpHandler.class, METHOD_NAME_HANDLE_SEND_RAW_DATA,
+					RawDataListener.class, RawData.class, long.class);
 		} catch (final IllegalArgumentLtRtException e) {
 			throw new ImplementationLtRtException(e);
 		} catch (final NoSuchMethodException e) {

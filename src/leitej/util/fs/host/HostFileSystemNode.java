@@ -252,7 +252,7 @@ public final class HostFileSystemNode extends AbstractNode<HostFileSystem, HostF
 			throw new FileSystemLtRtException(this.toString());
 		}
 		try {
-			if (!FileUtil.setFileSize(this.hostFileName, offset)) {
+			if (!FileUtil.setFileSize(this.hostFile, offset)) {
 				throw new FileSystemLtRtException();
 			}
 		} catch (final IllegalArgumentException e) {

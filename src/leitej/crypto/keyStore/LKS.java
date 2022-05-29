@@ -27,14 +27,10 @@ import leitej.ltm.LtmObjectModelling;
  */
 public interface LKS extends LtmObjectModelling {
 
-	public static final String FIELD_ALIAS = "alias";
-
 	@Index
 	public String getAlias();
 
 	public void setAlias(String alias);
-
-	public static final String FIELD_KEY_STORE = "keyStore";
 
 	public LargeMemory getKeyStore();
 

@@ -26,8 +26,9 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.security.InvalidKeyException;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
 import java.util.Arrays;
+
+import org.bouncycastle.cert.X509CertificateHolder;
 
 import leitej.Constant;
 import leitej.crypto.Cryptography;
@@ -150,8 +151,7 @@ abstract class AbstractCommunicationSecureSession extends
 	@Override
 	protected final OutputStream getOutputStreamWrapped(final OutputStream out) throws ConnectionLtException {
 		try {
-			final CircOutputStream circOutputStream = new CircOutputStream(out,
-					Cryptography.getDefaultSymmetricCipher());
+			final CircOutputStream circOutputStream = new CircOutputStream(out, Cryptography.getDefaultSymmetricCipher());
 			circOutputStream.cipherInit(true,
 					Cryptography.keyProduce(Cryptography.getDefaultSymmetricCipher(), this.oKeyBytes),
 					Cryptography.ivProduce(this.oIvBytes));
@@ -196,9 +196,9 @@ abstract class AbstractCommunicationSecureSession extends
 	}
 
 	protected final void sendMyIdentification(final InputStream in, final OutputStream out)
-			throws IOException, KeyStoreLtException {
+			throws IOException, KeyStoreLtException, CertificateLtException {
 		// |< nBytes of host certificate in DER format (utf8)
-		final X509Certificate certificate = getFactory().getCslVault().getCslCertificate();
+		final X509CertificateHolder certificate = getFactory().getCslVault().getCslCertificate();
 		if (certificate == null) {
 			throw new IllegalStateLtRtException();
 		}
@@ -215,7 +215,7 @@ abstract class AbstractCommunicationSecureSession extends
 		if (tmp != 0) {
 			LOG.debug("Sending my chain certificate");
 			// |< nBytes with host chain without the end-point certificate (already sent)
-			final X509Certificate[] hostChain = getFactory().getCslVault().getCslChainCertificate();
+			final X509CertificateHolder[] hostChain = getFactory().getCslVault().getCslChainCertificate();
 			try {
 				for (int i = 1; i < hostChain.length; i++) {
 					CertificateStreamUtil.writeX509Certificates(out, hostChain[i]);
@@ -233,12 +233,12 @@ abstract class AbstractCommunicationSecureSession extends
 		}
 	}
 
-	protected final X509Certificate readRemoteIdentification(final InputStream in, final OutputStream out)
+	protected final X509CertificateHolder readRemoteIdentification(final InputStream in, final OutputStream out)
 			throws IOException {
 		// |> nBytes of client certificate in DER format (utf8)
 		// |< 1Byte 0x00 confirming the client certificate (else value certificate
 		// client unknown)
-		X509Certificate clientCertificate = null;
+		X509CertificateHolder clientCertificate = null;
 		try {
 			clientCertificate = CertificateStreamUtil.readX509Certificate(in);
 			LOG.debug("Receiving remote end-certificate");
@@ -251,7 +251,7 @@ abstract class AbstractCommunicationSecureSession extends
 				// |> nBytes with client chain without the end-point certificate (already sent)
 				// |< 1Byte 0x00 confirming validation of client chain (else value close
 				// connection)
-				final X509Certificate[] clientChain = new X509Certificate[OffRoot.COMMUNICATION_PATH_LENGTH];
+				final X509CertificateHolder[] clientChain = new X509CertificateHolder[OffRoot.COMMUNICATION_PATH_LENGTH];
 				clientChain[0] = clientCertificate;
 				try {
 					for (int i = 1; i < clientChain.length; i++) {
@@ -284,8 +284,7 @@ abstract class AbstractCommunicationSecureSession extends
 		return clientCertificate;
 	}
 
-	protected final byte[] sendMyHalfStateKeyBlock(final OutputStream out, final CipherRSA cipherRSA)
-			throws IOException {
+	protected final byte[] sendMyHalfStateKeyBlock(final OutputStream out, final CipherRSA cipherRSA) throws IOException {
 		final byte[] key = new byte[48];
 		getFactory().secureRandomFill(key);
 		final byte[] block = cipherRSA.encript(key);
@@ -325,8 +324,7 @@ abstract class AbstractCommunicationSecureSession extends
 		final ByteArrayInputStream bis = new ByteArrayInputStream(block);
 		final CircInputStream circInputStream = new CircInputStream(bis, Cryptography.getDefaultSymmetricCipher());
 		circInputStream.cipherInit(false,
-				Cryptography.keyProduce(Cryptography.getDefaultSymmetricCipher(),
-						Arrays.copyOfRange(remoteKeyBlock, 0, 32)),
+				Cryptography.keyProduce(Cryptography.getDefaultSymmetricCipher(), Arrays.copyOfRange(remoteKeyBlock, 0, 32)),
 				Cryptography.ivProduce(Arrays.copyOfRange(remoteKeyBlock, 32, 48)));
 		final byte[] keys = new byte[80];
 		off = 0;
@@ -346,8 +344,7 @@ abstract class AbstractCommunicationSecureSession extends
 		final ByteArrayOutputStream bos = new ByteArrayOutputStream(keys.length);
 		final CircOutputStream circOutputStream = new CircOutputStream(bos, Cryptography.getDefaultSymmetricCipher());
 		circOutputStream.cipherInit(true,
-				Cryptography.keyProduce(Cryptography.getDefaultSymmetricCipher(),
-						Arrays.copyOfRange(myKeyBlock, 0, 32)),
+				Cryptography.keyProduce(Cryptography.getDefaultSymmetricCipher(), Arrays.copyOfRange(myKeyBlock, 0, 32)),
 				Cryptography.ivProduce(Arrays.copyOfRange(myKeyBlock, 32, 48)));
 		circOutputStream.write(keys);
 		circOutputStream.flush();

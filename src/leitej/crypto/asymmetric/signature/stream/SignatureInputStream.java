@@ -27,6 +27,7 @@ import java.security.SignatureException;
 
 import leitej.Constant;
 import leitej.crypto.Cryptography;
+import leitej.crypto.asymmetric.signature.SignatureEnum;
 import leitej.exception.DataOverflowLtException;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.ImplementationLtRtException;
@@ -68,7 +69,7 @@ public final class SignatureInputStream extends InputStream {
 	 * @throws InvalidKeyException
 	 */
 	public SignatureInputStream(final InputStream is, final int secureStepLength, final PublicKey publicKey,
-			final String signatureAlgorithm)
+			final SignatureEnum signatureAlgorithm)
 			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
 		if (is == null || secureStepLength <= BYTE_CONTROL_STEP || publicKey == null) {
 			throw new IllegalArgumentLtRtException();
@@ -163,8 +164,7 @@ public final class SignatureInputStream extends InputStream {
 				} else {
 					this.signatureTime = this.signatureNextTime;
 					this.signatureNextTime = (bc & 0x01) == 1;
-					if (!this.signatureTime && this.signatureNextTime
-							|| this.signatureTime && !this.signatureNextTime) {
+					if (!this.signatureTime && this.signatureNextTime || this.signatureTime && !this.signatureNextTime) {
 						this.controlStepLength = BYTE_CONTROL_STEP - ((bc & 0xfe) >>> 1);
 					} else {
 						this.controlStepLength = BYTE_CONTROL_STEP;

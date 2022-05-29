@@ -16,6 +16,8 @@
 
 package leitej.crypto;
 
+import leitej.crypto.asymmetric.signature.SignatureEnum;
+import leitej.crypto.symmetric.CipherEnum;
 import leitej.xml.om.XmlObjectModelling;
 
 /**
@@ -24,17 +26,13 @@ import leitej.xml.om.XmlObjectModelling;
  */
 public abstract interface Config extends XmlObjectModelling {
 
-	public abstract String getDefaultCertificateSignatureAlgorithm();
+	public abstract SignatureEnum getDefaultCertificateSignatureAlgorithm();
 
-	public abstract void setDefaultCertificateSignatureAlgorithm(String defaultCertificateSignatureAlgorithm);
+	public abstract void setDefaultCertificateSignatureAlgorithm(SignatureEnum defaultCertificateSignatureAlgorithm);
 
-	public abstract String getDefaultKeyStoreType();
+	public abstract CipherEnum getDefaultSymmetricCipher();
 
-	public abstract void setDefaultKeyStoreType(String defaultKeyStoreType);
-
-	public abstract String getDefaultSymmetricCipher();
-
-	public abstract void setDefaultSymmetricCipher(String defaultSymmetricCipher);
+	public abstract void setDefaultSymmetricCipher(CipherEnum defaultSymmetricCipher);
 
 	public abstract int getDefaultSymmetricKeyBitSize();
 

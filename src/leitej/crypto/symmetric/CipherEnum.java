@@ -80,7 +80,8 @@ public enum CipherEnum {
 		int result;
 		switch (this) {
 		case AES:
-			throw new ImplementationLtRtException(this.toString());
+			result = 256;
+			break;
 		case Blowfish:
 			result = 128;
 			break;
@@ -130,7 +131,8 @@ public enum CipherEnum {
 		int result;
 		switch (this) {
 		case AES:
-			throw new ImplementationLtRtException(this.toString());
+			result = 128;
+			break;
 		case Blowfish:
 			throw new ImplementationLtRtException(this.toString());
 		case CAST5:
@@ -150,7 +152,8 @@ public enum CipherEnum {
 		case RC6:
 			throw new ImplementationLtRtException(this.toString());
 		case Rijndael:
-			throw new ImplementationLtRtException(this.toString());
+			result = 128;
+			break;
 		case Serpent:
 			throw new ImplementationLtRtException(this.toString());
 		case Skipjack:

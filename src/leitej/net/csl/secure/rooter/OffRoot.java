@@ -20,23 +20,24 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.Scanner;
+
+import org.bouncycastle.asn1.pkcs.CertificationRequest;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.X509CertificateHolder;
 
 import leitej.Constant;
 import leitej.crypto.ConstantCrypto;
 import leitej.crypto.Cryptography;
 import leitej.crypto.asymmetric.certificate.CertificateStreamUtil;
 import leitej.crypto.asymmetric.certificate.CertificateUtil;
+import leitej.crypto.keyStore.FileKeyStore;
 import leitej.crypto.keyStore.Password;
-import leitej.crypto.keyStore.DefaultKeyStore;
 import leitej.exception.CertificateLtException;
 import leitej.exception.CertificationRequestLtException;
 import leitej.exception.IllegalArgumentLtRtException;
@@ -46,8 +47,6 @@ import leitej.log.Logger;
 import leitej.util.DateUtil;
 import leitej.util.data.DateFieldEnum;
 import leitej.util.stream.FileUtil;
-import sun.security.pkcs10.PKCS10;
-import sun.security.x509.X500Name;
 
 /**
  *
@@ -57,15 +56,18 @@ public final class OffRoot {
 
 	private static final Logger LOG = Logger.getInstance();
 
-	private static final String KEYSTORE_FILENAME = Constant.DEFAULT_DATA_FILE_DIR + "/rooter"
-			+ ConstantCrypto.DEFAULT_UBER_KEYSTORE_FILE_EXTENSION;
-	static final String REPOSITORY_FILE_DIR = "repository";
+	private static final File KEYSTORE_FILE = new File(Constant.DEFAULT_DATA_FILE_DIR,
+			"rooter" + ConstantCrypto.KEYSTORE_FILE_EXTENSION);
+	static final File REPOSITORY_FILE_DIR = new File(Constant.DEFAULT_DATA_FILE_DIR, "rooter");
 	public static final int COMMUNICATION_PATH_LENGTH = 6;
+	static {
+		REPOSITORY_FILE_DIR.mkdirs();
+	}
 
-	private static final String MY_CERTIFICATE_FILENAME = REPOSITORY_FILE_DIR + "/offroot"
-			+ ConstantCrypto.CERTIFICATE_FILE_EXTENSION;
-	private static final String MY_CERTIFICATE_CONTINGENCY_FILENAME = REPOSITORY_FILE_DIR + "/offroot.contingency"
-			+ ConstantCrypto.CERTIFICATE_FILE_EXTENSION;
+	private static final File MY_CERTIFICATE_FILE = new File(REPOSITORY_FILE_DIR,
+			"offroot" + ConstantCrypto.CERTIFICATE_FILE_EXTENSION);
+	private static final File MY_CERTIFICATE_CONTINGENCY_FILE = new File(REPOSITORY_FILE_DIR,
+			"offroot.contingency" + ConstantCrypto.CERTIFICATE_FILE_EXTENSION);
 	private static final String MY_CERTIFICATE_ISSUER = "leitej.offline.root";
 	private static final int RSA_KEY_BIT_SIZE = 8192;
 	private static final int VALIDITY_FOR_TIME_YEARS = 32;
@@ -75,26 +77,26 @@ public final class OffRoot {
 	private static final String MY_ENTRY_KEY_OLD_ALIAS = "__MY_ENTRY_KEY_OLD_ALIAS__";
 	private static final String MY_CONTINGENCY_ENTRY_KEY_ALIAS = "__MY_CONTINGENCY_ENTRY_KEY_ALIAS__";
 
-	private final DefaultKeyStore keystore;
+	private final FileKeyStore keystore;
 
-	public OffRoot(final Password password) throws KeyStoreLtException, IOException {
-		if (!FileUtil.exists(KEYSTORE_FILENAME)) {
-			LOG.warn("Creating keystore: #0", KEYSTORE_FILENAME);
-			this.keystore = DefaultKeyStore.create(KEYSTORE_FILENAME, password);
+	public OffRoot(final Password password) throws KeyStoreLtException, IOException, CertificateLtException {
+		if (!KEYSTORE_FILE.exists()) {
+			LOG.warn("Creating keystore: #0", KEYSTORE_FILE);
+			this.keystore = FileKeyStore.create(KEYSTORE_FILE, password);
 		} else {
-			LOG.info("Loading keystore: #0", KEYSTORE_FILENAME);
-			this.keystore = DefaultKeyStore.load(KEYSTORE_FILENAME, password);
+			LOG.info("Loading keystore: #0", KEYSTORE_FILE);
+			this.keystore = FileKeyStore.load(KEYSTORE_FILE, password);
 		}
 		updateVault();
 	}
 
-	private final void updateVault() throws KeyStoreLtException, IOException {
+	private final void updateVault() throws KeyStoreLtException, IOException, CertificateLtException {
 		boolean mod = false;
 		final Date now = DateUtil.zeroTill(DateUtil.now(), DateFieldEnum.DAY_OF_MONTH);
 		if (this.keystore.getPrivateKey(MY_ENTRY_KEY_ALIAS) == null) {
 			final Date valid = DateUtil.add((Date) now.clone(), DateFieldEnum.YEAR, VALIDITY_FOR_TIME_YEARS);
-			newKeys(MY_ENTRY_KEY_ALIAS, MY_CERTIFICATE_FILENAME, now, valid);
-			newKeys(MY_CONTINGENCY_ENTRY_KEY_ALIAS, MY_CERTIFICATE_CONTINGENCY_FILENAME, now, valid);
+			newKeys(MY_ENTRY_KEY_ALIAS, MY_CERTIFICATE_FILE, now, valid);
+			newKeys(MY_CONTINGENCY_ENTRY_KEY_ALIAS, MY_CERTIFICATE_CONTINGENCY_FILE, now, valid);
 			mod = true;
 		}
 		final Date expireActiveTime = DateUtil.add(
@@ -103,7 +105,7 @@ public final class OffRoot {
 		if (now.getTime() > expireActiveTime.getTime()) {
 			// TODO: rever o sitema para a contigencia
 			upgradeContingencyKey();
-			newKeys(MY_CONTINGENCY_ENTRY_KEY_ALIAS, MY_CERTIFICATE_CONTINGENCY_FILENAME, expireActiveTime,
+			newKeys(MY_CONTINGENCY_ENTRY_KEY_ALIAS, MY_CERTIFICATE_CONTINGENCY_FILE, expireActiveTime,
 					DateUtil.add((Date) expireActiveTime.clone(), DateFieldEnum.YEAR, VALIDITY_FOR_TIME_YEARS));
 			mod = true;
 		}
@@ -112,56 +114,43 @@ public final class OffRoot {
 		}
 	}
 
-	private final void upgradeContingencyKey() throws KeyStoreLtException, IOException {
+	private final void upgradeContingencyKey() throws KeyStoreLtException, IOException, CertificateLtException {
 		if (DateUtil.isFuture(this.keystore.getKeyCertificate(MY_CONTINGENCY_ENTRY_KEY_ALIAS).getNotBefore())) {
 			throw new ImplementationLtRtException();
 		}
 		LOG.info("Upgrading contingency key");
 		this.keystore.setPrivateKeyEntry(MY_ENTRY_KEY_OLD_ALIAS, this.keystore.getPrivateKey(MY_ENTRY_KEY_ALIAS),
-				new X509Certificate[] { this.keystore.getKeyCertificate(MY_ENTRY_KEY_ALIAS) });
-		this.keystore.setPrivateKeyEntry(MY_ENTRY_KEY_ALIAS,
-				this.keystore.getPrivateKey(MY_CONTINGENCY_ENTRY_KEY_ALIAS),
-				new X509Certificate[] { this.keystore.getKeyCertificate(MY_CONTINGENCY_ENTRY_KEY_ALIAS) });
-		if (!FileUtil.renameToBackup(MY_CERTIFICATE_FILENAME, true)) {
+				new X509CertificateHolder[] { this.keystore.getKeyCertificate(MY_ENTRY_KEY_ALIAS) });
+		this.keystore.setPrivateKeyEntry(MY_ENTRY_KEY_ALIAS, this.keystore.getPrivateKey(MY_CONTINGENCY_ENTRY_KEY_ALIAS),
+				new X509CertificateHolder[] { this.keystore.getKeyCertificate(MY_CONTINGENCY_ENTRY_KEY_ALIAS) });
+		if (!FileUtil.renameToBackup(MY_CERTIFICATE_FILE, true)) {
 			throw new IOException();
 		}
-		if (!FileUtil.rename(MY_CERTIFICATE_CONTINGENCY_FILENAME, MY_CERTIFICATE_FILENAME)) {
+		if (!MY_CERTIFICATE_CONTINGENCY_FILE.renameTo(MY_CERTIFICATE_FILE)) {
 			throw new IOException();
 		}
 	}
 
-	private final void newKeys(final String aliasName, final String certificateFilename, final Date validAfter,
+	private final void newKeys(final String aliasName, final File certificateFile, final Date validAfter,
 			final Date validTill) throws KeyStoreLtException, IOException {
 		LOG.info("Generating new key: #0", RSA_KEY_BIT_SIZE);
 		try {
 			final KeyPair keys = Cryptography.RSA.keyPairGenerate(RSA_KEY_BIT_SIZE);
-			final X509Certificate certificate = CertificateUtil.generateX509CertificateV3SelfSignedRootChain(
-					new X500Name(MY_CERTIFICATE_ISSUER), keys, validAfter, validTill, COMMUNICATION_PATH_LENGTH);
-			this.keystore.setPrivateKeyEntry(aliasName, keys.getPrivate(), new X509Certificate[] { certificate });
-			final PrintWriter writer = new PrintWriter(new File(certificateFilename));
+			final X509CertificateHolder certificate = CertificateUtil.generateX509CertificateV3SelfSignedRootChain(
+					new X500Name("CN=" + MY_CERTIFICATE_ISSUER), keys, validAfter, validTill, COMMUNICATION_PATH_LENGTH);
+			this.keystore.setPrivateKeyEntry(aliasName, keys.getPrivate(), new X509CertificateHolder[] { certificate });
+			final PrintWriter writer = new PrintWriter(certificateFile);
 			CertificateStreamUtil.writeX509CertificatesPEM(writer, certificate);
 			writer.close();
-		} catch (final IllegalArgumentLtRtException e) {
-			throw new ImplementationLtRtException(e);
-		} catch (final NoSuchAlgorithmException e) {
-			throw new ImplementationLtRtException(e);
-		} catch (final NoSuchProviderException e) {
-			throw new ImplementationLtRtException(e);
-		} catch (final CertificateLtException e) {
-			throw new ImplementationLtRtException(e);
-		} catch (final NullPointerException e) {
-			throw new ImplementationLtRtException(e);
-		} catch (final UnsupportedEncodingException e) {
-			throw new ImplementationLtRtException(e);
-		} catch (final CertificateEncodingException e) {
+		} catch (final IllegalArgumentLtRtException | NoSuchAlgorithmException | NoSuchProviderException
+				| CertificateLtException e) {
 			throw new ImplementationLtRtException(e);
 		}
 	}
 
 	public final void updateRepository()
 			throws CertificationRequestLtException, CertificateLtException, KeyStoreLtException, IOException {
-		final File repositoryDir = new File(REPOSITORY_FILE_DIR);
-		for (final File sub : repositoryDir.listFiles()) {
+		for (final File sub : REPOSITORY_FILE_DIR.listFiles()) {
 			if (sub.isFile() && sub.getName().matches(".*\\" + ConstantCrypto.REQUEST_FILE_EXTENSION)) {
 				sign(sub);
 			}
@@ -188,18 +177,14 @@ public final class OffRoot {
 		LOG.info("Signing request: #0", fileRequest.getName());
 		final Scanner scanner = new Scanner(fileRequest.getAbsolutePath());
 		final Date now = DateUtil.zeroTill(DateUtil.now(), DateFieldEnum.DAY_OF_MONTH);
-		PKCS10 request;
+		CertificationRequest request;
 		try {
-			request = CertificateStreamUtil.readPKCS10CertificationRequestPEM(scanner);
+			request = CertificateStreamUtil.readCertificationRequestPEM(scanner);
 			scanner.close();
 		} catch (final NullPointerException e) {
 			throw new ImplementationLtRtException(e);
-		} catch (final UnsupportedEncodingException e) {
-			throw new ImplementationLtRtException(e);
-		} catch (final FileNotFoundException e) {
-			throw new ImplementationLtRtException(e);
 		}
-		X509Certificate[] certificates;
+		X509CertificateHolder[] certificates;
 		certificates = CertificateUtil.addLink(this.keystore.getKeyCertificateChain(MY_ENTRY_KEY_ALIAS),
 				(PrivateKey) this.keystore.getPrivateKey(MY_ENTRY_KEY_ALIAS), now,
 				DateUtil.add((Date) now.clone(), DateFieldEnum.YEAR, VALIDITY_ACTIVE_TIME_YEARS), request);
@@ -212,11 +197,7 @@ public final class OffRoot {
 			writer.close();
 		} catch (final NullPointerException e) {
 			throw new ImplementationLtRtException(e);
-		} catch (final UnsupportedEncodingException e) {
-			throw new ImplementationLtRtException(e);
 		} catch (final FileNotFoundException e) {
-			throw new ImplementationLtRtException(e);
-		} catch (final CertificateEncodingException e) {
 			throw new ImplementationLtRtException(e);
 		}
 	}

@@ -16,7 +16,9 @@
 
 package leitej.crypto.vault;
 
+import leitej.ltm.Index;
 import leitej.ltm.LtmObjectModelling;
+import leitej.util.data.Obfuscate;
 
 /**
  *
@@ -24,22 +26,18 @@ import leitej.ltm.LtmObjectModelling;
  */
 public interface VaultSecretIV extends LtmObjectModelling {
 
-	public static final String FIELD_KEY_LTM_STORE_ALIAS = "keyLtmStoreAlias";
+	public String getLtmKeyStoreAlias();
 
-	public String getKeyLtmStoreAlias();
+	public void setLtmKeyStoreAlias(String ltmKeyStoreAlias);
 
-	public void setKeyLtmStoreAlias(String keyLtmStoreAlias);
-
-	public static final String FIELD_ALIAS = "alias";
-
+	@Index
 	public String getAlias();
 
 	public void setAlias(String alias);
 
-	public static final String FIELD_IV = "iv";
+	@Obfuscate
+	public String getIv();
 
-	public byte[] getIv();
-
-	public void setIv(byte[] iv);
+	public void setIv(String iv);
 
 }

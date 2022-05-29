@@ -54,13 +54,18 @@ public final class CommunicationListener extends
 	}
 
 	@Override
-	protected final CommunicationHost getCommunicationSessionHost(final CommunicationFactory factory,
-			final Socket socket) throws ConnectionLtException {
+	protected final CommunicationHost getCommunicationSessionHost(final CommunicationFactory factory, final Socket socket)
+			throws ConnectionLtException {
 		try {
 			return new CommunicationHost(factory, socket);
 		} catch (final SocketException e) {
 			throw new ConnectionLtException(e);
 		}
+	}
+
+	@Override
+	protected boolean allowSession(final InetAddress inetAddress) {
+		return true;
 	}
 
 }

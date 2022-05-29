@@ -24,25 +24,17 @@ import leitej.ltm.LtmObjectModelling;
  */
 public interface Cadastre extends LtmObjectModelling {
 
-	public static final String FIELD_ALIAS = "alias";
-
 	public String getAlias();
 
 	public void setAlias(String alias);
-
-	public static final String FIELD_SALT_IN = "saltIn";
 
 	public byte[] getSaltIn();
 
 	public void setSaltIn(byte[] saltIn);
 
-	public static final String FIELD_SALT_OUT = "saltOut";
-
 	public byte[] getSaltOut();
 
 	public void setSaltOut(byte[] saltOut);
-
-	public static final String FIELD_ISSUER = "issuer";
 
 	public CadastreIssuer getIssuer();
 

@@ -89,8 +89,8 @@ public final class Xmlom {
 	 * <code>Constant.UTF8_CHARSET_NAME</code>.<br/>
 	 * This method will try to create the file if not exists.
 	 *
-	 * @param fileName a pathname string
-	 * @param obj      object to be saved
+	 * @param file
+	 * @param obj  object to be saved
 	 * @throws FileNotFoundException If the file exists but is a directory rather
 	 *                               than a regular file, does not exist but cannot
 	 *                               be created, or cannot be opened for any other
@@ -113,9 +113,9 @@ public final class Xmlom {
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                               method denies write access to the file
 	 */
-	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final I obj)
+	public static <I extends XmlObjectModelling> void sendToFile(final File file, final I obj)
 			throws NullPointerException, FileNotFoundException, SecurityException, IOException {
-		sendToFile(fileName, Charset.forName(Constant.UTF8_CHARSET_NAME), false, obj);
+		sendToFile(file, Charset.forName(Constant.UTF8_CHARSET_NAME), false, obj);
 	}
 
 	/**
@@ -123,8 +123,8 @@ public final class Xmlom {
 	 * <code>Constant.UTF8_CHARSET_NAME</code>.<br/>
 	 * This method will try to create the file if not exists.
 	 *
-	 * @param fileName a pathname string
-	 * @param objs     objects to be saved
+	 * @param file
+	 * @param objs objects to be saved
 	 * @throws FileNotFoundException If the file exists but is a directory rather
 	 *                               than a regular file, does not exist but cannot
 	 *                               be created, or cannot be opened for any other
@@ -147,16 +147,16 @@ public final class Xmlom {
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                               method denies write access to the file
 	 */
-	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final I[] objs)
+	public static <I extends XmlObjectModelling> void sendToFile(final File file, final I[] objs)
 			throws NullPointerException, FileNotFoundException, SecurityException, IOException {
-		sendToFile(fileName, Charset.forName(Constant.UTF8_CHARSET_NAME), false, objs);
+		sendToFile(file, Charset.forName(Constant.UTF8_CHARSET_NAME), false, objs);
 	}
 
 	/**
 	 * Saves the objects to a file.<br/>
 	 * This method will try to create the file if not exists.
 	 *
-	 * @param fileName a pathname string
+	 * @param file
 	 * @param charset
 	 * @param minified when false produces a human readable XML, other wise outputs
 	 *                 a clean strait line
@@ -183,11 +183,11 @@ public final class Xmlom {
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                               method denies write access to the file
 	 */
-	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final Charset charset,
+	public static <I extends XmlObjectModelling> void sendToFile(final File file, final Charset charset,
 			final boolean minified, final I[] objs)
 			throws NullPointerException, FileNotFoundException, SecurityException, IOException {
-		FileUtil.createFile(fileName);
-		final OutputStream os = new FileOutputStream(fileName, false);
+		FileUtil.createFile(file);
+		final OutputStream os = new FileOutputStream(file, false);
 		sendToStream(true, os, charset, minified, objs);
 	}
 
@@ -195,7 +195,7 @@ public final class Xmlom {
 	 * Saves the object to a file.<br/>
 	 * This method will try to create the file if not exists.
 	 *
-	 * @param fileName a pathname string
+	 * @param file
 	 * @param charset
 	 * @param minified when false produces a human readable XML, other wise outputs
 	 *                 a clean strait line
@@ -222,10 +222,10 @@ public final class Xmlom {
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                               method denies write access to the file
 	 */
-	public static <I extends XmlObjectModelling> void sendToFile(final String fileName, final Charset charset,
+	public static <I extends XmlObjectModelling> void sendToFile(final File file, final Charset charset,
 			final boolean minified, final I obj)
 			throws NullPointerException, FileNotFoundException, SecurityException, IOException {
-		final OutputStream os = new FileOutputStream(FileUtil.createFile(fileName), false);
+		final OutputStream os = new FileOutputStream(FileUtil.createFile(file), false);
 		sendToStream(true, os, charset, minified, obj);
 	}
 
@@ -311,7 +311,7 @@ public final class Xmlom {
 	 * Reads all objects from the file in <code>Constant.UTF8_CHARSET_NAME</code>.
 	 *
 	 * @param interfaceClass type of object to be ridden
-	 * @param fileName       a pathname string
+	 * @param file
 	 * @return all the ridden objects
 	 * @throws FileNotFoundException If the file does not exist, is a directory
 	 *                               rather than a regular file, or for some other
@@ -325,16 +325,16 @@ public final class Xmlom {
 	 * @throws IOException           If an I/O error occurs
 	 */
 	public static <I extends XmlObjectModelling> List<I> getObjectsFromFile(final Class<I> interfaceClass,
-			final String fileName)
+			final File file)
 			throws FileNotFoundException, SecurityException, NullPointerException, XmlInvalidLtException, IOException {
-		return getObjectsFromFile(interfaceClass, fileName, Charset.forName(Constant.UTF8_CHARSET_NAME));
+		return getObjectsFromFile(interfaceClass, file, Charset.forName(Constant.UTF8_CHARSET_NAME));
 	}
 
 	/**
 	 * Reads all objects from the file.
 	 *
 	 * @param interfaceClass type of object to be ridden
-	 * @param fileName       a pathname string
+	 * @param file
 	 * @param charset
 	 * @return all the ridden objects
 	 * @throws FileNotFoundException If the file does not exist, is a directory
@@ -349,9 +349,9 @@ public final class Xmlom {
 	 * @throws IOException           If an I/O error occurs
 	 */
 	public static <I extends XmlObjectModelling> List<I> getObjectsFromFile(final Class<I> interfaceClass,
-			final String fileName, final Charset charset)
+			final File file, final Charset charset)
 			throws FileNotFoundException, SecurityException, NullPointerException, XmlInvalidLtException, IOException {
-		return getObjectsFromStream(interfaceClass, true, new FileInputStream(new File(fileName)), charset);
+		return getObjectsFromStream(interfaceClass, true, new FileInputStream(file), charset);
 	}
 
 	/**
@@ -382,8 +382,7 @@ public final class Xmlom {
 	 * @throws IOException           If an I/O error occurs
 	 */
 	public static <I extends XmlObjectModelling> List<I> getObjectsFromStream(final Class<I> interfaceClass,
-			final InputStream is, final Charset charset)
-			throws NullPointerException, XmlInvalidLtException, IOException {
+			final InputStream is, final Charset charset) throws NullPointerException, XmlInvalidLtException, IOException {
 		return getObjectsFromStream(interfaceClass, false, is, charset);
 	}
 
@@ -602,25 +601,23 @@ public final class Xmlom {
 	 *                               or write
 	 */
 	public static <I extends XmlObjectModelling> List<I> getConfig(final Class<I> interfaceClass, final File fromFile,
-			final Charset charset, final boolean rewriteIfNotObfuscated, final I[] defaultContent,
-			final I exampleContent)
+			final Charset charset, final boolean rewriteIfNotObfuscated, final I[] defaultContent, final I exampleContent)
 			throws FileNotFoundException, SecurityException, NullPointerException, XmlInvalidLtException, IOException {
 		List<I> result = null;
-		final String filename = fromFile.getAbsolutePath();
 		try {
-			result = Xmlom.getObjectsFromFile(interfaceClass, filename, charset);
+			result = Xmlom.getObjectsFromFile(interfaceClass, fromFile, charset);
 		} catch (final FileNotFoundException e1) {
 //			System.err.println("xmlom util - " + e1.getMessage());
 			if (exampleContent != null) {
 				final File example = new File(fromFile.getAbsolutePath() + Constant.DEFAULT_EXAMPLE_EXTENSION);
 				if (!example.exists()) {
 //					System.err.println("xmlom util - config - writing - " + example);
-					Xmlom.sendToFile(example.getAbsolutePath(), charset, false, exampleContent);
+					Xmlom.sendToFile(example, charset, false, exampleContent);
 				}
 			}
 			if (defaultContent != null && !fromFile.exists()) {
 //				System.err.println("xmlom util - config - writing - " + filename);
-				Xmlom.sendToFile(filename, charset, false, defaultContent);
+				Xmlom.sendToFile(fromFile, charset, false, defaultContent);
 			}
 			result = Arrays.asList(defaultContent);
 		}
@@ -630,7 +627,7 @@ public final class Xmlom {
 				obfuscated &= isSerializationObfustated(i);
 			}
 			if (!obfuscated) {
-				Xmlom.sendToFile(filename, charset, false, result.toArray(new XmlObjectModelling[result.size()]));
+				Xmlom.sendToFile(fromFile, charset, false, result.toArray(new XmlObjectModelling[result.size()]));
 			}
 		}
 		return result;

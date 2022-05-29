@@ -18,9 +18,11 @@ package leitej.net.csl.secure.rooter;
 
 import java.io.IOException;
 import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
+
+import org.bouncycastle.cert.X509CertificateHolder;
 
 import leitej.crypto.keyStore.Password;
+import leitej.exception.CertificateLtException;
 import leitej.exception.ExpiredDataLtException;
 import leitej.exception.KeyStoreLtException;
 import leitej.net.csl.secure.vault.AbstractCslVault;
@@ -41,8 +43,10 @@ final class Vault extends AbstractCslVault {
 	 * @throws ExpiredDataLtException if at the first load of the vault, the primary
 	 *                                application trusted anchor does not pass
 	 *                                verification procedure
+	 * @throws CertificateLtException
 	 */
-	Vault(final Password password) throws KeyStoreLtException, IOException, ExpiredDataLtException {
+	Vault(final Password password)
+			throws KeyStoreLtException, IOException, ExpiredDataLtException, CertificateLtException {
 		super(password);
 	}
 
@@ -59,12 +63,13 @@ final class Vault extends AbstractCslVault {
 	 *
 	 * @param key
 	 * @param certificates
-	 * @throws KeyStoreLtException if the given key cannot be protected, or this
-	 *                             operation fails for some other reason
-	 * @throws IOException         if there was an I/O problem with data
+	 * @throws KeyStoreLtException    if the given key cannot be protected, or this
+	 *                                operation fails for some other reason
+	 * @throws IOException            if there was an I/O problem with data
+	 * @throws CertificateLtException
 	 */
-	final synchronized void setRooterKey(final PrivateKey key, final X509Certificate[] certificates)
-			throws KeyStoreLtException, IOException {
+	final synchronized void setRooterKey(final PrivateKey key, final X509CertificateHolder[] certificates)
+			throws KeyStoreLtException, IOException, CertificateLtException {
 		this.vault.setPrivateKeyEntry(ROOTER_PRIVATE_KEY_ENTRY_ALIAS, key, certificates);
 		this.vault.persist();
 	}
@@ -73,11 +78,11 @@ final class Vault extends AbstractCslVault {
 		return this.vault.getPrivateKey(ROOTER_PRIVATE_KEY_ENTRY_ALIAS);
 	}
 
-	final X509Certificate[] getRooterChainCertificate() throws KeyStoreLtException {
+	final X509CertificateHolder[] getRooterChainCertificate() throws KeyStoreLtException, CertificateLtException {
 		return this.vault.getKeyCertificateChain(ROOTER_PRIVATE_KEY_ENTRY_ALIAS);
 	}
 
-	final X509Certificate getRooterCertificate() throws KeyStoreLtException {
+	final X509CertificateHolder getRooterCertificate() throws KeyStoreLtException, CertificateLtException {
 		return this.vault.getKeyCertificate(ROOTER_PRIVATE_KEY_ENTRY_ALIAS);
 	}
 

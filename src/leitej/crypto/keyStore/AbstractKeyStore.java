@@ -26,12 +26,15 @@ import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
 import javax.crypto.SecretKey;
 
+import org.bouncycastle.cert.X509CertificateHolder;
+
 import leitej.crypto.Cryptography;
+import leitej.crypto.asymmetric.certificate.CertificateUtil;
+import leitej.exception.CertificateLtException;
 import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.exception.KeyStoreLtException;
@@ -58,7 +61,7 @@ abstract class AbstractKeyStore {
 	// --through channels other than those you use for validating certificates that
 	// exist within certificate paths.
 
-	protected transient volatile KeyStore keyStore;
+	protected transient final KeyStore keyStore;
 
 	/**
 	 * Constructs a new object with a new <code>KeyStore</code> loaded from the
@@ -97,9 +100,9 @@ abstract class AbstractKeyStore {
 	 *                             +Cause CertificateException if any of the
 	 *                             certificates in the keystore could not be loaded
 	 */
-	protected AbstractKeyStore(final String keyStoreEnum, final InputStream stream, final Password password)
+	protected AbstractKeyStore(final KeyStoreEnum type, final InputStream stream, final Password password)
 			throws KeyStoreLtException, IOException {
-		this.keyStore = Cryptography.getKeyStore(keyStoreEnum);
+		this.keyStore = Cryptography.getKeyStore(type);
 		loadKeyStore(stream, password);
 	}
 
@@ -125,7 +128,7 @@ abstract class AbstractKeyStore {
 	 * @return true when successful change
 	 */
 	protected abstract boolean changePassword(Password oldPassword, Password newPassword)
-			throws KeyStoreLtException, IOException;
+			throws KeyStoreLtException, IOException, CertificateLtException;
 
 	/**
 	 * Returns the private key associated with the given alias.
@@ -169,13 +172,16 @@ abstract class AbstractKeyStore {
 	 * @param alias      the alias name
 	 * @param privateKey the private key to be associated with the alias
 	 * @param chain      the certificate chain for the corresponding public key
-	 * @throws KeyStoreLtException <br/>
-	 *                             +Cause KeyStoreException if the given key cannot
-	 *                             be protected, or this operation fails for some
-	 *                             other reason
+	 * @throws KeyStoreLtException    <br/>
+	 *                                +Cause KeyStoreException if the given key
+	 *                                cannot be protected, or this operation fails
+	 *                                for some other reason
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateException if the conversion
+	 *                                is unable to be made
 	 */
-	protected abstract void setPrivateKeyEntry(String alias, PrivateKey privateKey, X509Certificate[] chain)
-			throws KeyStoreLtException;
+	protected abstract void setPrivateKeyEntry(String alias, PrivateKey privateKey, X509CertificateHolder[] chain)
+			throws KeyStoreLtException, CertificateLtException;
 
 	/**
 	 * Assigns the given secret key to the given alias.<br/>
@@ -358,21 +364,19 @@ abstract class AbstractKeyStore {
 	 * @param alias the alias name
 	 * @return the certificate, or null if the given alias does not exist or does
 	 *         not contain a certificate
-	 * @throws KeyStoreLtException <br/>
-	 *                             +Cause ClassCastException if the keystore is
-	 *                             holding a non X509Certificate
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateEncodingException if an
+	 *                                encoding error occurs<br/>
+	 *                                +Cause IOException in the event of corrupted
+	 *                                data, or an incorrect structure
 	 */
-	public final X509Certificate getKeyCertificate(final String alias) throws KeyStoreLtException {
+	public final X509CertificateHolder getKeyCertificate(final String alias) throws CertificateLtException {
 		try {
 			synchronized (this.keyStore) {
 				if (!isKeyEntry(alias)) {
 					return null;
 				}
-				try {
-					return X509Certificate.class.cast(this.keyStore.getCertificate(alias));
-				} catch (final ClassCastException e) {
-					throw new KeyStoreLtException(e);
-				}
+				return CertificateUtil.convert(this.keyStore.getCertificate(alias));
 			}
 		} catch (final KeyStoreException e) {
 			throw new ImplementationLtRtException(e);
@@ -385,21 +389,19 @@ abstract class AbstractKeyStore {
 	 * @param alias the alias name
 	 * @return the certificate, or null if the given alias does not exist or does
 	 *         not contain a certificate
-	 * @throws KeyStoreLtException <br/>
-	 *                             +Cause ClassCastException if the keystore is
-	 *                             holding a non X509Certificate
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateEncodingException if an
+	 *                                encoding error occurs<br/>
+	 *                                +Cause IOException in the event of corrupted
+	 *                                data, or an incorrect structure
 	 */
-	public final X509Certificate getTrustedCertificate(final String alias) throws KeyStoreLtException {
+	public final X509CertificateHolder getTrustedCertificate(final String alias) throws CertificateLtException {
 		try {
 			synchronized (this.keyStore) {
 				if (!isTrustedCertificateEntry(alias)) {
 					return null;
 				}
-				try {
-					return X509Certificate.class.cast(this.keyStore.getCertificate(alias));
-				} catch (final ClassCastException e) {
-					throw new KeyStoreLtException(e);
-				}
+				return CertificateUtil.convert(this.keyStore.getCertificate(alias));
 			}
 		} catch (final KeyStoreException e) {
 			throw new ImplementationLtRtException(e);
@@ -422,11 +424,14 @@ abstract class AbstractKeyStore {
 	 * @param cert the certificate to match with.
 	 * @return the alias name of the first entry with a matching certificate, or
 	 *         null if no such entry exists in this keystore
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateException if the conversion
+	 *                                is unable to be made
 	 */
-	protected final String getCertificateAlias(final X509Certificate cert) {
+	protected final String getCertificateAlias(final X509CertificateHolder cert) throws CertificateLtException {
 		try {
 			synchronized (this.keyStore) {
-				return this.keyStore.getCertificateAlias(cert);
+				return this.keyStore.getCertificateAlias(CertificateUtil.convert(cert));
 			}
 		} catch (final KeyStoreException e) {
 			throw new ImplementationLtRtException(e);
@@ -442,26 +447,21 @@ abstract class AbstractKeyStore {
 	 * @return the certificate chain (ordered with the user's certificate first and
 	 *         the root certificate authority last), or null if the given alias does
 	 *         not exist or does not contain a certificate chain
-	 * @throws KeyStoreLtException <br/>
-	 *                             +Cause ClassCastException if the keystore is
-	 *                             holding a non X509Certificate
+	 * @throws CertificateLtException
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateEncodingException if an
+	 *                                encoding error occurs<br/>
+	 *                                +Cause IOException in the event of corrupted
+	 *                                data, or an incorrect structure
 	 */
-	public final X509Certificate[] getKeyCertificateChain(final String alias) throws KeyStoreLtException {
+	public final X509CertificateHolder[] getKeyCertificateChain(final String alias) throws CertificateLtException {
 		try {
 			synchronized (this.keyStore) {
 				final Certificate[] tmp = this.keyStore.getCertificateChain(alias);
 				if (tmp == null) {
 					return null;
 				}
-				final X509Certificate[] result = new X509Certificate[tmp.length];
-				try {
-					for (int i = 0; i < result.length; i++) {
-						result[i] = X509Certificate.class.cast(tmp[i]);
-					}
-				} catch (final ClassCastException e) {
-					throw new KeyStoreLtException(e);
-				}
-				return result;
+				return CertificateUtil.convert(tmp);
 			}
 		} catch (final KeyStoreException e) {
 			throw new ImplementationLtRtException(e);
@@ -487,8 +487,7 @@ abstract class AbstractKeyStore {
 	protected final PrivateKey getPrivateKey(final String alias, final Password password) throws KeyStoreLtException {
 		try {
 			synchronized (this.keyStore) {
-				return PrivateKey.class
-						.cast(this.keyStore.getKey(alias, ((password == null) ? null : password.getPassword())));
+				return PrivateKey.class.cast(this.keyStore.getKey(alias, ((password == null) ? null : password.getPassword())));
 			}
 		} catch (final ClassCastException e) {
 			return null;
@@ -526,8 +525,7 @@ abstract class AbstractKeyStore {
 	protected final SecretKey getSecretKey(final String alias, final Password password) throws KeyStoreLtException {
 		try {
 			synchronized (this.keyStore) {
-				return SecretKey.class
-						.cast(this.keyStore.getKey(alias, ((password == null) ? null : password.getPassword())));
+				return SecretKey.class.cast(this.keyStore.getKey(alias, ((password == null) ? null : password.getPassword())));
 			}
 		} catch (final ClassCastException e) {
 			return null;
@@ -592,17 +590,20 @@ abstract class AbstractKeyStore {
 	 *
 	 * @param alias the alias name
 	 * @param cert  the certificate
-	 * @throws KeyStoreLtException <br/>
-	 *                             +Cause KeyStoreException if the given alias
-	 *                             already exists and does not identify an entry
-	 *                             containing a trusted certificate, or this
-	 *                             operation fails for some other reason
+	 * @throws KeyStoreLtException    <br/>
+	 *                                +Cause KeyStoreException if the given alias
+	 *                                already exists and does not identify an entry
+	 *                                containing a trusted certificate, or this
+	 *                                operation fails for some other reason
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateException if the conversion
+	 *                                is unable to be made
 	 */
-	public final void setTrustedCertificateEntry(final String alias, final X509Certificate cert)
-			throws KeyStoreLtException {
+	public final void setTrustedCertificateEntry(final String alias, final X509CertificateHolder cert)
+			throws KeyStoreLtException, CertificateLtException {
 		try {
 			synchronized (this.keyStore) {
-				this.keyStore.setCertificateEntry(alias, cert);
+				this.keyStore.setCertificateEntry(alias, CertificateUtil.convert(cert));
 			}
 		} catch (final KeyStoreException e) {
 			throw new KeyStoreLtException(e);
@@ -623,17 +624,20 @@ abstract class AbstractKeyStore {
 	 * @param privateKey the private key to be associated with the alias
 	 * @param password   the password to protect the key
 	 * @param chain      the certificate chain for the corresponding public key
-	 * @throws KeyStoreLtException <br/>
-	 *                             +Cause KeyStoreException if the given key cannot
-	 *                             be protected, or this operation fails for some
-	 *                             other reason
+	 * @throws KeyStoreLtException    <br/>
+	 *                                +Cause KeyStoreException if the given key
+	 *                                cannot be protected, or this operation fails
+	 *                                for some other reason
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateException if the conversion
+	 *                                is unable to be made
 	 */
 	protected final void setPrivateKeyEntry(final String alias, final PrivateKey privateKey, final Password password,
-			final X509Certificate[] chain) throws KeyStoreLtException {
+			final X509CertificateHolder[] chain) throws KeyStoreLtException, CertificateLtException {
 		try {
 			synchronized (this.keyStore) {
 				this.keyStore.setKeyEntry(alias, privateKey, ((password == null) ? null : password.getPassword()),
-						chain);
+						CertificateUtil.convert(chain));
 			}
 		} catch (final KeyStoreException e) {
 			throw new KeyStoreLtException(e);

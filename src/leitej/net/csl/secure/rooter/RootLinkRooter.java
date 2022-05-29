@@ -19,6 +19,7 @@ package leitej.net.csl.secure.rooter;
 import java.io.IOException;
 
 import leitej.crypto.keyStore.Password;
+import leitej.exception.CertificateLtException;
 import leitej.exception.ExpiredDataLtException;
 import leitej.exception.KeyStoreLtException;
 import leitej.log.Logger;
@@ -39,8 +40,10 @@ public final class RootLinkRooter extends AbstractRooter {
 	 * @throws ExpiredDataLtException if at the first load of the vault, the primary
 	 *                                application trusted anchor does not pass
 	 *                                verification procedure
+	 * @throws CertificateLtException
 	 */
-	public RootLinkRooter(final Password password) throws KeyStoreLtException, IOException, ExpiredDataLtException {
+	public RootLinkRooter(final Password password)
+			throws KeyStoreLtException, IOException, ExpiredDataLtException, CertificateLtException {
 		super(password);
 	}
 

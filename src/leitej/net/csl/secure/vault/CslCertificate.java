@@ -16,8 +16,7 @@
 
 package leitej.net.csl.secure.vault;
 
-import java.security.PublicKey;
-import java.security.cert.X509Certificate;
+import org.bouncycastle.cert.X509CertificateHolder;
 
 import leitej.exception.CertificateLtException;
 import leitej.util.DateUtil;
@@ -28,11 +27,11 @@ import leitej.util.DateUtil;
  */
 final class CslCertificate {
 
-	private final X509Certificate certificate;
+	private final X509CertificateHolder certificate;
 	private final CslCertificate issuerCslCertificate;
 	private final long checkedTill;
 
-	CslCertificate(final X509Certificate certificate, final CslCertificate issuerCslCertificate) {
+	CslCertificate(final X509CertificateHolder certificate, final CslCertificate issuerCslCertificate) {
 		this.certificate = certificate;
 		this.issuerCslCertificate = issuerCslCertificate;
 		this.checkedTill = Long.MAX_VALUE;
@@ -42,8 +41,8 @@ final class CslCertificate {
 //		return certificate;
 //	}
 
-	final PublicKey getIssuerPublicKey() {
-		return this.issuerCslCertificate.certificate.getPublicKey();
+	final X509CertificateHolder getIssuer() {
+		return this.issuerCslCertificate.certificate;
 	}
 
 	final void check() throws CertificateLtException {

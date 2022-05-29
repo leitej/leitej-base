@@ -27,13 +27,9 @@ public interface CadastreIssuer extends LtmObjectModelling {
 	// TODO replace the alias and issuer with
 	// MAP<alias,issuer>
 
-	public static final String FIELD_ALIAS = "alias";
-
 	public String getAlias();
 
 	public void setAlias(String alias);
-
-	public static final String FIELD_ISSUER = "issuer";
 
 	public CadastreIssuer getIssuer();
 

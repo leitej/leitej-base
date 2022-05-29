@@ -16,9 +16,11 @@
 
 package leitej.net.csl.secure.rooter;
 
+import java.io.File;
 import java.io.IOException;
 
 import leitej.crypto.keyStore.Password;
+import leitej.exception.CertificateLtException;
 import leitej.exception.ExpiredDataLtException;
 import leitej.exception.KeyStoreLtException;
 import leitej.exception.SeppukuLtRtException;
@@ -40,7 +42,7 @@ abstract class AbstractRooter {
 
 	private static final Logger LOG = Logger.getInstance();
 
-	private static final String REPOSITORY_FILE_DIR = OffRoot.REPOSITORY_FILE_DIR;
+	private static final File REPOSITORY_FILE_DIR = OffRoot.REPOSITORY_FILE_DIR;
 	private static final int COMMUNICATION_PATH_LENGTH = OffRoot.COMMUNICATION_PATH_LENGTH;
 	private static final int RSA_KEY_BIT_SIZE = 8192;
 
@@ -60,8 +62,10 @@ abstract class AbstractRooter {
 	 * @throws ExpiredDataLtException if at the first load of the vault, the primary
 	 *                                application trusted anchor does not pass
 	 *                                verification procedure
+	 * @throws CertificateLtException
 	 */
-	protected AbstractRooter(final Password password) throws KeyStoreLtException, IOException, ExpiredDataLtException {
+	protected AbstractRooter(final Password password)
+			throws KeyStoreLtException, IOException, ExpiredDataLtException, CertificateLtException {
 		this.vault = new Vault(password);
 		if (!this.vault.hasRooterKey()) {
 			// TODO:

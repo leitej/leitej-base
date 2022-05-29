@@ -23,6 +23,7 @@ import java.net.SocketException;
 import java.security.SecureRandom;
 
 import leitej.crypto.keyStore.Password;
+import leitej.exception.CertificateLtException;
 import leitej.exception.ConnectionLtException;
 import leitej.exception.ExpiredDataLtException;
 import leitej.exception.IllegalArgumentLtRtException;
@@ -53,9 +54,10 @@ public final class CommunicationSecureFactory extends
 	 * @throws ExpiredDataLtException if at the first load of the vault, the primary
 	 *                                application trusted anchor does not pass
 	 *                                verification procedure
+	 * @throws CertificateLtException
 	 */
 	public CommunicationSecureFactory(final Password password)
-			throws KeyStoreLtException, IOException, ExpiredDataLtException {
+			throws KeyStoreLtException, IOException, ExpiredDataLtException, CertificateLtException {
 		this((new CslVault(password)), ConstantNet.DEFAULT_VELOCITY, ConstantNet.DEFAULT_SIZE_PER_SENTENCE,
 				ConstantNet.DEFAULT_TIMEOUT_MS);
 	}
@@ -65,8 +67,7 @@ public final class CommunicationSecureFactory extends
 	 * @param cslVault with key and certificate
 	 */
 	public CommunicationSecureFactory(final CslVaultItf cslVault) {
-		this(cslVault, ConstantNet.DEFAULT_VELOCITY, ConstantNet.DEFAULT_SIZE_PER_SENTENCE,
-				ConstantNet.DEFAULT_TIMEOUT_MS);
+		this(cslVault, ConstantNet.DEFAULT_VELOCITY, ConstantNet.DEFAULT_SIZE_PER_SENTENCE, ConstantNet.DEFAULT_TIMEOUT_MS);
 	}
 
 	/**

@@ -61,7 +61,7 @@ public final class FileUtil {
 	 * abstract pathname. If the given string is the empty string, then the result
 	 * is the empty abstract pathname.
 	 *
-	 * @param filename a pathname string
+	 * @param file
 	 * @return File (if created or already existed) or <code>null</code> if could
 	 *         not create for any reason
 	 * @throws NullPointerException If the <code>filename</code> argument is
@@ -82,10 +82,9 @@ public final class FileUtil {
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                              method denies write access to the file
 	 */
-	public static File createFile(final String filename) throws NullPointerException, SecurityException, IOException {
+	public static File createFile(final File file) throws NullPointerException, SecurityException, IOException {
 		File result = null;
 		boolean pass = true;
-		final File file = new File(filename);
 		if (!file.exists()) {
 			if (pass && file.getParentFile() != null && !file.getParentFile().exists()) {
 				pass = file.getParentFile().mkdirs();
@@ -107,8 +106,8 @@ public final class FileUtil {
 	 * The file will be created with the <code>length</code> size.<br/>
 	 * This method only changes FileSystem if the pathname given does not exists.
 	 *
-	 * @param filename a pathname string
-	 * @param length   the size of the file
+	 * @param file
+	 * @param length the size of the file
 	 * @return True if could create the file with the specific length
 	 * @throws IllegalArgumentException If the <code>length</code> argument is less
 	 *                                  then <code>zero</code>
@@ -130,13 +129,12 @@ public final class FileUtil {
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                                  method denies write access to the file
 	 */
-	public static boolean createFile(final String filename, final long length)
+	public static boolean createFile(final File file, final long length)
 			throws IllegalArgumentException, NullPointerException, SecurityException, IOException {
 		if (length < 0) {
 			throw new IllegalArgumentLtRtException("The #0 argument is less then 0", "length");
 		}
 		boolean result;
-		final File file = new File(filename);
 		if (file.getParentFile() != null && !file.getParentFile().exists()) {
 			file.getParentFile().mkdirs();
 		}
@@ -162,11 +160,11 @@ public final class FileUtil {
 	 * This method uses <code>createFile(String)</code> to try to create if doesn't
 	 * exist.
 	 *
-	 * @param filename a pathname string
-	 * @param append   if true, then bytes will be written to the end of the file
-	 *                 rather than the beginning
-	 * @param charset  name of a supported {@link java.nio.charset.Charset
-	 *                 </code>charset<code>}
+	 * @param file
+	 * @param append  if true, then bytes will be written to the end of the file
+	 *                rather than the beginning
+	 * @param charset name of a supported {@link java.nio.charset.Charset
+	 *                </code>charset<code>}
 	 * &#64;return BufferedWriter
 	 * &#64;throws UnsupportedEncodingException If the named encoding is not supported
 	 * &#64;throws FileNotFoundException If the file exists but is a directory rather than a regular file, does not exist but cannot be created, or cannot be opened for any other reason
@@ -188,10 +186,9 @@ public final class FileUtil {
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                              method denies write access to the file
 	 */
-	public static BufferedWriter openFileOutputWriter(final String filename, final boolean append, final String charset)
-			throws SecurityException, UnsupportedEncodingException, FileNotFoundException, NullPointerException,
-			IOException {
-		return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(createFile(filename), append), charset));
+	public static BufferedWriter openFileOutputWriter(final File file, final boolean append, final String charset)
+			throws SecurityException, UnsupportedEncodingException, FileNotFoundException, NullPointerException, IOException {
+		return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(createFile(file), append), charset));
 	}
 
 	/**
@@ -221,9 +218,9 @@ public final class FileUtil {
 	 * Gives a new buffered output stream to write data to the specified underlying
 	 * output stream created from parameters.
 	 *
-	 * @param filename a pathname string
-	 * @param append   if true, then bytes will be written to the end of the file
-	 *                 rather than the beginning
+	 * @param file   a pathname string
+	 * @param append if true, then bytes will be written to the end of the file
+	 *               rather than the beginning
 	 * @return BufferedOutputStream
 	 * @throws NullPointerException  If the <code>filename</code> argument is
 	 *                               <code>null</code>
@@ -247,16 +244,16 @@ public final class FileUtil {
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                               method denies write access to the file
 	 */
-	public static BufferedOutputStream openFileBinaryOutputStream(final String filename, final boolean append)
+	public static BufferedOutputStream openFileBinaryOutputStream(final File file, final boolean append)
 			throws NullPointerException, FileNotFoundException, SecurityException, IOException {
-		return new BufferedOutputStream(new FileOutputStream(createFile(filename), append));
+		return new BufferedOutputStream(new FileOutputStream(createFile(file), append));
 	}
 
 	/**
 	 * Gives a new buffered input stream to read data to the specified underlying
 	 * input stream created from parameters.
 	 *
-	 * @param filename a pathname string
+	 * @param file
 	 * @return BufferedInputStream
 	 * @throws NullPointerException  If the <code>filename</code> argument is
 	 *                               <code>null</code>
@@ -267,18 +264,18 @@ public final class FileUtil {
 	 *                               rather than a regular file, or for some other
 	 *                               reason cannot be opened for reading
 	 */
-	public static BufferedInputStream openFileBinaryInputStream(final String filename)
+	public static BufferedInputStream openFileBinaryInputStream(final File file)
 			throws NullPointerException, SecurityException, FileNotFoundException {
-		return new BufferedInputStream(new FileInputStream(new File(filename)));
+		return new BufferedInputStream(new FileInputStream(file));
 	}
 
 	/**
 	 * Writes binary data to a file, all at once.
 	 *
-	 * @param bytes    the data to write
-	 * @param filename a pathname string
-	 * @param append   if true, then bytes will be written to the end of the file
-	 *                 rather than the beginning
+	 * @param bytes  the data to write
+	 * @param file
+	 * @param append if true, then bytes will be written to the end of the file
+	 *               rather than the beginning
 	 * @throws NullPointerException  If the <code>filename</code> argument is
 	 *                               <code>null</code>
 	 * @throws FileNotFoundException If the file exists but is a directory rather
@@ -301,9 +298,9 @@ public final class FileUtil {
 	 *          java.lang.SecurityManager#checkWrite(java.lang.String) checkWrite}</code>
 	 *                               method denies write access to the file
 	 */
-	public static void writeAllAtOnce(final byte[] bytes, final String filename, final boolean append)
+	public static void writeAllAtOnce(final byte[] bytes, final File file, final boolean append)
 			throws NullPointerException, FileNotFoundException, SecurityException, IOException {
-		final OutputStream bufferedOutputStream = openFileBinaryOutputStream(filename, append);
+		final OutputStream bufferedOutputStream = openFileBinaryOutputStream(file, append);
 		try {
 			bufferedOutputStream.write(bytes);
 			bufferedOutputStream.flush();
@@ -331,8 +328,7 @@ public final class FileUtil {
 	 */
 	public static byte[] readAllAtOnce(final File file) throws FileNotFoundException, SecurityException, IOException {
 		if (file.length() > Integer.MAX_VALUE) {
-			throw new IllegalArgumentLtRtException("File(#0) length too big for an array of bytes",
-					file.getAbsoluteFile());
+			throw new IllegalArgumentLtRtException("File(#0) length too big for an array of bytes", file.getAbsoluteFile());
 		}
 		final InputStream is = new FileInputStream(file);
 		byte[] result;
@@ -445,14 +441,13 @@ public final class FileUtil {
 		return (new File(filename)).length();
 	}
 
-	public static boolean setFileSize(final String filename, final long length)
+	public static boolean setFileSize(final File file, final long length)
 			throws IllegalArgumentException, NullPointerException, SecurityException, IOException {
 		if (length < 0) {
 			return false;
 		}
-		final File file = new File(filename);
 		if (!file.exists()) {
-			return createFile(filename, length);
+			return createFile(file, length);
 		} else {
 			final RandomAccessFile raFile = new RandomAccessFile(file, "rw");
 			try {
@@ -517,8 +512,8 @@ public final class FileUtil {
 	 *                                  the input stream has been closed, or if some
 	 *                                  other I/O error occurs
 	 */
-	public static byte[] md5(final String filename) throws NullPointerException, SecurityException,
-			NoSuchAlgorithmException, FileNotFoundException, IOException {
+	public static byte[] md5(final String filename)
+			throws NullPointerException, SecurityException, NoSuchAlgorithmException, FileNotFoundException, IOException {
 		return md5(new File(filename));
 	}
 

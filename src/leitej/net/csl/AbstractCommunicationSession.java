@@ -38,6 +38,7 @@ import leitej.net.ConstantNet;
 import leitej.util.stream.ControlDataInputStream;
 import leitej.util.stream.ControlDataOutputStream;
 import leitej.xml.om.XmlObjectModelling;
+import leitej.xml.om.Xmlom;
 import leitej.xml.om.XmlomReader;
 import leitej.xml.om.XmlomWriter;
 
@@ -65,6 +66,7 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 	private final ControlDataInputStream cdis;
 	private volatile boolean stepClosed;
 	private final XmlomWriter xos;
+	private final Flush flushElement;
 	private final XmlomReader xis;
 
 	/**
@@ -116,6 +118,8 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 			in = getInputStreamWrapped(in);
 			initiateWrappedCommunication(in, out);
 			this.xos = new XmlomWriter(out, Charset.forName(this.charsetName));
+			this.flushElement = Xmlom.newInstance(Flush.class);
+			this.flush();
 			this.xis = new XmlomReader(in, Charset.forName(this.charsetName));
 			pass = true;
 		} catch (final SocketException e) {
@@ -187,6 +191,8 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 			in = getInputStreamWrapped(in);
 			initiateWrappedCommunication(in, out);
 			this.xos = new XmlomWriter(out, Charset.forName(this.charsetName));
+			this.flushElement = Xmlom.newInstance(Flush.class);
+			this.flush();
 			this.xis = new XmlomReader(in, Charset.forName(this.charsetName));
 			pass = true;
 		} catch (final SocketException e) {
@@ -297,6 +303,7 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 	 */
 	public final void flush() throws ConnectionLtException {
 		try {
+			this.xos.write(this.flushElement);
 			this.xos.flush();
 		} catch (final IOException e) {
 			throw new ConnectionLtException(e);
@@ -317,7 +324,11 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 			this.stepClosed = false;
 		}
 		try {
-			return this.xis.read(interfaceClass);
+			I result;
+			do {
+				result = this.xis.read(interfaceClass);
+			} while (Flush.class.isInstance(result));
+			return result;
 		} catch (final XmlInvalidLtException e) {
 			throw new ConnectionLtException(e);
 		} catch (final IOException e) {

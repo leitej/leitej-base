@@ -64,4 +64,10 @@ public final class CommunicationSecureListener extends
 		}
 	}
 
+	@Override
+	protected boolean allowSession(final InetAddress inetAddress) {
+		// TODO build IP black list
+		return true;
+	}
+
 }

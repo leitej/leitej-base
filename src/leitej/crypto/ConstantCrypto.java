@@ -25,14 +25,8 @@ public final class ConstantCrypto {
 	private ConstantCrypto() {
 	}
 
-	// public static final String DEFAULT_JCE_PROVIDER = "SunJCE";
-
-	public static final String BASIC_CONSTRAIN_OID = "2.5.29.19";
-	public static final String SUBJECT_ALTERNATIVE_NAME_OID = "2.5.29.17";
-
 	public static final String CERTIFICATE_FILE_EXTENSION = ".crt";
-	public static final String REQUEST_FILE_EXTENSION = ".req";
-
-	public static final String DEFAULT_UBER_KEYSTORE_FILE_EXTENSION = ".vault.ubr";
+	public static final String REQUEST_FILE_EXTENSION = ".csr";
+	public static final String KEYSTORE_FILE_EXTENSION = ".ks";
 
 }

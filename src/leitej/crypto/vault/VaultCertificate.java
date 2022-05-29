@@ -16,8 +16,9 @@
 
 package leitej.crypto.vault;
 
-import leitej.ltm.LargeMemory;
+import leitej.ltm.Index;
 import leitej.ltm.LtmObjectModelling;
+import leitej.util.data.Obfuscate;
 
 /**
  *
@@ -25,25 +26,19 @@ import leitej.ltm.LtmObjectModelling;
  */
 public interface VaultCertificate extends LtmObjectModelling {
 
-	public static final String FIELD_KEY_LTM_STORE_ALIAS = "keyLtmStoreAlias";
+	public String getLtmKeyStoreAlias();
 
-	public String getKeyLtmStoreAlias();
+	public void setLtmKeyStoreAlias(String ltmKeyStoreAlias);
 
-	public void setKeyLtmStoreAlias(String keyLtmStoreAlias);
-
-	public static final String FIELD_ALIAS = "alias";
-
+	@Index
 	public String getAlias();
 
 	public void setAlias(String alias);
 
-	public static final String FIELD_CERTIFICATE = "certificate";
+	@Obfuscate
+	public String getCertificate();
 
-	public LargeMemory getCertificate();
-
-	public void setCertificate(LargeMemory certificate);
-
-	public static final String FIELD_ISSUER = "issuer";
+	public void setCertificate(String certificate);
 
 	public VaultCertificate getIssuer();
 

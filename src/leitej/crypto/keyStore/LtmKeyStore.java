@@ -35,7 +35,7 @@ import leitej.ltm.LtmFilter.OPERATOR_JOIN;
  *
  * @author Julio Leite
  */
-public final class LtmKeyStore extends AbstractDefaultKeyStore {
+public final class LtmKeyStore extends AbstractSimpleKeyStore {
 
 	private static final LongTermMemory LTM = LongTermMemory.getInstance();
 	private static final Map<String, LtmKeyStore> INSTANCE_MAP = new HashMap<>();
@@ -171,8 +171,8 @@ public final class LtmKeyStore extends AbstractDefaultKeyStore {
 			throws KeyStoreLtException, IOException {
 		LargeMemory ltmStore;
 		synchronized (INSTANCE_MAP) {
-			LtmKeyStore keyLtmStore = INSTANCE_MAP.get(alias);
-			if (keyLtmStore == null) {
+			LtmKeyStore ltmKeyStore = INSTANCE_MAP.get(alias);
+			if (ltmKeyStore == null) {
 				try {
 					final LtmFilter<LKS> filter = new LtmFilter<>(LKS.class, OPERATOR_JOIN.AND);
 					filter.append(OPERATOR.EQUAL).setAlias(alias);
@@ -196,21 +196,21 @@ public final class LtmKeyStore extends AbstractDefaultKeyStore {
 				ltmStore.open();
 				final InputStream is = ((create) ? null : ltmStore.newInputStream());
 				try {
-					keyLtmStore = new LtmKeyStore(is, ltmStore, password);
+					ltmKeyStore = new LtmKeyStore(is, ltmStore, password);
 				} finally {
 					if (is != null) {
 						is.close();
 						ltmStore.close();
 					}
 				}
-				INSTANCE_MAP.put(alias, keyLtmStore);
+				INSTANCE_MAP.put(alias, ltmKeyStore);
 			} else {
 				if (create) {
-					keyLtmStore.deleteAllEntries();
-					keyLtmStore.persist();
+					ltmKeyStore.deleteAllEntries();
+					ltmKeyStore.persist();
 				}
 			}
-			return keyLtmStore;
+			return ltmKeyStore;
 		}
 	}
 

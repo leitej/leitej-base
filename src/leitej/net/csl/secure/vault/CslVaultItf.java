@@ -19,7 +19,8 @@ package leitej.net.csl.secure.vault;
 import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
+
+import org.bouncycastle.cert.X509CertificateHolder;
 
 import leitej.exception.CertificateChainLtException;
 import leitej.exception.CertificateLtException;
@@ -36,9 +37,12 @@ public interface CslVaultItf {
 	 *
 	 * @param certificate
 	 * @return
-	 * @throws KeyStoreLtException if a trusted certificate cannot be recovered
+	 * @throws KeyStoreLtException    if a trusted certificate cannot be recovered
+	 * @throws CertificateLtException
+	 * @throws IOException
 	 */
-	public boolean isTrustedAnchor(X509Certificate certificate) throws KeyStoreLtException;
+	public boolean isTrustedAnchor(X509CertificateHolder certificate)
+			throws KeyStoreLtException, CertificateLtException, IOException;
 
 	/**
 	 *
@@ -50,16 +54,18 @@ public interface CslVaultItf {
 	/**
 	 *
 	 * @return certificate chain
-	 * @throws KeyStoreLtException if the certificate chain cannot be recovered
+	 * @throws KeyStoreLtException    if the certificate chain cannot be recovered
+	 * @throws CertificateLtException
 	 */
-	public X509Certificate[] getCslChainCertificate() throws KeyStoreLtException;
+	public X509CertificateHolder[] getCslChainCertificate() throws KeyStoreLtException, CertificateLtException;
 
 	/**
 	 *
 	 * @return certificate
-	 * @throws KeyStoreLtException if the certificate cannot be recovered
+	 * @throws KeyStoreLtException    if the certificate cannot be recovered
+	 * @throws CertificateLtException
 	 */
-	public X509Certificate getCslCertificate() throws KeyStoreLtException;
+	public X509CertificateHolder getCslCertificate() throws KeyStoreLtException, CertificateLtException;
 
 	/**
 	 *
@@ -68,23 +74,31 @@ public interface CslVaultItf {
 	 *                                certificate
 	 * @throws LtmLtRtException       if encountered a problem accessing the long
 	 *                                term memory
+	 * @throws IOException
 	 */
-	public void verifyEndPointCertificate(X509Certificate certificate) throws CertificateLtException, LtmLtRtException;
+	public void verifyEndPointCertificate(X509CertificateHolder certificate)
+			throws CertificateLtException, LtmLtRtException, IOException;
 
-	public void addEndPointChain(X509Certificate[] chain) throws CertificateChainLtException, LtmLtRtException,
-			IOException, KeyStoreLtException, CertificateEncodingException;
+	public void addEndPointChain(X509CertificateHolder[] chain) throws CertificateChainLtException, LtmLtRtException,
+			IOException, KeyStoreLtException, CertificateEncodingException, CertificateLtException;
 
 	/**
 	 * @param remoteHalfStateKeyBlock
 	 * @param clientCertificate
+	 * @throws IOException
+	 * @throws LtmLtRtException
 	 */
-	public void saltIn(byte[] remoteHalfStateKeyBlock, X509Certificate clientCertificate);
+	public void saltIn(byte[] remoteHalfStateKeyBlock, X509CertificateHolder clientCertificate)
+			throws LtmLtRtException, IOException;
 
 	/**
 	 * @param myHalfStateKeyBlock
 	 * @param clientCertificate
+	 * @throws IOException
+	 * @throws LtmLtRtException
 	 */
-	public void saltOut(byte[] myHalfStateKeyBlock, X509Certificate clientCertificate);
+	public void saltOut(byte[] myHalfStateKeyBlock, X509CertificateHolder clientCertificate)
+			throws LtmLtRtException, IOException;
 
 	/**
 	 * @param remoteKeyBlock
@@ -92,8 +106,9 @@ public interface CslVaultItf {
 	 * @param clientCertificate
 	 * @throws LtmLtRtException if encountered a problem accessing the long term
 	 *                          memory
+	 * @throws IOException
 	 */
-	public void updateSalt(byte[] remoteKeyBlock, byte[] myKeyBlock, X509Certificate clientCertificate)
-			throws LtmLtRtException;
+	public void updateSalt(byte[] remoteKeyBlock, byte[] myKeyBlock, X509CertificateHolder clientCertificate)
+			throws LtmLtRtException, IOException;
 
 }

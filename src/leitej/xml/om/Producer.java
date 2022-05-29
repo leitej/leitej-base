@@ -187,8 +187,8 @@ final class Producer {
 			final StringBuilder localElementName = new StringBuilder(elementName);
 			if (LeafElement.has(typeClass)) {
 				genAttribute(this.sbTmpAttb, typeClass);
-				this.producer.printElement(localElementName,
-						((obj == null) ? null : convertToElementValue(this.sbTmpVal, obj)), this.sbTmpAttb);
+				this.producer.printElement(localElementName, ((obj == null) ? null : convertToElementValue(this.sbTmpVal, obj)),
+						this.sbTmpAttb);
 			} else {
 				if (ArrayElement.has(typeClass)) {
 					genAttribute(this.sbTmpAttb, typeClass);
@@ -317,8 +317,7 @@ final class Producer {
 		this.producer.printTagClose(this.sbTmpElmName);
 	}
 
-	private StringBuilder genAttribute(final StringBuilder dest, final Class<?> typeClass)
-			throws XmlInvalidLtException {
+	private StringBuilder genAttribute(final StringBuilder dest, final Class<?> typeClass) throws XmlInvalidLtException {
 		this.sbTmpAttbSub1.setLength(0);
 		this.sbTmpAttbSub1.append(ATTRIBUTE_CLASS_NAME);
 		this.sbTmpAttbSub2.setLength(0);

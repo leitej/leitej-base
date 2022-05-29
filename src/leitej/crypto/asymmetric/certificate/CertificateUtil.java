@@ -18,44 +18,52 @@ package leitej.crypto.asymmetric.certificate;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.Signature;
-import java.security.SignatureException;
-import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
+import org.bouncycastle.asn1.pkcs.CertificationRequest;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Certificate;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.CertException;
+import org.bouncycastle.cert.CertIOException;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
+import org.bouncycastle.jce.X509KeyUsage;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.bc.BcRSAContentVerifierProviderBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
+
 import leitej.crypto.Cryptography;
+import leitej.crypto.ProviderEnum;
+import leitej.crypto.asymmetric.signature.SignatureEnum;
 import leitej.exception.CertificateChainLtException;
 import leitej.exception.CertificateLtException;
+import leitej.log.Logger;
 import leitej.util.DateUtil;
-import sun.security.pkcs10.PKCS10;
-import sun.security.x509.AlgorithmId;
-import sun.security.x509.BasicConstraintsExtension;
-import sun.security.x509.CertificateAlgorithmId;
-import sun.security.x509.CertificateExtensions;
-import sun.security.x509.CertificateSerialNumber;
-import sun.security.x509.CertificateValidity;
-import sun.security.x509.CertificateVersion;
-import sun.security.x509.CertificateX509Key;
-import sun.security.x509.KeyUsageExtension;
-import sun.security.x509.X500Name;
-import sun.security.x509.X509CertImpl;
-import sun.security.x509.X509CertInfo;
+import leitej.util.HexaUtil;
 
 /**
  *
  * @author Julio Leite
  */
 public final class CertificateUtil {
+
+	private static final Logger LOG = Logger.getInstance();
 
 	private CertificateUtil() {
 	}
@@ -74,9 +82,28 @@ public final class CertificateUtil {
 	 * certificates
 	 */
 
-	public static final String getAliasFrom(final X509Certificate certificate) {
+	/**
+	 * Generates unique alias per issuer and serialNumber.
+	 *
+	 * @param certificate
+	 * @return alias
+	 * @throws IOException on encoding error
+	 */
+	public static final String getAlias(final Certificate certificate) throws IOException {
+		return certificate.getSerialNumber().getValue().toString(Character.MAX_RADIX)
+				+ HexaUtil.toHex(certificate.getIssuer().getEncoded());
+	}
+
+	/**
+	 * Generates unique alias per issuer and serialNumber.
+	 *
+	 * @param certificate
+	 * @return alias
+	 * @throws IOException on encoding error
+	 */
+	public static final String getAlias(final X509CertificateHolder certificate) throws IOException {
 		return certificate.getSerialNumber().toString(Character.MAX_RADIX)
-				+ certificate.getSubjectX500Principal().getName();
+				+ HexaUtil.toHex(certificate.getIssuer().getEncoded());
 	}
 
 	/**
@@ -86,6 +113,138 @@ public final class CertificateUtil {
 	 */
 	public static BigInteger generateSerialNumber() {
 		return BigInteger.valueOf(DateUtil.generateUniqueNumberPerJVM());
+	}
+
+	/*
+	 * Converters
+	 */
+
+	/**
+	 * Convert.
+	 *
+	 * @param certificate
+	 * @return
+	 */
+	public static X509CertificateHolder convert(final Certificate certificate) {
+		return new X509CertificateHolder(certificate);
+	}
+
+	/**
+	 * Convert.
+	 *
+	 * @param certificate
+	 * @return
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateEncodingException if an
+	 *                                encoding error occurs<br/>
+	 *                                +Cause IOException in the event of corrupted
+	 *                                data, or an incorrect structure
+	 */
+	public static X509CertificateHolder convert(final java.security.cert.Certificate certificate)
+			throws CertificateLtException {
+		try {
+			return new X509CertificateHolder(certificate.getEncoded());
+		} catch (CertificateEncodingException | IOException e) {
+			throw new CertificateLtException(e);
+		}
+	}
+
+	/**
+	 * Convert.
+	 *
+	 * @param certificates
+	 * @return
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateEncodingException if an
+	 *                                encoding error occurs<br/>
+	 *                                +Cause IOException in the event of corrupted
+	 *                                data, or an incorrect structure
+	 */
+	public static X509CertificateHolder[] convert(final java.security.cert.Certificate[] certificates)
+			throws CertificateLtException {
+		try {
+			final X509CertificateHolder[] result = new X509CertificateHolder[certificates.length];
+			for (int i = 0; i < result.length; i++) {
+				result[i] = new X509CertificateHolder(certificates[i].getEncoded());
+			}
+			return result;
+		} catch (CertificateEncodingException | IOException e) {
+			throw new CertificateLtException(e);
+		}
+	}
+
+	/**
+	 * Convert.
+	 *
+	 * @param certificate
+	 * @return
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateException if the conversion
+	 *                                is unable to be made
+	 */
+	public static X509Certificate convert(final X509CertificateHolder certificate) throws CertificateLtException {
+		try {
+			return new JcaX509CertificateConverter().setProvider(ProviderEnum.BC.getName()).getCertificate(certificate);
+		} catch (final CertificateException e) {
+			throw new CertificateLtException(e);
+		}
+	}
+
+	/**
+	 * Convert.
+	 *
+	 * @param certificates
+	 * @return
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateException if the conversion
+	 *                                is unable to be made
+	 */
+	public static X509Certificate[] convert(final X509CertificateHolder[] certificates) throws CertificateLtException {
+		try {
+			final JcaX509CertificateConverter converter = new JcaX509CertificateConverter()
+					.setProvider(ProviderEnum.BC.getName());
+			final X509Certificate[] result = new X509Certificate[certificates.length];
+			for (int i = 0; i < result.length; i++) {
+				result[i] = converter.getCertificate(certificates[i]);
+			}
+			return result;
+		} catch (final CertificateException e) {
+			throw new CertificateLtException(e);
+		}
+	}
+
+	/**
+	 * Convert.
+	 *
+	 * @param publicKey
+	 * @return
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause IOException on an error decoding the
+	 *                                key
+	 */
+	public static AsymmetricKeyParameter convert(final PublicKey publicKey) throws CertificateLtException {
+		try {
+			return PublicKeyFactory.createKey(publicKey.getEncoded());
+		} catch (final IOException e) {
+			throw new CertificateLtException(e);
+		}
+	}
+
+	/*
+	 * Extract
+	 */
+
+	/**
+	 * Extract public key from X509CertificateHolder.
+	 *
+	 * @param certificate
+	 * @return
+	 * @throws CertificateLtException <br/>
+	 *                                +Cause CertificateException if the conversion
+	 *                                is unable to be made
+	 */
+	public static PublicKey extract(final X509CertificateHolder certificate) throws CertificateLtException {
+		return convert(certificate).getPublicKey();
 	}
 
 	/*
@@ -107,23 +266,13 @@ public final class CertificateUtil {
 	 *                           >-1 create as certificate authority)
 	 * @return generated certificate
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause IOException on other errors <br/>
-	 *                                +Cause CertificateException on invalid
-	 *                                attributes or encoding errors <br/>
-	 *                                +Cause NoSuchAlgorithmException if no Provider
-	 *                                supports a Signature implementation for the
-	 *                                specified algorithm <br/>
-	 *                                +Cause SignatureException on signature
-	 *                                handling errors <br/>
-	 *                                +Cause NoSuchProviderException if there's no
-	 *                                default provider <br/>
-	 *                                +Cause InvalidKeyException on incorrect key
+	 *                                +Cause OperatorCreationException
 	 */
-	public static X509Certificate generateX509CertificateV3SelfSignedRootChain(final X500Name issuerDN,
+	public static X509CertificateHolder generateX509CertificateV3SelfSignedRootChain(final X500Name issuerDN,
 			final KeyPair keys, final Date validAfter, final Date expireDate, final int pathLenConstraint)
 			throws CertificateLtException {
 		return generateX509CertificateV3(issuerDN, Cryptography.getDefaultCertificateSignatureAlgorithm(),
-				keys.getPrivate(), generatePKCS10(keys.getPublic(), issuerDN,
+				keys.getPrivate(), generateCSR(keys.getPublic(), issuerDN,
 						Cryptography.getDefaultCertificateSignatureAlgorithm(), keys.getPrivate()),
 				generateSerialNumber(), validAfter, expireDate, pathLenConstraint);
 	}
@@ -144,73 +293,43 @@ public final class CertificateUtil {
 	 *                           >-1 create as certificate authority)
 	 * @return generated certificate
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause IOException on other errors <br/>
-	 *                                +Cause CertificateException on invalid
-	 *                                attributes or encoding errors <br/>
-	 *                                +Cause NoSuchAlgorithmException on unsupported
-	 *                                signature algorithms <br/>
-	 *                                +Cause SignatureException on signature errors
-	 *                                <br/>
-	 *                                +Cause NoSuchProviderException if there's no
-	 *                                default provider <br/>
-	 *                                +Cause InvalidKeyException on incorrect key
+	 *                                +Cause OperatorCreationException
 	 */
-	private static X509Certificate generateX509CertificateV3(final X500Name issuerDN, final String signatureAlgorithm,
-			final PrivateKey issuerPrivateKey, final PKCS10 csr, final BigInteger serialNumber, final Date validAfter,
-			final Date expireDate, final int pathLenConstraint) throws CertificateLtException {
+	private static X509CertificateHolder generateX509CertificateV3(final X500Name issuerDN,
+			final SignatureEnum signatureAlgorithm, final PrivateKey issuerPrivateKey, final CertificationRequest csr,
+			final BigInteger serialNumber, final Date validAfter, final Date expireDate, final int pathLenConstraint)
+			throws CertificateLtException {
 		try {
-			final X509CertInfo certInfo = new X509CertInfo();
-			certInfo.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3));
-			certInfo.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(serialNumber));
-			certInfo.set(X509CertInfo.VALIDITY, new CertificateValidity(validAfter, expireDate));
-			certInfo.set(X509CertInfo.KEY, new CertificateX509Key(csr.getSubjectPublicKeyInfo()));
-			certInfo.set(X509CertInfo.SUBJECT, csr.getSubjectName());
-			certInfo.set(X509CertInfo.ISSUER, issuerDN);
-			certInfo.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(AlgorithmId.get(signatureAlgorithm)));
+			// The issuer information (CA) and the serial number serve to uniquely identify
+			// the certificate
+			final X509v3CertificateBuilder certificateBuilder = new X509v3CertificateBuilder(issuerDN, serialNumber,
+					validAfter, expireDate, csr.getCertificationRequestInfo().getSubject(),
+					csr.getCertificationRequestInfo().getSubjectPublicKeyInfo());
 			// x509v3 extensions
-			final CertificateExtensions extensions = new CertificateExtensions();
-			// KeyUsage ::= BIT STRING {
-			// digitalSignature (0),
-			// nonRepudiation (1),
-			// keyEncipherment (2),
-			// dataEncipherment (3),
-			// keyAgreement (4),
-			// keyCertSign (5),
-			// cRLSign (6),
-			// encipherOnly (7),
-			// decipherOnly (8) }
-			final boolean[] keyUsagePolicies = new boolean[9];
 			if (pathLenConstraint > -1) {
-				keyUsagePolicies[5] = true; // keyCertSign
+				certificateBuilder.addExtension(Extension.keyUsage, true,
+						new X509KeyUsage(X509KeyUsage.keyCertSign | X509KeyUsage.cRLSign));
 			} else {
-				keyUsagePolicies[0] = true; // digitalSignature
-				keyUsagePolicies[2] = true; // keyEncipherment
+				certificateBuilder.addExtension(Extension.keyUsage, true, new X509KeyUsage(
+						X509KeyUsage.keyEncipherment | X509KeyUsage.digitalSignature | X509KeyUsage.nonRepudiation));
 			}
-			final KeyUsageExtension keyUsageExtension = new KeyUsageExtension(true,
-					(new KeyUsageExtension(keyUsagePolicies)).getExtensionValue());
-			extensions.set(KeyUsageExtension.NAME, keyUsageExtension);
 			// basic constraints
-			final BasicConstraintsExtension bce;
 			if (pathLenConstraint > -1) {
-				bce = new BasicConstraintsExtension(true, true, pathLenConstraint);
+				certificateBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(pathLenConstraint));
 			} else {
-				bce = new BasicConstraintsExtension(true, false, -1);
+				certificateBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
 			}
-			extensions.set(BasicConstraintsExtension.NAME, bce);
-			// add extensions
-			certInfo.set(X509CertInfo.EXTENSIONS, extensions);
 			// create certificate
-			final X509CertImpl certificate = new X509CertImpl(certInfo);
-			certificate.sign(issuerPrivateKey, signatureAlgorithm);
-			return certificate;
-		} catch (CertificateException | IOException | NoSuchAlgorithmException | InvalidKeyException
-				| NoSuchProviderException | SignatureException e) {
+			final ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm.getName())
+					.setProvider(ProviderEnum.BC.getName()).build(issuerPrivateKey);
+			return certificateBuilder.build(signer);
+		} catch (final OperatorCreationException | CertIOException e) {
 			throw new CertificateLtException(e);
 		}
 	}
 
 	/*
-	 * Certificate Sign Request
+	 * Generate Certificate Sign Request
 	 */
 
 	/**
@@ -224,27 +343,18 @@ public final class CertificateUtil {
 	 *                           going to be generated
 	 * @return pkcs10 certificate request
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause NoSuchAlgorithmException if no Provider
-	 *                                supports a Signature implementation for the
-	 *                                specified algorithm <br/>
-	 *                                +Cause InvalidKeyException if the privateKey
-	 *                                is invalid <br/>
-	 *                                +Cause IOException on errors <br/>
-	 *                                +Cause SignatureException on signature
-	 *                                handling errors <br/>
-	 *                                +Cause CertificateException on certificate
-	 *                                handling errors
+	 *                                +Cause OperatorCreationException
 	 */
-	public static PKCS10 generatePKCS10(final PublicKey publicKey, final X500Name distinguishedName,
-			final String signatureAlgorithm, final PrivateKey privateKey) throws CertificateLtException {
+	public static CertificationRequest generateCSR(final PublicKey publicKey, final X500Name distinguishedName,
+			final SignatureEnum signatureAlgorithm, final PrivateKey privateKey) throws CertificateLtException {
 		try {
-			final Signature signature = Signature.getInstance(signatureAlgorithm);
-			signature.initSign(privateKey);
-			final PKCS10 pkcs10 = new PKCS10(publicKey);
-			pkcs10.encodeAndSign(distinguishedName, signature);
-			return pkcs10;
-		} catch (NoSuchAlgorithmException | InvalidKeyException | CertificateException | SignatureException
-				| IOException e) {
+			final PKCS10CertificationRequestBuilder csrBuilder = new PKCS10CertificationRequestBuilder(distinguishedName,
+					SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(PublicKeyFactory.createKey(publicKey.getEncoded())));
+			// create certificate request
+			final ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm.getName())
+					.setProvider(ProviderEnum.BC.getName()).build(privateKey);
+			return csrBuilder.build(signer).toASN1Structure();
+		} catch (final OperatorCreationException | IOException e) {
 			throw new CertificateLtException(e);
 		}
 	}
@@ -256,124 +366,116 @@ public final class CertificateUtil {
 	/**
 	 * Verifies that the certificate was signed using the private key that
 	 * corresponds to the specified public key. <br/>
-	 * Also verifies that is type of X.509 and if the current date and time are
-	 * within the validity period given in the certificate.
+	 * Also verifies the current date and time are within the validity period given
+	 * in the certificate.
 	 *
-	 * @param certificate
-	 * @param pbcKeyTrust the trusted public key used to carry out the verification
+	 * @param certificate X509
+	 * @param keyTrust    the trusted public key used to carry out the verification
+	 * @return true if is valid
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause NoSuchAlgorithmException on unsupported
-	 *                                signature algorithms <br/>
-	 *                                +Cause InvalidKeyException on incorrect key
-	 *                                <br/>
-	 *                                +Cause NoSuchProviderException on incorrect
-	 *                                provider <br/>
-	 *                                +Cause SignatureException on signature errors
-	 *                                <br/>
-	 *                                +Cause CertificateException on encoding errors
-	 *                                or it's type is not X.509 <br/>
-	 *                                +Cause CertificateExpiredException if the
-	 *                                certificate has expired <br/>
-	 *                                +Cause CertificateNotYetValidException if the
-	 *                                certificate is not yet valid
+	 *                                +Cause OperatorCreationException <br/>
+	 *                                +Cause CertException - if the signature cannot
+	 *                                be processed or is inappropriate
 	 */
-	public static void verify(final Certificate certificate, final PublicKey pbcKeyTrust)
+	public static boolean isValidX509(final X509CertificateHolder certificate, final AsymmetricKeyParameter keyTrust)
 			throws CertificateLtException {
 		try {
-			certificate.verify(pbcKeyTrust);
-		} catch (final InvalidKeyException e) {
-			throw new CertificateLtException(e);
-		} catch (final CertificateException e) {
-			throw new CertificateLtException(e);
-		} catch (final NoSuchAlgorithmException e) {
-			throw new CertificateLtException(e);
-		} catch (final NoSuchProviderException e) {
-			throw new CertificateLtException(e);
-		} catch (final SignatureException e) {
-			throw new CertificateLtException(e);
-		}
-		verifyTypeX509(certificate);
-		try {
-			X509Certificate.class.cast(certificate).checkValidity();
-		} catch (final CertificateExpiredException e) {
-			throw new CertificateLtException(e);
-		} catch (final CertificateNotYetValidException e) {
+			return certificate.isValidOn(DateUtil.now()) && certificate.isSignatureValid(
+					new BcRSAContentVerifierProviderBuilder(new DefaultDigestAlgorithmIdentifierFinder()).build(keyTrust));
+		} catch (OperatorCreationException | CertException e) {
 			throw new CertificateLtException(e);
 		}
 	}
 
 	/**
+	 * Verifies that the certificate was signed using the private key that
+	 * corresponds to the specified public key from issuer certificate. <br/>
+	 * Also verifies the current date and time are within the validity period given
+	 * in the certificate.
 	 *
-	 * @param certificate
+	 * @param certificate       X509
+	 * @param issuerCertificate the trusted public key used to carry out the
+	 *                          verification
+	 * @return true if is valid
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause CertificateException if it's type is
-	 *                                not X.509
+	 *                                +Cause OperatorCreationException <br/>
+	 *                                +Cause CertException - if the signature cannot
+	 *                                be processed or is inappropriate
 	 */
-	public static void verifyTypeX509(final Certificate certificate) throws CertificateLtException {
-		if (!X509Certificate.class.isInstance(certificate) || !TypeEnum.X509.getName().equals(certificate.getType())) {
-			throw new CertificateLtException(new CertificateException(), "Invalid type: #0", certificate.getType());
+	public static boolean isValidX509(final X509CertificateHolder certificate,
+			final X509CertificateHolder issuerCertificate) throws CertificateLtException {
+		try {
+			return certificate.isValidOn(DateUtil.now()) && certificate
+					.isSignatureValid(new BcRSAContentVerifierProviderBuilder(new DefaultDigestAlgorithmIdentifierFinder())
+							.build(issuerCertificate));
+		} catch (OperatorCreationException | CertException e) {
+			throw new CertificateLtException(e);
 		}
 	}
 
-	private static boolean isCA(final X509Certificate certificate) {
-		return certificate.getBasicConstraints() > -1 && certificate.getKeyUsage()[5];
+	private static boolean isCA(final X509CertificateHolder certificate) {
+		final BasicConstraints bConstraints = BasicConstraints.fromExtensions(certificate.getExtensions());
+		if (bConstraints == null) {
+			return false;
+		}
+		final BigInteger pathLenConstraint = bConstraints.getPathLenConstraint();
+		if (pathLenConstraint == null) {
+			return false;
+		}
+		final KeyUsage kUsage = KeyUsage.fromExtensions(certificate.getExtensions());
+		if (kUsage == null) {
+			return false;
+		}
+		return pathLenConstraint.intValueExact() > -1 && kUsage.hasUsages(X509KeyUsage.keyCertSign);
 	}
 
 	/**
 	 * Verifies that the root certificate in the chain is self-signed.<br/>
 	 * And all consecutive certificates were signed using the private key that
 	 * corresponds to the public key in anterior certificate.<br/>
-	 * Also verifies that all are of type X.509 and if the current date and time are
-	 * within the validity period given in all the certificates. <br/>
+	 * Also verifies if the current date and time are within the validity period
+	 * given in all the certificates. <br/>
 	 *
 	 * @param chain with the certificates to verify
+	 * @return true if is valid
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause NoSuchAlgorithmException on unsupported
-	 *                                signature algorithms <br/>
-	 *                                +Cause InvalidKeyException on incorrect key
-	 *                                <br/>
-	 *                                +Cause NoSuchProviderException on incorrect
-	 *                                provider <br/>
-	 *                                +Cause SignatureException on signature errors
-	 *                                <br/>
-	 *                                +Cause CertificateException on encoding errors
-	 *                                or it's type is not X.509 <br/>
-	 *                                +Cause CertificateExpiredException if the
-	 *                                certificate has expired <br/>
-	 *                                +Cause CertificateNotYetValidException if the
-	 *                                certificate is not yet valid <br/>
-	 *                                +Cause CertificateChainLtException if the
-	 *                                chain doesn't have certificate authority in
-	 *                                the correct position or has an invalid path
-	 *                                length constraint or the chain is empty
+	 *                                +Cause OperatorCreationException <br/>
+	 *                                +Cause CertException - if the signature cannot
+	 *                                be processed or is inappropriate
 	 */
-	public static void verifyChain(final Certificate[] chain) throws CertificateLtException {
+	public static boolean isValidChain(final X509CertificateHolder[] chain) throws CertificateLtException {
 		if (chain.length > 0) {
-			final Certificate rootCertificate = chain[chain.length - 1];
-			PublicKey publicKey = rootCertificate.getPublicKey();
+			final X509CertificateHolder rootCertificate = chain[chain.length - 1];
+			X509CertificateHolder issuerCertificate = rootCertificate;
 			int issuerPathLength = Integer.MAX_VALUE;
-			Certificate certificate;
-			X509Certificate x509;
-			int x509PathLength;
+			X509CertificateHolder certificate;
 			boolean isCA;
+			BigInteger pathLenConstraint;
 			for (int i = chain.length - 1; i >= 0; i--) {
 				certificate = chain[i];
-				verify(certificate, publicKey);
-				x509 = X509Certificate.class.cast(certificate);
-				isCA = isCA(x509);
+				if (!isValidX509(certificate, issuerCertificate)) {
+					LOG.debug("Invalid certificate with serialNumber: #0", certificate.getSerialNumber());
+					return false;
+				}
+				isCA = isCA(certificate);
 				if (i != 0 && !isCA) {
-					throw new CertificateLtException(
-							new CertificateChainLtException("Expected have root and intermediates as CA"));
+					LOG.debug("Expected have root and intermediates as CA");
+					return false;
 				}
-				x509PathLength = x509.getBasicConstraints();
-				if (x509PathLength >= issuerPathLength) {
-					throw new CertificateLtException(new CertificateChainLtException("Invalid path length"));
+				if (isCA) {
+					pathLenConstraint = BasicConstraints.fromExtensions(certificate.getExtensions()).getPathLenConstraint();
+					if (pathLenConstraint == null || pathLenConstraint.intValueExact() >= issuerPathLength) {
+						LOG.debug("Invalid sequence of pathLength");
+						return false;
+					}
+					issuerPathLength = pathLenConstraint.intValueExact();
 				}
-				publicKey = certificate.getPublicKey();
-				issuerPathLength = x509PathLength;
+				issuerCertificate = certificate;
 			}
+			return true;
 		} else {
-			throw new CertificateLtException(new CertificateChainLtException("Empty chain"));
+			LOG.debug("Empty chain");
+			return false;
 		}
 	}
 
@@ -381,9 +483,9 @@ public final class CertificateUtil {
 	 * Certificate chain
 	 */
 
-	private static X509Certificate[] addEndCertificate(final X509Certificate certificate,
-			final X509Certificate[] chain) {
-		final X509Certificate[] result = new X509Certificate[chain.length + 1];
+	private static X509CertificateHolder[] addEndCertificate(final X509CertificateHolder certificate,
+			final X509CertificateHolder[] chain) {
+		final X509CertificateHolder[] result = new X509CertificateHolder[chain.length + 1];
 		result[0] = certificate;
 		for (int i = 0; i < chain.length; i++) {
 			result[i + 1] = chain[i];
@@ -403,25 +505,17 @@ public final class CertificateUtil {
 	 * @param requestLink
 	 * @return a new array with the new link
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause IOException on other errors <br/>
-	 *                                +Cause CertificateException on invalid
-	 *                                attributes or encoding errors <br/>
-	 *                                +Cause NoSuchAlgorithmException on unsupported
-	 *                                signature algorithms <br/>
-	 *                                +Cause SignatureException on signature errors
-	 *                                <br/>
-	 *                                +Cause NoSuchProviderException if there's no
-	 *                                default provider <br/>
-	 *                                +Cause InvalidKeyException on incorrect key
-	 *                                <br/>
 	 *                                +Cause CertificateChainLtException if issuer
 	 *                                is not a CA or valid date interval is invalid
 	 *                                for the issuer or pathLenConstraint is invalid
+	 *                                <br/>
+	 *                                +Cause OperatorCreationException
 	 */
-	public static X509Certificate[] addLink(final X509Certificate[] chain, final PrivateKey chain0PrivateKey,
-			final Date validAfter, final Date expireDate, final PKCS10 requestLink) throws CertificateLtException {
-		final X509Certificate newCertificate = generateLinkedX509CertificateV3(requestLink, chain[0], chain0PrivateKey,
-				validAfter, expireDate);
+	public static X509CertificateHolder[] addLink(final X509CertificateHolder[] chain, final PrivateKey chain0PrivateKey,
+			final Date validAfter, final Date expireDate, final CertificationRequest requestLink)
+			throws CertificateLtException {
+		final X509CertificateHolder newCertificate = generateLinkedX509CertificateV3(requestLink, chain[0],
+				chain0PrivateKey, validAfter, expireDate);
 		return addEndCertificate(newCertificate, chain);
 	}
 
@@ -441,27 +535,18 @@ public final class CertificateUtil {
 	 *                           >-1 create as certificate authority)
 	 * @return a new array with the new link
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause IOException on other errors <br/>
-	 *                                +Cause CertificateException on invalid
-	 *                                attributes or encoding errors <br/>
-	 *                                +Cause NoSuchAlgorithmException on unsupported
-	 *                                signature algorithms <br/>
-	 *                                +Cause SignatureException on signature errors
-	 *                                <br/>
-	 *                                +Cause NoSuchProviderException if there's no
-	 *                                default provider <br/>
-	 *                                +Cause InvalidKeyException on incorrect key
-	 *                                <br/>
 	 *                                +Cause CertificateChainLtException if issuer
 	 *                                is not a CA or valid date interval is invalid
 	 *                                for the issuer or pathLenConstraint is invalid
+	 *                                <br/>
+	 *                                +Cause OperatorCreationException
 	 */
-	public static X509Certificate[] addLink(final X509Certificate[] chain, final PrivateKey chain0PrivateKey,
-			final String signatureAlgorithm, final BigInteger serialNumber, final Date validAfter,
-			final Date expireDate, final PKCS10 requestLink, final int pathLenConstraint)
+	public static X509CertificateHolder[] addLink(final X509CertificateHolder[] chain, final PrivateKey chain0PrivateKey,
+			final SignatureEnum signatureAlgorithm, final BigInteger serialNumber, final Date validAfter,
+			final Date expireDate, final CertificationRequest requestLink, final int pathLenConstraint)
 			throws CertificateLtException {
-		final X509Certificate newCertificate = generateLinkedX509CertificateV3(requestLink, chain[0], chain0PrivateKey,
-				signatureAlgorithm, serialNumber, validAfter, expireDate, pathLenConstraint);
+		final X509CertificateHolder newCertificate = generateLinkedX509CertificateV3(requestLink, chain[0],
+				chain0PrivateKey, signatureAlgorithm, serialNumber, validAfter, expireDate, pathLenConstraint);
 		return addEndCertificate(newCertificate, chain);
 	}
 
@@ -477,27 +562,18 @@ public final class CertificateUtil {
 	 *                          expires
 	 * @return the new certificate
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause IOException on other errors <br/>
-	 *                                +Cause CertificateException on invalid
-	 *                                attributes or encoding errors <br/>
-	 *                                +Cause NoSuchAlgorithmException on unsupported
-	 *                                signature algorithms <br/>
-	 *                                +Cause SignatureException on signature errors
-	 *                                <br/>
-	 *                                +Cause NoSuchProviderException if there's no
-	 *                                default provider <br/>
-	 *                                +Cause InvalidKeyException on incorrect key
-	 *                                <br/>
 	 *                                +Cause CertificateChainLtException if issuer
 	 *                                is not a CA or valid date interval is invalid
 	 *                                for the issuer or pathLenConstraint is invalid
+	 *                                <br/>
+	 *                                +Cause OperatorCreationException
 	 */
-	public static X509Certificate generateLinkedX509CertificateV3(final PKCS10 csr,
-			final X509Certificate issuerCertificate, final PrivateKey issuerPrivateKey, final Date validAfter,
+	public static X509CertificateHolder generateLinkedX509CertificateV3(final CertificationRequest csr,
+			final X509CertificateHolder issuerCertificate, final PrivateKey issuerPrivateKey, final Date validAfter,
 			final Date expireDate) throws CertificateLtException {
 		return generateLinkedX509CertificateV3(csr, issuerCertificate, issuerPrivateKey,
 				Cryptography.getDefaultCertificateSignatureAlgorithm(), generateSerialNumber(), validAfter, expireDate,
-				issuerCertificate.getBasicConstraints() - 1);
+				BasicConstraints.fromExtensions(issuerCertificate.getExtensions()).getPathLenConstraint().intValueExact() - 1);
 	}
 
 	/**
@@ -516,29 +592,21 @@ public final class CertificateUtil {
 	 *                           >-1 create as certificate authority)
 	 * @return the new certificate
 	 * @throws CertificateLtException <br/>
-	 *                                +Cause IOException on other errors <br/>
-	 *                                +Cause CertificateException on invalid
-	 *                                attributes or encoding errors <br/>
-	 *                                +Cause NoSuchAlgorithmException on unsupported
-	 *                                signature algorithms <br/>
-	 *                                +Cause SignatureException on signature errors
-	 *                                <br/>
-	 *                                +Cause NoSuchProviderException if there's no
-	 *                                default provider <br/>
-	 *                                +Cause InvalidKeyException on incorrect key
-	 *                                <br/>
 	 *                                +Cause CertificateChainLtException if issuer
 	 *                                is not a CA or valid date interval is invalid
 	 *                                for the issuer or pathLenConstraint is invalid
+	 *                                <br/>
+	 *                                +Cause OperatorCreationException
 	 */
-	public static X509Certificate generateLinkedX509CertificateV3(final PKCS10 csr,
-			final X509Certificate issuerCertificate, final PrivateKey issuerPrivateKey, final String signatureAlgorithm,
-			final BigInteger serialNumber, final Date validAfter, final Date expireDate, final int pathLenConstraint)
-			throws CertificateLtException {
+	public static X509CertificateHolder generateLinkedX509CertificateV3(final CertificationRequest csr,
+			final X509CertificateHolder issuerCertificate, final PrivateKey issuerPrivateKey,
+			final SignatureEnum signatureAlgorithm, final BigInteger serialNumber, final Date validAfter,
+			final Date expireDate, final int pathLenConstraint) throws CertificateLtException {
 		if (!isCA(issuerCertificate)) {
 			throw new CertificateLtException(new CertificateChainLtException("Issuer has to be a CA"));
 		}
-		if (pathLenConstraint > -1 && issuerCertificate.getBasicConstraints() <= pathLenConstraint) {
+		if (pathLenConstraint > -1 && BasicConstraints.fromExtensions(issuerCertificate.getExtensions())
+				.getPathLenConstraint().intValueExact() <= pathLenConstraint) {
 			throw new CertificateLtException(new CertificateChainLtException("Invalid path length"));
 		}
 		if (issuerCertificate.getNotBefore().compareTo(validAfter) > 0
@@ -546,12 +614,8 @@ public final class CertificateUtil {
 			throw new CertificateLtException(
 					new CertificateChainLtException("New validation interval date is out of CA interval"));
 		}
-		try {
-			return generateX509CertificateV3(new X500Name(issuerCertificate.getSubjectX500Principal().getName()),
-					signatureAlgorithm, issuerPrivateKey, csr, serialNumber, validAfter, expireDate, pathLenConstraint);
-		} catch (final IOException e) {
-			throw new CertificateLtException(e);
-		}
+		return generateX509CertificateV3(issuerCertificate.getSubject(), signatureAlgorithm, issuerPrivateKey, csr,
+				serialNumber, validAfter, expireDate, pathLenConstraint);
 	}
 
 }

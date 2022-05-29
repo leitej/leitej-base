@@ -19,15 +19,16 @@ package leitej.net.csl.secure.vault;
 import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.bouncycastle.cert.X509CertificateHolder;
+
 import leitej.crypto.ConstantCrypto;
 import leitej.crypto.asymmetric.certificate.CertificateUtil;
 import leitej.crypto.keyStore.Password;
-import leitej.crypto.vault.LtVault;
+import leitej.crypto.vault.Vault;
 import leitej.exception.CertificateChainLtException;
 import leitej.exception.CertificateLtException;
 import leitej.exception.ExpiredDataLtException;
@@ -49,7 +50,7 @@ import leitej.util.data.CacheWeak;
  */
 public abstract class AbstractCslVault implements CslVaultItf {
 
-	private static final String CSL_VAULT_ALAIS = "__csl" + ConstantCrypto.DEFAULT_UBER_KEYSTORE_FILE_EXTENSION;
+	private static final String CSL_VAULT_ALAIS = "__csl" + ConstantCrypto.KEYSTORE_FILE_EXTENSION;
 
 	private static final Logger LOG = Logger.getInstance();
 
@@ -61,7 +62,7 @@ public abstract class AbstractCslVault implements CslVaultItf {
 	private final Cache<String, Cadastre> cadastreCache;
 	private final Cache<String, CslCertificate> endPointCslCertificateMap;
 
-	protected final LtVault vault;
+	protected final Vault vault;
 
 	/**
 	 *
@@ -77,14 +78,15 @@ public abstract class AbstractCslVault implements CslVaultItf {
 	 * @throws ExpiredDataLtException if at the first load of the vault, the primary
 	 *                                application trusted anchor does not pass
 	 *                                verification procedure
+	 * @throws CertificateLtException
 	 */
 	protected AbstractCslVault(final Password password)
-			throws KeyStoreLtException, IOException, ExpiredDataLtException {
+			throws KeyStoreLtException, IOException, ExpiredDataLtException, CertificateLtException {
 		// load vault
-		if (LtVault.exists(CSL_VAULT_ALAIS)) {
-			this.vault = LtVault.load(CSL_VAULT_ALAIS, password);
+		if (Vault.exists(CSL_VAULT_ALAIS)) {
+			this.vault = Vault.load(CSL_VAULT_ALAIS, password);
 		} else {
-			this.vault = LtVault.create(CSL_VAULT_ALAIS, password);
+			this.vault = Vault.create(CSL_VAULT_ALAIS, password);
 		}
 		// initialise maps
 		this.cslCertificateIssuerMap = new HashMap<>();
@@ -112,12 +114,13 @@ public abstract class AbstractCslVault implements CslVaultItf {
 	 *
 	 * @param key
 	 * @param certificates
-	 * @throws KeyStoreLtException if the given key cannot be protected, or this
-	 *                             operation fails for some other reason
-	 * @throws IOException         if there was an I/O problem with data
+	 * @throws KeyStoreLtException    if the given key cannot be protected, or this
+	 *                                operation fails for some other reason
+	 * @throws IOException            if there was an I/O problem with data
+	 * @throws CertificateLtException
 	 */
-	protected final synchronized void setCslKey(final PrivateKey key, final X509Certificate[] certificates)
-			throws KeyStoreLtException, IOException {
+	protected final synchronized void setCslKey(final PrivateKey key, final X509CertificateHolder[] certificates)
+			throws KeyStoreLtException, IOException, CertificateLtException {
 		this.vault.setPrivateKeyEntry(CSL_PRIVATE_KEY_ENTRY_ALIAS, key, certificates);
 		this.vault.persist();
 	}
@@ -128,51 +131,52 @@ public abstract class AbstractCslVault implements CslVaultItf {
 	}
 
 	@Override
-	public final X509Certificate[] getCslChainCertificate() throws KeyStoreLtException {
+	public final X509CertificateHolder[] getCslChainCertificate() throws KeyStoreLtException, CertificateLtException {
 		return this.vault.getKeyCertificateChain(CSL_PRIVATE_KEY_ENTRY_ALIAS);
 	}
 
 	@Override
-	public final X509Certificate getCslCertificate() throws KeyStoreLtException {
+	public final X509CertificateHolder getCslCertificate() throws KeyStoreLtException, CertificateLtException {
 		return this.vault.getKeyCertificate(CSL_PRIVATE_KEY_ENTRY_ALIAS);
 	}
 
 	/**
 	 *
 	 * @param certificate
-	 * @throws KeyStoreLtException if the created alias from certificate already
-	 *                             exists and does not identify an entry containing
-	 *                             a trusted certificate, or this operation fails
-	 *                             for some other reason
-	 * @throws IOException         if there was an I/O problem with data
+	 * @throws KeyStoreLtException    if the created alias from certificate already
+	 *                                exists and does not identify an entry
+	 *                                containing a trusted certificate, or this
+	 *                                operation fails for some other reason
+	 * @throws IOException            if there was an I/O problem with data
+	 * @throws CertificateLtException
 	 */
-	protected final synchronized void setTrustedAnchor(final X509Certificate certificate)
-			throws KeyStoreLtException, IOException {
-		this.vault.setTrustedCertificateEntry(CertificateUtil.getAliasFrom(certificate), certificate);
+	protected final synchronized void setTrustedAnchor(final X509CertificateHolder certificate)
+			throws KeyStoreLtException, IOException, CertificateLtException {
+		this.vault.setTrustedCertificateEntry(CertificateUtil.getAlias(certificate), certificate);
 		this.vault.persist();
 	}
 
 	@Override
-	public final boolean isTrustedAnchor(final X509Certificate certificate) throws KeyStoreLtException {
-		final String alias = CertificateUtil.getAliasFrom(certificate);
-		final X509Certificate trustedCertificate = this.vault.getTrustedCertificate(alias);
+	public final boolean isTrustedAnchor(final X509CertificateHolder certificate)
+			throws KeyStoreLtException, CertificateLtException, IOException {
+		final String alias = CertificateUtil.getAlias(certificate);
+		final X509CertificateHolder trustedCertificate = this.vault.getTrustedCertificate(alias);
 		if (trustedCertificate == null) {
 			// TODO: verificar possivel nova trusted anchor assinada pelos rootLinks
 			return false;
 		}
 		try {
-			CertificateUtil.verify(certificate, trustedCertificate.getPublicKey());
+			return CertificateUtil.isValidX509(certificate, trustedCertificate);
 		} catch (final CertificateLtException e) {
 			LOG.debug("#0", e.toString());
 			return false;
 		}
-		return true;
 	}
 
 	@Override
-	public final void verifyEndPointCertificate(final X509Certificate certificate)
-			throws CertificateLtException, LtmLtRtException {
-		final String alias = CertificateUtil.getAliasFrom(certificate);
+	public final void verifyEndPointCertificate(final X509CertificateHolder certificate)
+			throws CertificateLtException, LtmLtRtException, IOException {
+		final String alias = CertificateUtil.getAlias(certificate);
 		final Cadastre cadastre = getEndPointCadastre(alias);
 		synchronized (cadastre) {
 			CslCertificate cslCertificate;
@@ -181,7 +185,9 @@ public abstract class AbstractCslVault implements CslVaultItf {
 			} catch (final IOException e) {
 				throw new LtmLtRtException(e);
 			}
-			CertificateUtil.verify(certificate, cslCertificate.getIssuerPublicKey());
+			if (!CertificateUtil.isValidX509(certificate, cslCertificate.getIssuer())) {
+				throw new CertificateLtException();
+			}
 			cslCertificate.check();
 		}
 	}
@@ -191,8 +197,7 @@ public abstract class AbstractCslVault implements CslVaultItf {
 		synchronized (this.endPointCslCertificateMap) {
 			CslCertificate result = this.endPointCslCertificateMap.get(cadastre.getAlias());
 			if (result == null) {
-				result = new CslCertificate(this.vault.getCertificate(cadastre.getAlias()),
-						getRooterCslCertificate(cadastre));
+				result = new CslCertificate(this.vault.getCertificate(cadastre.getAlias()), getRooterCslCertificate(cadastre));
 				this.endPointCslCertificateMap.set(cadastre.getAlias(), result);
 			}
 			return result;
@@ -229,23 +234,25 @@ public abstract class AbstractCslVault implements CslVaultItf {
 	}
 
 	@Override
-	public final void addEndPointChain(final X509Certificate[] chain) throws CertificateChainLtException,
-			LtmLtRtException, IOException, KeyStoreLtException, CertificateEncodingException {
+	public final void addEndPointChain(final X509CertificateHolder[] chain) throws CertificateChainLtException,
+			LtmLtRtException, IOException, KeyStoreLtException, CertificateEncodingException, CertificateLtException {
 		if (!isTrustedAnchor(chain[chain.length - 1])) {
 			throw new CertificateChainLtException();
 		}
 		try {
-			CertificateUtil.verifyChain(chain);
+			if (!CertificateUtil.isValidChain(chain)) {
+				throw new CertificateChainLtException();
+			}
 		} catch (final CertificateLtException e) {
 			throw new CertificateChainLtException(e);
 		}
 		synchronized (this.endPointCslCertificateMap) {
-			final String alias = CertificateUtil.getAliasFrom(chain[0]);
+			final String alias = CertificateUtil.getAlias(chain[0]);
 			Cadastre cadastre;
 			try {
 				cadastre = getEndPointCadastre(alias);
 			} catch (final CertificateLtException e) {
-				this.vault.setCertificateChain(alias, chain);
+				this.vault.setCertificateChain(chain);
 				cadastre = LTM.newRecord(Cadastre.class);
 				synchronized (cadastre) {
 					cadastre.setAlias(alias);
@@ -260,12 +267,12 @@ public abstract class AbstractCslVault implements CslVaultItf {
 		}
 	}
 
-	private final CadastreIssuer addCadastreIssuer(final X509Certificate[] chain, final int position)
-			throws LtmLtRtException {
+	private final CadastreIssuer addCadastreIssuer(final X509CertificateHolder[] chain, final int position)
+			throws LtmLtRtException, IOException {
 		if (position == chain.length) {
 			return null;
 		}
-		final String alias = CertificateUtil.getAliasFrom(chain[position]);
+		final String alias = CertificateUtil.getAlias(chain[position]);
 		CadastreIssuer result;
 		final LtmFilter<CadastreIssuer> filter = new LtmFilter<>(CadastreIssuer.class, OPERATOR_JOIN.AND);
 		filter.append(OPERATOR.EQUAL).setAlias(alias);
@@ -281,7 +288,8 @@ public abstract class AbstractCslVault implements CslVaultItf {
 	}
 
 	@Override
-	public final void saltIn(final byte[] remoteHalfStateKeyBlock, final X509Certificate clientCertificate) {
+	public final void saltIn(final byte[] remoteHalfStateKeyBlock, final X509CertificateHolder clientCertificate)
+			throws LtmLtRtException, IOException {
 		try {
 			final Cadastre cadastre = getEndPointCadastre(clientCertificate);
 			byte[] salt;
@@ -297,7 +305,8 @@ public abstract class AbstractCslVault implements CslVaultItf {
 	}
 
 	@Override
-	public final void saltOut(final byte[] myHalfStateKeyBlock, final X509Certificate clientCertificate) {
+	public final void saltOut(final byte[] myHalfStateKeyBlock, final X509CertificateHolder clientCertificate)
+			throws LtmLtRtException, IOException {
 		try {
 			final Cadastre cadastre = getEndPointCadastre(clientCertificate);
 			byte[] salt;
@@ -314,7 +323,7 @@ public abstract class AbstractCslVault implements CslVaultItf {
 
 	@Override
 	public final void updateSalt(final byte[] remoteKeyBlock, final byte[] myKeyBlock,
-			final X509Certificate clientCertificate) throws LtmLtRtException {
+			final X509CertificateHolder clientCertificate) throws LtmLtRtException, IOException {
 		try {
 			final Cadastre cadastre = getEndPointCadastre(clientCertificate);
 			synchronized (cadastre) {
@@ -361,10 +370,11 @@ public abstract class AbstractCslVault implements CslVaultItf {
 	 *                                certificate
 	 * @throws LtmLtRtException       if encountered a problem accessing the long
 	 *                                term memory
+	 * @throws IOException
 	 */
-	private final Cadastre getEndPointCadastre(final X509Certificate clientCertificate)
-			throws CertificateLtException, LtmLtRtException {
-		final String alias = CertificateUtil.getAliasFrom(clientCertificate);
+	private final Cadastre getEndPointCadastre(final X509CertificateHolder clientCertificate)
+			throws CertificateLtException, LtmLtRtException, IOException {
+		final String alias = CertificateUtil.getAlias(clientCertificate);
 		return getEndPointCadastre(alias);
 	}
 

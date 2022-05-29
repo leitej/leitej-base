@@ -63,7 +63,7 @@ public final class CircBinary implements RandomAccessBinary {
 
 	private volatile boolean initialized;
 
-	public CircBinary(final RandomAccessBinary encryptedBinary, final String cipherAlgorithm) {
+	public CircBinary(final RandomAccessBinary encryptedBinary, final CipherEnum cipherAlgorithm) {
 		this.encryptedBinary = encryptedBinary;
 		this.circDecrypt = new CircBlockCipher(cipherAlgorithm);
 		this.circEncrypt = new CircBlockCipher(cipherAlgorithm);
@@ -272,8 +272,7 @@ public final class CircBinary implements RandomAccessBinary {
 						Arrays.fill(this.writeSeekBlockBuffer, (byte) 0x00);
 					} else {
 						try {
-							readFully((nBlock - 1) * this.writeBlockSize, this.writeSeekBlockBuffer, 0,
-									this.writeBlockSize);
+							readFully((nBlock - 1) * this.writeBlockSize, this.writeSeekBlockBuffer, 0, this.writeBlockSize);
 						} catch (final EOFException e) {
 							throw new IOException(new ConcurrentModificationException());
 						}
@@ -658,8 +657,7 @@ public final class CircBinary implements RandomAccessBinary {
 				if (this.lastFractionByte == -1) {
 					result = Long.valueOf(this.circBinary.length() - this.sPointer).intValue();
 				} else {
-					result = Long.valueOf(Math.min(this.lastFractionByte, this.circBinary.length()) - this.sPointer)
-							.intValue();
+					result = Long.valueOf(Math.min(this.lastFractionByte, this.circBinary.length()) - this.sPointer).intValue();
 				}
 				return ((result < 0) ? 0 : result);
 			}
