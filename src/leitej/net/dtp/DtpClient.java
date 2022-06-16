@@ -51,15 +51,13 @@ public final class DtpClient implements ConnectionClientItf {
 		}
 		List<RawData> rawDataList;
 		RawData.initRequest();
-//		XmlomUtil.registry(responseClass);
 		this.comSession.write(request);
 		this.comSession.flush();
 		rawDataList = RawData.endRequest();
 		if (rawDataList.size() > 0) {
 			internalMessage = this.comSession.read(InternalMessage.class);
 			if (internalMessage == null || !InternalMessage.class.isInstance(internalMessage)
-					|| !InternalMessageAction.RAW_DATA_PORTS
-							.equals(InternalMessage.class.cast(internalMessage).getAction())) {
+					|| !InternalMessageAction.RAW_DATA_PORTS.equals(InternalMessage.class.cast(internalMessage).getAction())) {
 				throw new ConnectionLtException(new DtpLtException());
 			}
 			final RawDataPort[] rawDataPorts = InternalMessage.class.cast(internalMessage).getRawDataPorts();
@@ -85,14 +83,13 @@ public final class DtpClient implements ConnectionClientItf {
 		rawDataList = RawData.endResponse();
 		if (result != null) {
 			if (InternalMessage.class.isInstance(result)) {
-				throw new ConnectionLtException(new DtpLtException(
-						"Connection remote response: " + InternalMessage.class.cast(result).getMessage()));
+				throw new ConnectionLtException(
+						new DtpLtException("Connection remote response: " + InternalMessage.class.cast(result).getMessage()));
 			}
 			if (rawDataList.size() > 0) {
 				internalMessage = this.comSession.read(InternalMessage.class);
 				if (internalMessage == null || !InternalMessage.class.isInstance(internalMessage)
-						|| !InternalMessageAction.RAW_DATA_PORTS
-								.equals(InternalMessage.class.cast(internalMessage).getAction())) {
+						|| !InternalMessageAction.RAW_DATA_PORTS.equals(InternalMessage.class.cast(internalMessage).getAction())) {
 					throw new ConnectionLtException(new DtpLtException());
 				}
 				final RawDataPort[] rawDataPorts = InternalMessage.class.cast(internalMessage).getRawDataPorts();
@@ -107,9 +104,8 @@ public final class DtpClient implements ConnectionClientItf {
 					for (int j = 0; j < rawDataList.size() && rawData == null; j++) {
 						if (rawDataList.get(j).getId() == rawDataPort.getId()) {
 							rawData = rawDataList.get(j);
-							RawDataClient.setReceiveInputStreamAsync(this.rawDataThreadPool,
-									this.comSession.getRemoteInetAddress(), rawDataPort.getPort(), rawData,
-									rawDataPort.getCallNumber());
+							RawDataClient.setReceiveInputStreamAsync(this.rawDataThreadPool, this.comSession.getRemoteInetAddress(),
+									rawDataPort.getPort(), rawData, rawDataPort.getCallNumber());
 						}
 					}
 				}

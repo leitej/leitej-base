@@ -105,8 +105,7 @@ public final class LtTrayIcon {
 					if (!SystemTray.isSupported()) {
 						throw new TrayIconGuiLtRtException();
 					}
-					LtTrayIcon.this.itrayIcon = new InternalTrayIcon(me, LtTrayIcon.this.registeredImageMap.get(null),
-							tooltip);
+					LtTrayIcon.this.itrayIcon = new InternalTrayIcon(me, LtTrayIcon.this.registeredImageMap.get(null), tooltip);
 				}
 			});
 		} catch (final InvocationTargetException e) {
@@ -244,47 +243,6 @@ public final class LtTrayIcon {
 					.getScaledInstance(ICON_DIMENSION.width, ICON_DIMENSION.height, Image.SCALE_SMOOTH));
 		}
 
-//		final Image iconImage = ((iconImageArray == null)
-//				? Toolkit.getDefaultToolkit().createImage(LtIcon.DATA_128_BG_W).getScaledInstance(ICON_DIMENSION.width,
-//						ICON_DIMENSION.height, Image.SCALE_SMOOTH)
-//				: Toolkit.getDefaultToolkit().createImage(iconImageArray).getScaledInstance(ICON_DIMENSION.width,
-//						ICON_DIMENSION.height, Image.SCALE_SMOOTH));
-//
-////		final Color color = Color.orange;
-////		final ImageFilter filter = new RGBImageFilter() {
-////			// the color we are looking for... Alpha bits are set to opaque
-////			public int markerRGB = color.getRGB() | 0xFF000000;
-////
-////			@Override
-////			public final int filterRGB(final int x, final int y, final int rgb) {
-////				if ((rgb | 0xFF000000) == this.markerRGB) {
-////					// Mark the alpha bits as zero - transparent
-////					return 0x00FFFFFF & rgb;
-////				} else {
-////					// nothing to do
-////					return rgb;
-////				}
-////			}
-////		};
-////		final ImageProducer ip = new FilteredImageSource(iconImage
-////				.getScaledInstance(ICON_DIMENSION.width, ICON_DIMENSION.height, Image.SCALE_SMOOTH).getSource(),
-////				filter);
-////		final Image iconImageFinal = Toolkit.getDefaultToolkit().createImage(ip);
-//
-//		final BufferedImage iconImageFinal = new BufferedImage(ICON_DIMENSION.width, ICON_DIMENSION.height,
-//				BufferedImage.TYPE_INT_RGB);
-//
-//		final Graphics2D g2d = iconImageFinal.createGraphics();
-//		g2d.setColor(Color.white); // Or what ever fill color you want...
-//		g2d.fillRect(0, 0, iconImageFinal.getWidth(), iconImageFinal.getHeight());
-//		g2d.drawImage(iconImage, 0, 0, null);
-////		g2d.drawImage(iconImage, 0, 0, iconImageFinal.getWidth(), iconImageFinal.getHeight(), null);
-//		g2d.dispose();
-//
-//		LOG.warn("ola", iconImageFinal);
-//
-//		this.registeredImageMap.put(key, iconImageFinal);
-
 	}
 
 	public synchronized void registerImage(final Object key, final String iconImage) {
@@ -327,6 +285,7 @@ public final class LtTrayIcon {
 				@Override
 				public void run() {
 					LtTrayIcon.this.itrayIcon.setImage(LtTrayIcon.this.registeredImageMap.get(null));
+					LtTrayIcon.this.registeredImageMap.get(LtTrayIcon.this.activeImageKey).flush();
 					LtTrayIcon.this.activeImageKey = null;
 				}
 			});
@@ -354,6 +313,7 @@ public final class LtTrayIcon {
 						throw new TrayIconGuiLtRtException();
 					}
 					LtTrayIcon.this.itrayIcon.setImage(LtTrayIcon.this.registeredImageMap.get(key));
+					LtTrayIcon.this.registeredImageMap.get(LtTrayIcon.this.activeImageKey).flush();
 					LtTrayIcon.this.activeImageKey = key;
 				}
 			});
@@ -514,8 +474,7 @@ public final class LtTrayIcon {
 				@Override
 				public void run() {
 					while (LtTrayIcon.this.itrayIcon.getActionListeners().length > 0) {
-						LtTrayIcon.this.itrayIcon
-								.removeActionListener(LtTrayIcon.this.itrayIcon.getActionListeners()[0]);
+						LtTrayIcon.this.itrayIcon.removeActionListener(LtTrayIcon.this.itrayIcon.getActionListeners()[0]);
 					}
 					LtTrayIcon.this.itrayIcon.addActionListener(new LtActionListener(invokeSignature));
 				}
