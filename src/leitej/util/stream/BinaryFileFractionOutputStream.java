@@ -36,8 +36,8 @@ public final class BinaryFileFractionOutputStream extends FractionOutputStream {
 		this(file, -1, offset, -1, syncWrite, null);
 	}
 
-	public BinaryFileFractionOutputStream(final File file, final long offset, final long length,
-			final boolean syncWrite) throws IOException {
+	public BinaryFileFractionOutputStream(final File file, final long offset, final long length, final boolean syncWrite)
+			throws IOException {
 		this(file, -1, offset, length, syncWrite, null);
 	}
 
@@ -99,7 +99,7 @@ public final class BinaryFileFractionOutputStream extends FractionOutputStream {
 			return;
 		}
 		synchronized (this.mutex) {
-			if (this.endFilePointer != -1 && this.raFile.getFilePointer() + len >= this.endFilePointer) {
+			if (this.endFilePointer != -1 && this.raFile.getFilePointer() + len > this.endFilePointer) {
 				throw new IndexOutOfBoundsException();
 			}
 			this.raFile.write(b, off, len);

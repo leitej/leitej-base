@@ -23,7 +23,7 @@ import leitej.xml.om.XmlObjectModelling;
  *
  * @author Julio Leite
  */
-public interface ConnectionClientItf {
+public interface ClientConnection {
 
 	/**
 	 * Sends <code>request</code> to server and waits for response casted to

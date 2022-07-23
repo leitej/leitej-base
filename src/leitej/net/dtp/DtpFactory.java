@@ -34,10 +34,6 @@ import leitej.thread.PoolAgnosticThread;
  */
 public final class DtpFactory<H extends AbstractDtpHandler> {
 
-//	static {
-//		XmlomUtil.registry(InternalMessage.class);
-//	}
-
 	private final AbstractCommunicationFactory<?, ?, ?, ?> comFactory;
 	private final Class<H> handlerClass;
 	private final PoolAgnosticThread handlerThreadPool;

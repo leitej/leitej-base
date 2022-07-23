@@ -20,7 +20,7 @@ import java.util.List;
 
 import leitej.exception.ConnectionLtException;
 import leitej.exception.DtpLtException;
-import leitej.net.ConnectionClientItf;
+import leitej.net.ClientConnection;
 import leitej.net.csl.AbstractCommunicationSession;
 import leitej.thread.PoolAgnosticThread;
 import leitej.xml.om.XmlObjectModelling;
@@ -30,7 +30,7 @@ import leitej.xml.om.XmlObjectModelling;
  *
  * @author Julio Leite
  */
-public final class DtpClient implements ConnectionClientItf {
+public final class DtpClient implements ClientConnection {
 
 	private final AbstractCommunicationSession<?, ?, ?, ?> comSession;
 	private final PoolAgnosticThread rawDataThreadPool;
