@@ -141,7 +141,7 @@ final class DataMemoryConnection {
 		final PreparedStatement pStt = this.conn.prepareStatement(pClass.getUpdateColumnById().get(dataPos));
 		final DataMemoryType type = pClass.getColumnTypeList().get(dataPos);
 		if (DataMemoryType.ENUM.equals(type)) {
-			HsqldbUtil.setPrepStt(pStt, 1, type.getSqlType(), value.toString());
+			HsqldbUtil.setPrepStt(pStt, 1, type.getSqlType(), ((value == null) ? null : value.toString()));
 		} else if (DataMemoryType.LARGE_MEMORY.equals(type)) {
 			if (prevValue != null) {
 				LargeMemoryTracker.del(this.conn, ltmClass, ltmId, LargeMemory.class.cast(prevValue));

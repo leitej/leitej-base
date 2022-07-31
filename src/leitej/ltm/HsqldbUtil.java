@@ -80,16 +80,15 @@ final class HsqldbUtil {
 	static <I extends LtmObjectModelling> String getTableName(final Class<I> ltmClass) {
 		synchronized (GEN_NAME) {
 			GEN_NAME.reset();
-			return TABLE_LTM_PREFIX
-					+ HexaUtil.toHex(GEN_NAME.digest(ltmClass.getName().getBytes(Constant.UTF8_CHARSET)));
+			return TABLE_LTM_PREFIX + HexaUtil.toHex(GEN_NAME.digest(ltmClass.getName().getBytes(Constant.UTF8_CHARSET)));
 		}
 	}
 
 	static <I extends LtmObjectModelling> String getTableSetName(final Class<I> ltmClass, final String setDataname) {
 		synchronized (GEN_NAME) {
 			GEN_NAME.reset();
-			return TABLE_SET_PREFIX + HexaUtil
-					.toHex(GEN_NAME.digest((setDataname + ltmClass.getName()).getBytes(Constant.UTF8_CHARSET)));
+			return TABLE_SET_PREFIX
+					+ HexaUtil.toHex(GEN_NAME.digest((setDataname + ltmClass.getName()).getBytes(Constant.UTF8_CHARSET)));
 		}
 	}
 
@@ -211,14 +210,12 @@ final class HsqldbUtil {
 						if (dropTableList.get(i).charAt(0) == TABLE_SET_PREFIX) {
 							if (DataMemoryType.LARGE_MEMORY
 									.equals(DataMemoryUtil.getColumnSetDataMemoryType(dropTableRemarkList.get(i)))
-									&& !dropLtmClassList
-											.contains(DataMemoryUtil.getLtmClassName(dropTableRemarkList.get(i)))) {
+									&& !dropLtmClassList.contains(DataMemoryUtil.getLtmClassName(dropTableRemarkList.get(i)))) {
 								LargeMemoryTracker.delFromLtmColumnSetDrop(conn, dropTableList.get(i),
 										DataMemoryUtil.getLtmClassName(dropTableRemarkList.get(i)));
 							}
 						} else {
-							LargeMemoryTracker.delFromLtmClassName(conn,
-									DataMemoryUtil.getLtmClassName(dropTableRemarkList.get(i)));
+							LargeMemoryTracker.delFromLtmClassName(conn, DataMemoryUtil.getLtmClassName(dropTableRemarkList.get(i)));
 						}
 						// drop the table
 						dropSql = "drop table " + dropTableList.get(i);
@@ -392,8 +389,8 @@ final class HsqldbUtil {
 		// persist
 		conn.commit();
 		TABLE_COMMENT_MAP.put(setTablename, remarks);
-		TABLE_COLUMN_MAP.put(setTablename, Arrays
-				.asList(new String[] { DataProxyHandler.SET_ID, DataProxyHandler.LTM_ID, DataProxyHandler.SET_VALUE }));
+		TABLE_COLUMN_MAP.put(setTablename,
+				Arrays.asList(new String[] { DataProxyHandler.SET_ID, DataProxyHandler.LTM_ID, DataProxyHandler.SET_VALUE }));
 	}
 
 	static DataMemoryType getColumnSetDataMemoryType(final String setTablename) {
@@ -440,8 +437,8 @@ final class HsqldbUtil {
 				query.append(" add \"");
 				query.append(column);
 				query.append("\" ");
-				query.append(getHsqlType(
-						prepClass.getColumnTypeList().get(prepClass.getColumnNameList().indexOf(column)).getSqlType()));
+				query.append(
+						getHsqlType(prepClass.getColumnTypeList().get(prepClass.getColumnNameList().indexOf(column)).getSqlType()));
 				query.append("; ");
 			}
 			final String addColumns = query.toString();
@@ -733,8 +730,8 @@ final class HsqldbUtil {
 	}
 
 	static String getStatementSetCount(final String tablename, final long ltmId) {
-		return "select count(*) from \"" + SCHEMA + "\".\"" + tablename + "\" where \"" + DataProxyHandler.LTM_ID
-				+ "\" = " + String.valueOf(ltmId);
+		return "select count(*) from \"" + SCHEMA + "\".\"" + tablename + "\" where \"" + DataProxyHandler.LTM_ID + "\" = "
+				+ String.valueOf(ltmId);
 	}
 
 	static String getStatementSetHasResult(final String tablename, final long ltmId) {
@@ -750,8 +747,8 @@ final class HsqldbUtil {
 
 	static String getStatementSetAdd(final String tablename, final String tablenameLtm, final long ltmId) {
 		return "insert into \"" + SCHEMA + "\".\"" + tablename + "\" (\"" + DataProxyHandler.LTM_ID + "\", \""
-				+ DataProxyHandler.SET_VALUE + "\") select a.\"" + DataProxyHandler.LTM_ID + "\", ? from \"" + SCHEMA
-				+ "\".\"" + tablenameLtm + "\" a where a.\"" + DataProxyHandler.LTM_ID + "\" = " + String.valueOf(ltmId)
+				+ DataProxyHandler.SET_VALUE + "\") select a.\"" + DataProxyHandler.LTM_ID + "\", ? from \"" + SCHEMA + "\".\""
+				+ tablenameLtm + "\" a where a.\"" + DataProxyHandler.LTM_ID + "\" = " + String.valueOf(ltmId)
 				+ " and not exists (select 1 from \"" + SCHEMA + "\".\"" + tablename + "\" b where b.\""
 				+ DataProxyHandler.LTM_ID + "\" = " + String.valueOf(ltmId) + " and b.\"" + DataProxyHandler.SET_VALUE
 				+ "\" = ? )";
@@ -764,9 +761,8 @@ final class HsqldbUtil {
 
 	public static String getStatementSetIterator(final String tablename, final long ltmId) {
 		return "select \"" + DataProxyHandler.SET_ID + "\", \"" + DataProxyHandler.SET_VALUE + "\" from \"" + SCHEMA
-				+ "\".\"" + tablename + "\" where \"" + DataProxyHandler.SET_ID + "\" > ? and \""
-				+ DataProxyHandler.LTM_ID + "\" = " + String.valueOf(ltmId) + " order by \"" + DataProxyHandler.SET_ID
-				+ "\" asc limit 1";
+				+ "\".\"" + tablename + "\" where \"" + DataProxyHandler.SET_ID + "\" > ? and \"" + DataProxyHandler.LTM_ID
+				+ "\" = " + String.valueOf(ltmId) + " order by \"" + DataProxyHandler.SET_ID + "\" asc limit 1";
 	}
 
 	static String getStatementScaledIterator(final String tablename, final String filter, final boolean desc) {

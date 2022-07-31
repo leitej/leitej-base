@@ -87,17 +87,22 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 	}
 
 	void setDataFilter(final String dataName, final Object value, final boolean obfuscatedValue) {
+		if (value == null && !(this.nextOp.equals(OPERATOR.EQUAL) || this.nextOp.equals(OPERATOR.NOT_EQUAL))) {
+			throw new IllegalStateLtRtException("Invalid operator: #0 to use with null", this.nextOp);
+		}
 		final Class<?> returnClass = this.fHandler.getReturnClass(dataName);
 		final DataMemoryType type = DataMemoryType.getDataMemoryType(returnClass);
-		this.typeList.add(type);
-		if (DataMemoryType.LARGE_MEMORY.equals(type)) {
-			this.paramList.add(LargeMemory.class.cast(value).getId());
-		} else if (DataMemoryType.LONG_TERM_MEMORY.equals(type)) {
-			this.paramList.add(LtmObjectModelling.class.cast(value).getLtmId());
-		} else if (DataMemoryType.DATE.equals(type)) {
-			this.paramList.add(Date.class.cast(value).getTime());
-		} else {
-			this.paramList.add(value);
+		if (value != null) {
+			this.typeList.add(type);
+			if (DataMemoryType.LARGE_MEMORY.equals(type)) {
+				this.paramList.add(LargeMemory.class.cast(value).getId());
+			} else if (DataMemoryType.LONG_TERM_MEMORY.equals(type)) {
+				this.paramList.add(LtmObjectModelling.class.cast(value).getLtmId());
+			} else if (DataMemoryType.DATE.equals(type)) {
+				this.paramList.add(Date.class.cast(value).getTime());
+			} else {
+				this.paramList.add(value);
+			}
 		}
 		//
 		this.filter.append(" \"");
@@ -105,7 +110,11 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 		this.filter.append("\" ");
 		switch (this.nextOp) {
 		case EQUAL:
-			this.filter.append("=");
+			if (value == null) {
+				this.filter.append("is null");
+			} else {
+				this.filter.append("=");
+			}
 			break;
 
 		case GREATER_THAN:
@@ -142,19 +151,24 @@ public final class LtmFilter<T extends LtmObjectModelling> {
 				throw new IllegalStateLtRtException("Invalid operator: #0 to use on data type: #1", this.nextOp, type);
 			}
 			if (obfuscatedValue) {
-				throw new IllegalStateLtRtException("Invalid operator: #0 on obfuscated data: #0", this.nextOp,
-						dataName);
+				throw new IllegalStateLtRtException("Invalid operator: #0 on obfuscated data: #0", this.nextOp, dataName);
 			}
 			break;
 
 		case NOT_EQUAL:
-			this.filter.append("!=");
+			if (value == null) {
+				this.filter.append("is not null");
+			} else {
+				this.filter.append("!=");
+			}
 			break;
 
 		default:
 			throw new ImplementationLtRtException();
 		}
-		this.filter.append(" ?");
+		if (value != null) {
+			this.filter.append(" ?");
+		}
 	}
 
 	public void newerFirst() {
