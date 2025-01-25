@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import leitej.exception.FileSystemLtRtException;
 import leitej.exception.PathLtException;
@@ -327,7 +326,7 @@ public abstract class AbstractFileSystemFtpdHandler<S extends AbstractFileSystem
 			sb.setLength(0);
 			try {
 				node = (N) fileArray[i];
-				sb.append(SDF_DATE.format(new Date(node.changeTime())));
+				sb.append(SDF_DATE.format(node.changeTime()));
 				sb.append(" ");
 				sb.append(((node.isGroup()) ? "<DIR>" : " "));
 				sb.append(" ");
@@ -368,12 +367,12 @@ public abstract class AbstractFileSystemFtpdHandler<S extends AbstractFileSystem
 		return result;
 	}
 
-	private Path resolvePath(final String arg) throws PathLtException {
-		Path result;
+	private Path<S> resolvePath(final String arg) throws PathLtException {
+		Path<S> result;
 		if (arg.length() == 0 || arg.charAt(0) != Path.SEPARATOR.charAt(0)) {
-			result = new Path(this.currentNode.path().getPath() + arg);
+			result = new Path<>(this.fileSystem, this.currentNode.path().getAbsolutePath() + arg);
 		} else {
-			result = new Path(arg);
+			result = new Path<>(this.fileSystem, arg);
 		}
 		return result;
 	}

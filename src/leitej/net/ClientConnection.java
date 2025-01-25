@@ -27,10 +27,7 @@ public interface ClientConnection {
 
 	/**
 	 * Sends <code>request</code> to server and waits for response casted to
-	 * <code>responseClass</code>.<br/>
-	 * <br/>
-	 * Remember that you can release the <code>request</code> and response as soon
-	 * as became garbage.
+	 * <code>responseClass</code>.
 	 *
 	 * @param responseClass expected class from server
 	 * @param request       to send to server

@@ -16,40 +16,36 @@
 
 package leitej.xml.om;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * ArrayElement
- *
  * @author Julio Leite
+ *
  */
-final class ArrayElement {
+public abstract class AbstractRawHandler {
 
-	// ATENCION: to add more array here, has to implement in :
-	// Parser.readArrayObject(...)
-	// Producer.printArrayElement(...)
-	private static final Class<?>[] ARRAY_CLASS = {
-			// class array
-			Set.class, Map.class, List.class };
+	/**
+	 *
+	 * @param asId unique id per JVM
+	 * @return data to be handled out of the OM
+	 * @throws IOException
+	 */
+	protected abstract InputStream read(long asId) throws IOException;
 
-	private ArrayElement() {
-	}
+	/**
+	 *
+	 * @param asId    unique id per JVM
+	 * @param rawData data to be handled out of the OM
+	 * @throws IOException
+	 */
+	protected abstract void write(long asId, InputStream rawData) throws IOException;
 
-	static boolean has(final Class<?> clazz) {
-		if (clazz == null) {
-			return false;
-		}
-		if (clazz.isArray()) {
-			return true;
-		}
-		for (final Class<?> c : ARRAY_CLASS) {
-			if (c.isAssignableFrom(clazz)) {
-				return true;
-			}
-		}
-		return false;
-	}
+	/**
+	 * this method is called as soon as the producer or the parser is closed.
+	 *
+	 * @throws IOException
+	 */
+	protected abstract void omClosed() throws IOException;
 
 }

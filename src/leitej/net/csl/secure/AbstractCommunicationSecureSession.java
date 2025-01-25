@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.cert.CertificateEncodingException;
 import java.util.Arrays;
@@ -82,14 +83,12 @@ abstract class AbstractCommunicationSecureSession extends
 	// |< 2Bytes host defining the size of half-state-key block encrypted with RSA
 	// |< nBytes host half-state-key block encrypted with RSA
 
-	// |> 80Bytes client key block to start a secure half-channel encrypted with
-	// Twofish-CIRC
-	// |< 80Bytes host key block to start a secure half-channel encrypted with
-	// Twofish-CIRC
+	// |> 80Bytes client key block to start a secure half-channel encrypted
+	// |< 80Bytes host key block to start a secure half-channel encrypted
 	// <end communication>
 
 	// <stream wrapped>
-	// |-- Twofish-CIRC with HMacSHA512
+	// |-- CIRC stream encrypt
 	// <end stream wrapped>
 
 	// <initiate wrapped communication>
@@ -99,6 +98,7 @@ abstract class AbstractCommunicationSecureSession extends
 
 	private static final Logger LOG = Logger.getInstance();
 
+	private final CommunicationSecureFactory factory;
 	private byte[] oKeyBytes;
 	private byte[] oIvBytes;
 	private byte[] oHMacKeyBytes;
@@ -109,24 +109,24 @@ abstract class AbstractCommunicationSecureSession extends
 	/**
 	 * Connects and initiates session from guest side.
 	 *
-	 * @param factory     with settings to apply
-	 * @param endpoint    the SocketAddress
-	 * @param charsetName the name of the requested charset; may be either a
-	 *                    canonical name or an alias
+	 * @param factory  with settings to apply
+	 * @param endpoint the SocketAddress
+	 * @param charset
 	 * @throws SocketException              if there is an error in the underlying
 	 *                                      protocol, such as a TCP error
 	 * @throws IllegalArgumentException     if endpoint is null or is a
 	 *                                      SocketAddress subclass not supported by
 	 *                                      this socket
-	 * @throws IllegalArgumentLtRtException if the charset name is not defined
+	 * @throws IllegalArgumentLtRtException if the charset is not defined
 	 * @throws ConnectionLtException        <br/>
 	 *                                      +Cause IOException if an error occurs
 	 *                                      during the connection
 	 */
 	protected AbstractCommunicationSecureSession(final CommunicationSecureFactory factory, final SocketAddress endpoint,
-			final String charsetName)
+			final Charset charset)
 			throws SocketException, IllegalArgumentException, IllegalArgumentLtRtException, ConnectionLtException {
-		super(factory, endpoint, charsetName);
+		super(factory, endpoint, charset);
+		this.factory = factory;
 	}
 
 	/**
@@ -146,6 +146,7 @@ abstract class AbstractCommunicationSecureSession extends
 	protected AbstractCommunicationSecureSession(final CommunicationSecureFactory factory, final Socket socket)
 			throws SocketException, ConnectionLtException {
 		super(factory, socket);
+		this.factory = factory;
 	}
 
 	@Override

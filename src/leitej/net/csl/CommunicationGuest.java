@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 
 import leitej.exception.ConnectionLtException;
 import leitej.exception.IllegalArgumentLtRtException;
@@ -34,23 +35,22 @@ public final class CommunicationGuest extends
 	/**
 	 * Connects and initiates session from guest side.
 	 *
-	 * @param factory     with settings to apply
-	 * @param endpoint    the SocketAddress
-	 * @param charsetName the name of the requested charset; may be either a
-	 *                    canonical name or an alias
+	 * @param factory  with settings to apply
+	 * @param endpoint the SocketAddress
+	 * @param charset
 	 * @throws SocketException              if there is an error in the underlying
 	 *                                      protocol, such as a TCP error
 	 * @throws IllegalArgumentException     if endpoint is null or is a
 	 *                                      SocketAddress subclass not supported by
 	 *                                      this socket
-	 * @throws IllegalArgumentLtRtException if the charset name is not defined
+	 * @throws IllegalArgumentLtRtException if the charset is not defined
 	 * @throws ConnectionLtException        <br/>
 	 *                                      +Cause IOException if an error occurs
 	 *                                      during the connection
 	 */
-	CommunicationGuest(final CommunicationFactory factory, final SocketAddress endpoint, final String charsetName)
+	CommunicationGuest(final CommunicationFactory factory, final SocketAddress endpoint, final Charset charset)
 			throws SocketException, IllegalArgumentLtRtException, IllegalArgumentException, ConnectionLtException {
-		super(factory, endpoint, charsetName);
+		super(factory, endpoint, charset);
 	}
 
 	@Override

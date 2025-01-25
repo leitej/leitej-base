@@ -41,8 +41,7 @@ public final class CommunicationHost extends
 	 *                               +Cause IOException if an error occurs during
 	 *                               the connection <br/>
 	 *                               +Cause IllegalArgumentLtRtException if the
-	 *                               charset name read from socket is not defined on
-	 *                               host
+	 *                               charset read from socket is not defined on host
 	 */
 	protected CommunicationHost(final CommunicationFactory factory, final Socket socket)
 			throws SocketException, ConnectionLtException {

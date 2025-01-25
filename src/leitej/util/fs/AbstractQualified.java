@@ -14,42 +14,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package leitej.xml.om;
+package leitej.util.fs;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
- * ArrayElement
- *
  * @author Julio Leite
+ *
  */
-final class ArrayElement {
+public abstract class AbstractQualified<E extends AbstractEntity> {
+	// TODO:
 
-	// ATENCION: to add more array here, has to implement in :
-	// Parser.readArrayObject(...)
-	// Producer.printArrayElement(...)
-	private static final Class<?>[] ARRAY_CLASS = {
-			// class array
-			Set.class, Map.class, List.class };
+	private final List<E> entityList = new ArrayList<>();
 
-	private ArrayElement() {
+	protected AbstractQualified(final Collection<E> c) {
+		this.entityList.addAll(c);
 	}
 
-	static boolean has(final Class<?> clazz) {
-		if (clazz == null) {
-			return false;
-		}
-		if (clazz.isArray()) {
-			return true;
-		}
-		for (final Class<?> c : ARRAY_CLASS) {
-			if (c.isAssignableFrom(clazz)) {
-				return true;
-			}
-		}
-		return false;
+	synchronized final boolean has(final E entity) {
+		return this.entityList.contains(entity);
+	}
+
+	protected abstract boolean persistAdd(final E entity);
+
+	synchronized final boolean add(final E entity) {
+		return persistAdd(entity) && this.entityList.add(entity);
+	}
+
+	protected abstract boolean persistRemove(final E entity);
+
+	synchronized final boolean remove(final E entity) {
+		return persistRemove(entity) && this.entityList.remove(entity);
 	}
 
 }

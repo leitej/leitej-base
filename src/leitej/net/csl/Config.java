@@ -14,50 +14,48 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package leitej.util.fs;
+package leitej.net.csl;
 
-import java.io.Serializable;
-import java.math.BigInteger;
+import leitej.xml.om.XmlObjectModelling;
 
 /**
- * Abstraction of a file system.
- *
  * @author Julio Leite
+ *
  */
-public abstract class AbstractFileSystem<S extends AbstractFileSystem<S, N>, N extends AbstractNode<S, N>>
-		implements Serializable {
-
-	private static final long serialVersionUID = -4449917684220851058L;
+public abstract interface Config extends XmlObjectModelling {
 
 	/**
 	 *
-	 * @return total space in bytes that this file system can use as storage
+	 * @return byte per second (0 infinite)
 	 */
-	public abstract BigInteger totalSpace();
+	abstract int getVelocity();
+
+	abstract void setVelocity(int velocity);
 
 	/**
 	 *
-	 * @return used space in bytes that this file system has stored
+	 * @return number of bytes per read step (0 infinite)
 	 */
-	public abstract BigInteger usedSpace();
+	abstract long getSizePerSentence();
+
+	abstract void setSizePerSentence(long sizePerSentence);
 
 	/**
 	 *
-	 * @return free space in bytes that has not be occupied in this file system
+	 * @return the specified timeout, in milliseconds (0 infinite)
 	 */
-	public abstract BigInteger freeSpace();
+	abstract int getTimeOutMs();
+
+	abstract void setTimeOutMs(int timeOutMs);
 
 	/**
+	 * Returns setting for SO_TIMEOUT to be used at initiation of connection.<br/>
+	 * 0 returns implies that the option is disabled (i.e., timeout of infinity).
 	 *
-	 * @return root node of the file system
+	 * @return the specified timeout, in milliseconds (0 infinite)
 	 */
-	public abstract N rootNode();
+	abstract int getInitCommTimeOutMs();
 
-	/**
-	 *
-	 * @param path
-	 * @return a node for the <code>path</code>
-	 */
-	public abstract N node(Path<S> path);
+	abstract void setInitCommTimeOutMs(int initCommTimeOutMs);
 
 }

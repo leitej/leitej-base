@@ -20,18 +20,20 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 import java.security.SecureRandom;
 
+import leitej.crypto.Cryptography;
 import leitej.crypto.keyStore.Password;
 import leitej.exception.CertificateLtException;
 import leitej.exception.ConnectionLtException;
 import leitej.exception.ExpiredDataLtException;
 import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.KeyStoreLtException;
-import leitej.net.ConstantNet;
 import leitej.net.csl.AbstractCommunicationFactory;
 import leitej.net.csl.secure.rooter.OffRoot;
 import leitej.net.csl.secure.vault.CslVaultItf;
+import leitej.xml.om.Xmlom;
 
 /**
  *
@@ -40,9 +42,19 @@ import leitej.net.csl.secure.vault.CslVaultItf;
 public final class CommunicationSecureFactory extends
 		AbstractCommunicationFactory<CommunicationSecureFactory, CommunicationSecureListener, CommunicationSecureHost, CommunicationSecureGuest> {
 
+	public static final Config DEFAULT_CONFIG;
+	static {
+		DEFAULT_CONFIG = Xmlom.newInstance(Config.class);
+		DEFAULT_CONFIG.setCSL(AbstractCommunicationFactory.DEFAULT_CONFIG);
+		DEFAULT_CONFIG.setSymmetricCipher(Cryptography.getDefaultSymmetricCipher());
+		DEFAULT_CONFIG.setSymmetricKeyBitSize(Cryptography.getDefaultSymmetricKeyBitSize());
+		DEFAULT_CONFIG.setSymmetricIvBitSize(Cryptography.getDefaultSymmetricIvBitSize());
+	}
+
 	static final byte VERSION = 0x01;
 	static final int SECURE_CHAIN_LENGTH = OffRoot.COMMUNICATION_PATH_LENGTH;
 
+	private final Config config;
 	private final SecureRandom secureRandom = new SecureRandom();
 	private final CslVaultItf cslVault;
 
@@ -58,8 +70,7 @@ public final class CommunicationSecureFactory extends
 	 */
 	public CommunicationSecureFactory(final Password password)
 			throws KeyStoreLtException, IOException, ExpiredDataLtException, CertificateLtException {
-		this((new CslVault(password)), ConstantNet.DEFAULT_VELOCITY, ConstantNet.DEFAULT_SIZE_PER_SENTENCE,
-				ConstantNet.DEFAULT_TIMEOUT_MS);
+		this((new CslVault(password)), DEFAULT_CONFIG);
 	}
 
 	/**
@@ -67,7 +78,7 @@ public final class CommunicationSecureFactory extends
 	 * @param cslVault with key and certificate
 	 */
 	public CommunicationSecureFactory(final CslVaultItf cslVault) {
-		this(cslVault, ConstantNet.DEFAULT_VELOCITY, ConstantNet.DEFAULT_SIZE_PER_SENTENCE, ConstantNet.DEFAULT_TIMEOUT_MS);
+		this(cslVault, DEFAULT_CONFIG);
 	}
 
 	/**
@@ -77,9 +88,9 @@ public final class CommunicationSecureFactory extends
 	 * @param sizePerSentence number of bytes per read step (0 infinite)
 	 * @param msTimeOut       the specified timeout, in milliseconds (0 infinite)
 	 */
-	public CommunicationSecureFactory(final CslVaultItf cslVault, final int velocity, final int sizePerSentence,
-			final int msTimeOut) {
-		super(velocity, sizePerSentence, msTimeOut);
+	public CommunicationSecureFactory(final CslVaultItf cslVault, final Config config) {
+		super(config.getCSL());
+		this.config = config;
 		this.cslVault = cslVault;
 	}
 
@@ -89,15 +100,23 @@ public final class CommunicationSecureFactory extends
 		}
 	}
 
+	/**
+	 *
+	 * @return configuration
+	 */
+	final Config getSecureConfig() {
+		return this.config;
+	}
+
 	protected final CslVaultItf getCslVault() {
 		return this.cslVault;
 	}
 
 	@Override
-	public final CommunicationSecureGuest clientInstanciation(final SocketAddress endpoint, final String charsetName)
+	public final CommunicationSecureGuest clientInstanciation(final SocketAddress endpoint, final Charset charset)
 			throws ConnectionLtException {
 		try {
-			return new CommunicationSecureGuest(this, endpoint, charsetName);
+			return new CommunicationSecureGuest(this, endpoint, charset);
 		} catch (final IllegalArgumentLtRtException e) {
 			throw new ConnectionLtException(e);
 		} catch (final SocketException e) {

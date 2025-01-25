@@ -17,6 +17,7 @@
 package leitej.xml.om;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import leitej.exception.IllegalStateLtRtException;
 import leitej.exception.ImplementationLtRtException;
 import leitej.exception.XmlInvalidLtException;
 import leitej.exception.XmlomInvalidLtException;
+import leitej.util.DateUtil;
 import leitej.util.HexaUtil;
 import leitej.xml.XmlProducer;
 
@@ -56,6 +58,7 @@ final class Producer {
 	private static final Class<?> BYTE_ARRAY_CLASS = Array.newInstance(byte.class, 0).getClass();
 
 	private XmlProducer producer = null;
+	private AbstractRawHandler rawHandler = null;
 	private List<XmlObjectModelling> objectSet = new ArrayList<>();
 	private Map<Object, Integer> trackLoopObjects = new HashMap<>();
 	private Integer objectCount = 0;
@@ -75,7 +78,24 @@ final class Producer {
 	 * @throws XmlInvalidLtException If is writing a corrupted XML
 	 */
 	Producer(final OutputStreamWriter osr, final boolean minified) throws XmlInvalidLtException, IOException {
+		this(osr, minified, null);
+	}
+
+	/**
+	 * Creates a new instance of Producer.
+	 *
+	 * @param osr        the underlying output stream to be written
+	 * @param minified   when false produces a human readable XML, other wise
+	 *                   outputs a clean strait line
+	 * @param rawHandler handler to Raw type, this producer just prints the raw id,
+	 *                   handler deal with the data
+	 * @throws IOException           If an I/O error occurs
+	 * @throws XmlInvalidLtException If is writing a corrupted XML
+	 */
+	<E extends AbstractRawHandler> Producer(final OutputStreamWriter osr, final boolean minified, final E rawHandler)
+			throws XmlInvalidLtException, IOException {
 		this.producer = new XmlProducer(osr, minified);
+		this.rawHandler = rawHandler;
 		LtSystemOut.debug("new instance");
 		printMetaData();
 		printRootElementTagOpen();
@@ -122,6 +142,10 @@ final class Producer {
 				this.objectSet = null;
 				this.trackLoopObjects = null;
 				this.producer = null;
+				if (this.rawHandler != null) {
+					this.rawHandler.omClosed();
+					this.rawHandler = null;
+				}
 			}
 		}
 	}
@@ -187,8 +211,8 @@ final class Producer {
 			final StringBuilder localElementName = new StringBuilder(elementName);
 			if (LeafElement.has(typeClass)) {
 				genAttribute(this.sbTmpAttb, typeClass);
-				this.producer.printElement(localElementName, ((obj == null) ? null : convertToElementValue(this.sbTmpVal, obj)),
-						this.sbTmpAttb);
+				this.producer.printElement(localElementName,
+						((obj == null) ? null : convertToElementValue(this.sbTmpVal, obj, this.rawHandler)), this.sbTmpAttb);
 			} else {
 				if (ArrayElement.has(typeClass)) {
 					genAttribute(this.sbTmpAttb, typeClass);
@@ -218,12 +242,20 @@ final class Producer {
 		}
 	}
 
-	private static StringBuilder convertToElementValue(final StringBuilder dest, final Object value) {
+	private static StringBuilder convertToElementValue(final StringBuilder dest, final Object value,
+			final AbstractRawHandler rawHandler) throws IOException, XmlomInvalidLtException {
 		dest.setLength(0);
 		if (Date.class.isInstance(value)) {
 			dest.append(((Long) ((Date) value).getTime()).toString());
 		} else if (BYTE_ARRAY_CLASS.isInstance(value)) {
 			HexaUtil.toHex(dest, (byte[]) value);
+		} else if (InputStream.class.isInstance(value)) {
+			if (rawHandler == null) {
+				throw new XmlomInvalidLtException("this producer needs to receive a raw handler different to null");
+			}
+			final long asId = DateUtil.generateUniqueNumberPerJVM();
+			dest.append(asId);
+			rawHandler.write(asId, InputStream.class.cast(value));
 		} else {
 			dest.append(value.toString());
 		}

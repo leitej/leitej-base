@@ -17,6 +17,7 @@
 package leitej.xml.om;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
@@ -56,6 +57,7 @@ final class Parser {
 	private static final Class<?> BYTE_ARRAY_CLASS = Array.newInstance(byte.class, 0).getClass();
 
 	private XmlConsumer consumer = null;
+	private AbstractRawHandler rawHandler = null;
 	private Map<Integer, Object> trackLoopObjects = new HashMap<>();
 	private final StringBuilder sbTmpVal = new StringBuilder();
 	private final StringBuilder sbTmpElmName = new StringBuilder();
@@ -69,7 +71,22 @@ final class Parser {
 	 * @throws IOException             If an I/O error occurs
 	 */
 	Parser(final InputStreamReader isr) throws XmlomInvalidLtException, XmlInvalidLtException, IOException {
+		this(isr, null);
+	}
+
+	/**
+	 *
+	 * @param isr
+	 * @param rawHandler handler to Raw type, this parser just gives the raw id,
+	 *                   handler deal to retrieve the data
+	 * @throws XmlomInvalidLtException If do not find the root xmlom element
+	 * @throws XmlInvalidLtException   If encounter an invalid syntax
+	 * @throws IOException             If an I/O error occurs
+	 */
+	Parser(final InputStreamReader isr, final AbstractRawHandler rawHandler)
+			throws XmlomInvalidLtException, XmlInvalidLtException, IOException {
 		this.consumer = new XmlConsumer(isr);
+		this.rawHandler = rawHandler;
 		LtSystemOut.debug("new instance");
 		readMetaData();
 		readRootElementOpen();
@@ -81,8 +98,8 @@ final class Parser {
 	 * @throws IOException           If an I/O error occurs
 	 */
 	private void readMetaData() throws XmlInvalidLtException, IOException {
-		while (!this.consumer.isEnded() && (this.consumer.peekNextTagType() == null
-				|| XmlTagType.META_DATA.equals(this.consumer.peekNextTagType()))) {
+		while (!this.consumer.isEnded()
+				&& (this.consumer.peekNextTagType() == null || XmlTagType.META_DATA.equals(this.consumer.peekNextTagType()))) {
 			this.consumer.nextElement();
 		}
 	}
@@ -126,9 +143,8 @@ final class Parser {
 	 *                                      parameter is null or does not represents
 	 *                                      a valid interface
 	 */
-	synchronized <I extends XmlObjectModelling> I read(final Class<I> interfaceClass)
-			throws IllegalArgumentLtRtException, XmlomSecurityLtException, XmlomInvalidLtException,
-			XmlInvalidLtException, IOException {
+	synchronized <I extends XmlObjectModelling> I read(final Class<I> interfaceClass) throws IllegalArgumentLtRtException,
+			XmlomSecurityLtException, XmlomInvalidLtException, XmlInvalidLtException, IOException {
 		I result = null;
 		if (this.consumer != null) {
 			result = readObject(interfaceClass);
@@ -150,6 +166,11 @@ final class Parser {
 			this.trackLoopObjects = null;
 			this.consumer.close();
 			this.consumer = null;
+			if (this.rawHandler != null) {
+				this.rawHandler.omClosed();
+				this.rawHandler = null;
+			}
+
 		}
 	}
 
@@ -194,8 +215,7 @@ final class Parser {
 			} else {
 				// there is no next object
 				if (comments != null) {
-					throw new XmlomInvalidLtException("Invalid XMLOM, expected open element for the comments '#0'",
-							comments);
+					throw new XmlomInvalidLtException("Invalid XMLOM, expected open element for the comments '#0'", comments);
 				}
 				this.consumer.nextElement();
 				if (this.consumer.isEnded()) {
@@ -258,7 +278,7 @@ final class Parser {
 					}
 					this.sbTmpVal.setLength(0);
 					this.consumer.getElementValue(this.sbTmpVal);
-					object = convertFromElementValue(dataClass, this.sbTmpVal);
+					object = convertFromElementValue(dataClass, this.sbTmpVal, this.rawHandler);
 				} else if (ArrayElement.has(dataClass)) {
 					if (comments != null) {
 						throw new XmlomInvalidLtException("Invalid XMLOM, array object can not have comment");
@@ -322,9 +342,10 @@ final class Parser {
 	 * @throws XmlomInvalidLtException if <code>valueSb</code> represents an invalid
 	 *                                 state/value of an object of class
 	 *                                 <code>classValue</code>
+	 * @throws IOException
 	 */
-	private static Object convertFromElementValue(final Class<?> classValue, final StringBuilder valueSb)
-			throws XmlomInvalidLtException {
+	private static Object convertFromElementValue(final Class<?> classValue, final StringBuilder valueSb,
+			final AbstractRawHandler rawHandler) throws XmlomInvalidLtException, IOException {
 		Object result = null;
 		if (valueSb == null || classValue == null) {
 			throw new ImplementationLtRtException();
@@ -395,13 +416,22 @@ final class Parser {
 				throw new XmlomInvalidLtException("Invalid char - '#0'", valueSb.toString());
 			}
 			result = valueSb.charAt(0);
+		} else if (classValue.equals(InputStream.class)) {
+			if (rawHandler == null) {
+				throw new XmlomInvalidLtException("this parser needs to receive a raw handler different to null");
+			}
+			try {
+				result = rawHandler.read(Long.valueOf(valueSb.toString()));
+			} catch (final NumberFormatException e) {
+				throw new XmlomInvalidLtException(e);
+			}
 		} else {
 			// Enum
 			try {
 				final Method method = AgnosticUtil.getMethod(classValue, Constant.VALUEOF_METHOD_NAME, String.class);
 				result = AgnosticUtil.invoke(classValue, method, valueSb.toString());
-			} catch (final SecurityException | NoSuchMethodException | IllegalArgumentException
-					| IllegalArgumentLtRtException | IllegalAccessException e) {
+			} catch (final SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalArgumentLtRtException
+					| IllegalAccessException e) {
 				throw new XmlomInvalidLtException(e);
 			} catch (final InvocationTargetException e) {
 				throw new XmlomInvalidLtException(e, "Invalid call '#0' from class '#1' with arg '#2'",
@@ -439,8 +469,8 @@ final class Parser {
 			isElementTagOpenClose = XmlTagType.OPEN_CLOSE.equals(this.consumer.getTagType());
 			dataName = this.consumer.getElementName().toString();
 			if (!dph.existsDataName(dataName)) {
-				throw new XmlomInvalidLtException("Invalid XMLOM, data parser, fail to set '#0' in object '#1'",
-						dataName, dph.getInterface().getName());
+				throw new XmlomInvalidLtException("Invalid XMLOM, data parser, fail to set '#0' in object '#1'", dataName,
+						dph.getInterface().getName());
 			}
 			dphData.put(dataName, readObjectAux(comments));
 			if (!isElementTagOpenClose) {
@@ -525,8 +555,7 @@ final class Parser {
 				}
 				if (XmlTagType.OPEN_CLOSE.equals(this.consumer.peekNextTagType())) {
 					this.consumer.nextElement();
-					throw new XmlomInvalidLtException("Invalid XMLOM syntax, map element can't be null '#0'",
-							this.consumer);
+					throw new XmlomInvalidLtException("Invalid XMLOM syntax, map element can't be null '#0'", this.consumer);
 				}
 				this.consumer.nextElement();// open element 'element' (only to structure)
 				while (!XmlTagType.CLOSE.equals(this.consumer.peekNextTagType())) {
@@ -544,8 +573,7 @@ final class Parser {
 					} else if (StringUtil.isEquals(Producer.ELEMENT_NAME_MAP_VALUE, this.sbTmpElmName)) {
 						value = readObjectAux(null);
 					} else {
-						new IOException(
-								new XmlomInvalidLtException("read map elements -> ignore tag '#0'", this.consumer));
+						new IOException(new XmlomInvalidLtException("read map elements -> ignore tag '#0'", this.consumer));
 					}
 					if (!isElementTagOpenClose) {
 						this.consumer.nextElement();// close element

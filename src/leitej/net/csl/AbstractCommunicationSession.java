@@ -34,7 +34,6 @@ import leitej.exception.IllegalArgumentLtRtException;
 import leitej.exception.XmlInvalidLtException;
 import leitej.exception.XmlomInvalidLtException;
 import leitej.log.Logger;
-import leitej.net.ConstantNet;
 import leitej.util.stream.ControlDataInputStream;
 import leitej.util.stream.ControlDataOutputStream;
 import leitej.xml.om.XmlObjectModelling;
@@ -60,41 +59,41 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 
 	private static final Logger LOG = Logger.getInstance();
 
+	private static final Flush FLUSH_ELEMENT = Xmlom.newInstance(Flush.class);
+
 	private final F factory;
 	private final Socket socket;
-	private final String charsetName;
+	private final Charset charset;
 	private final ControlDataInputStream cdis;
 	private volatile boolean stepClosed;
 	private final XmlomWriter xos;
-	private final Flush flushElement;
 	private final XmlomReader xis;
 
 	/**
 	 * Connects and initiates session from guest side.
 	 *
-	 * @param factory     with settings to apply
-	 * @param endpoint    the SocketAddress
-	 * @param charsetName the name of the requested charset; may be either a
-	 *                    canonical name or an alias
+	 * @param factory  with settings to apply
+	 * @param endpoint the SocketAddress
+	 * @param charset
 	 * @throws SocketException              if there is an error in the underlying
 	 *                                      protocol, such as a TCP error
 	 * @throws IllegalArgumentException     if endpoint is null or is a
 	 *                                      SocketAddress subclass not supported by
 	 *                                      this socket
-	 * @throws IllegalArgumentLtRtException if the charset name is not defined
+	 * @throws IllegalArgumentLtRtException if the charset is not defined
 	 * @throws ConnectionLtException        <br/>
 	 *                                      +Cause IOException if an error occurs
 	 *                                      during the connection
 	 */
-	protected AbstractCommunicationSession(final F factory, final SocketAddress endpoint, final String charsetName)
+	protected AbstractCommunicationSession(final F factory, final SocketAddress endpoint, final Charset charset)
 			throws SocketException, IllegalArgumentException, IllegalArgumentLtRtException, ConnectionLtException {
 		boolean pass = false;
 		try {
 			this.factory = factory;
 			this.socket = new Socket();
 			this.socket.setKeepAlive(false);
-			if (getInitiateCommunicationSoTimeout() > 0) {
-				this.socket.setSoTimeout(getInitiateCommunicationSoTimeout());
+			if (this.factory.getConfig().getInitCommTimeOutMs() > 0) {
+				this.socket.setSoTimeout(this.factory.getConfig().getInitCommTimeOutMs());
 			} else {
 				this.socket.setSoTimeout(0);
 			}
@@ -107,20 +106,19 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 				this.cdis = null;
 			}
 			initiateCommunication(in, out);
-			if (this.factory.getMsTimeOut() > 0) {
-				this.socket.setSoTimeout(this.factory.getMsTimeOut());
+			if (this.factory.getConfig().getTimeOutMs() > 0) {
+				this.socket.setSoTimeout(this.factory.getConfig().getTimeOutMs());
 			} else {
 				this.socket.setSoTimeout(0);
 			}
-			this.charsetName = (charsetName == null) ? Constant.UTF8_CHARSET_NAME : charsetName;
-			CharsetCode.writeCharsetCode(out, this.charsetName);
+			this.charset = (charset == null) ? Constant.UTF8_CHARSET : charset;
+			CharsetCode.writeCharsetCode(out, this.charset);
 			out = getOutputStreamWrapped(out);
 			in = getInputStreamWrapped(in);
 			initiateWrappedCommunication(in, out);
-			this.xos = new XmlomWriter(out, Charset.forName(this.charsetName));
-			this.flushElement = Xmlom.newInstance(Flush.class);
+			this.xos = new XmlomWriter(out, this.charset);
 			this.flush();
-			this.xis = new XmlomReader(in, Charset.forName(this.charsetName));
+			this.xis = new XmlomReader(in, this.charset);
 			pass = true;
 		} catch (final SocketException e) {
 			throw e;
@@ -158,8 +156,7 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 	 *                               +Cause IOException if an error occurs during
 	 *                               the connection <br/>
 	 *                               +Cause IllegalArgumentLtRtException if the
-	 *                               charset name read from socket is not defined on
-	 *                               host
+	 *                               charset read from socket is not defined on host
 	 */
 	protected AbstractCommunicationSession(final F factory, final Socket socket)
 			throws SocketException, ConnectionLtException {
@@ -168,8 +165,8 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 			this.factory = factory;
 			this.socket = socket;
 			this.socket.setKeepAlive(false);
-			if (getInitiateCommunicationSoTimeout() > 0) {
-				this.socket.setSoTimeout(getInitiateCommunicationSoTimeout());
+			if (this.factory.getConfig().getInitCommTimeOutMs() > 0) {
+				this.socket.setSoTimeout(this.factory.getConfig().getInitCommTimeOutMs());
 			} else {
 				this.socket.setSoTimeout(0);
 			}
@@ -181,19 +178,18 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 				this.cdis = null;
 			}
 			initiateCommunication(in, out);
-			if (this.factory.getMsTimeOut() > 0) {
-				this.socket.setSoTimeout(this.factory.getMsTimeOut());
+			if (this.factory.getConfig().getTimeOutMs() > 0) {
+				this.socket.setSoTimeout(this.factory.getConfig().getTimeOutMs());
 			} else {
 				this.socket.setSoTimeout(0);
 			}
-			this.charsetName = CharsetCode.readCharsetCode(in);
+			this.charset = CharsetCode.readCharsetCode(in);
 			out = getOutputStreamWrapped(out);
 			in = getInputStreamWrapped(in);
 			initiateWrappedCommunication(in, out);
-			this.xos = new XmlomWriter(out, Charset.forName(this.charsetName));
-			this.flushElement = Xmlom.newInstance(Flush.class);
+			this.xos = new XmlomWriter(out, this.charset);
 			this.flush();
-			this.xis = new XmlomReader(in, Charset.forName(this.charsetName));
+			this.xis = new XmlomReader(in, this.charset);
 			pass = true;
 		} catch (final SocketException e) {
 			throw e;
@@ -217,15 +213,16 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 	}
 
 	private final OutputStream initiateBasicProtection(OutputStream out) {
-		if (this.factory.getVelocity() > 0) {
-			out = new ControlDataOutputStream(out, this.factory.getVelocity());
+		if (this.factory.getConfig().getVelocity() > 0) {
+			out = new ControlDataOutputStream(out, this.factory.getConfig().getVelocity());
 		}
 		return out;
 	}
 
 	private final InputStream initiateBasicProtection(InputStream in) {
-		if (this.factory.getVelocity() > 0 || this.factory.getSizePerSentence() > 0) {
-			in = new ControlDataInputStream(in, this.factory.getVelocity(), this.factory.getSizePerSentence());
+		if (this.factory.getConfig().getVelocity() > 0 || this.factory.getConfig().getSizePerSentence() > 0) {
+			in = new ControlDataInputStream(in, this.factory.getConfig().getVelocity(),
+					this.factory.getConfig().getSizePerSentence());
 		}
 		return in;
 	}
@@ -249,16 +246,6 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 	 *                               the cause of the ConnectionLtException
 	 */
 	protected abstract void initiateWrappedCommunication(InputStream in, OutputStream out) throws ConnectionLtException;
-
-	/**
-	 * Returns setting for SO_TIMEOUT to be used at initiation of connection.<br/>
-	 * 0 returns implies that the option is disabled (i.e., timeout of infinity).
-	 *
-	 * @return the specified timeout, in milliseconds
-	 */
-	protected int getInitiateCommunicationSoTimeout() {
-		return ConstantNet.INITIATE_COMMUNICATION_TIMEOUT_MS;
-	}
 
 	/**
 	 *
@@ -303,7 +290,7 @@ public abstract class AbstractCommunicationSession<F extends AbstractCommunicati
 	 */
 	public final void flush() throws ConnectionLtException {
 		try {
-			this.xos.write(this.flushElement);
+			this.xos.write(FLUSH_ELEMENT);
 			this.xos.flush();
 		} catch (final IOException e) {
 			throw new ConnectionLtException(e);

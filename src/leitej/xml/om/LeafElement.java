@@ -29,7 +29,7 @@ final class LeafElement {
 	 * The leaf class must have the method valueOf(String) The leaf class must have
 	 * the method toString like leaf.equals(leaf.valueOf(leaf.toString()))
 	 *
-	 * Exceptions: String, Date, [B
+	 * Exceptions: String, Date, [B, Raw
 	 */
 	private static final Class<?>[] LEAF_CLASS = new Class<?>[] {
 //		Enum.class,
@@ -51,7 +51,8 @@ final class LeafElement {
 		java.lang.Boolean.class,
 		java.lang.Character.class,
 		java.lang.String.class,
-		java.util.Date.class
+		java.util.Date.class,
+		java.io.InputStream.class
 	};
 
 	private LeafElement() {

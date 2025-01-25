@@ -18,6 +18,7 @@ package leitej.util.fs;
 
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.Date;
 
 import leitej.exception.FileSystemLtRtException;
 import leitej.exception.IllegalArgumentLtRtException;
@@ -27,14 +28,13 @@ import leitej.exception.PathLtException;
  *
  * @author Julio Leite
  */
-@SuppressWarnings("rawtypes")
 public abstract class AbstractNode<S extends AbstractFileSystem<S, N>, N extends AbstractNode<S, N>>
 		implements Comparable<N>, Serializable {
 
 	private static final long serialVersionUID = 5912722751018793765L;
 
 	private final S fileSystem;
-	private final Path path;
+	private final Path<S> path;
 
 	/**
 	 *
@@ -42,7 +42,7 @@ public abstract class AbstractNode<S extends AbstractFileSystem<S, N>, N extends
 	 * @throws IllegalArgumentLtRtException if <code>path</code> or
 	 *                                      <code>fileSystem</code> argument is null
 	 */
-	public AbstractNode(final S fileSystem, final Path path) throws IllegalArgumentLtRtException {
+	public AbstractNode(final S fileSystem, final Path<S> path) throws IllegalArgumentLtRtException {
 		if (fileSystem == null || path == null) {
 			throw new IllegalArgumentLtRtException();
 		}
@@ -125,7 +125,7 @@ public abstract class AbstractNode<S extends AbstractFileSystem<S, N>, N extends
 	 *
 	 * @return path
 	 */
-	public final Path path() {
+	public final Path<S> path() {
 		return this.path;
 	}
 
@@ -187,7 +187,7 @@ public abstract class AbstractNode<S extends AbstractFileSystem<S, N>, N extends
 	 * @throws FileSystemLtRtException if some exception is raised while interacting
 	 *                                 with file system, it should be at cause
 	 */
-	public abstract long createTime() throws FileSystemLtRtException;
+	public abstract Date createTime() throws FileSystemLtRtException;
 
 	/**
 	 *
@@ -195,7 +195,7 @@ public abstract class AbstractNode<S extends AbstractFileSystem<S, N>, N extends
 	 * @throws FileSystemLtRtException if some exception is raised while interacting
 	 *                                 with file system, it should be at cause
 	 */
-	public abstract long changeTime() throws FileSystemLtRtException;
+	public abstract Date changeTime() throws FileSystemLtRtException;
 
 	/**
 	 *
@@ -306,7 +306,7 @@ public abstract class AbstractNode<S extends AbstractFileSystem<S, N>, N extends
 	 * @throws FileSystemLtRtException if some exception is raised while interacting
 	 *                                 with file system, it should be at cause
 	 */
-	public N copyTo(final Path target) throws FileSystemLtRtException {
+	public N copyTo(final Path<S> target) throws FileSystemLtRtException {
 		if (!exists()) {
 			throw new FileSystemLtRtException(this.toString());
 		}
@@ -349,7 +349,7 @@ public abstract class AbstractNode<S extends AbstractFileSystem<S, N>, N extends
 	 * @throws FileSystemLtRtException if some exception is raised while interacting
 	 *                                 with file system, it should be at cause
 	 */
-	public N moveTo(final Path target) throws FileSystemLtRtException {
+	public N moveTo(final Path<S> target) throws FileSystemLtRtException {
 		final N destNode = copyTo(target);
 		if (!equals(destNode)) {
 			if (!remove()) {
@@ -361,7 +361,7 @@ public abstract class AbstractNode<S extends AbstractFileSystem<S, N>, N extends
 
 	@Override
 	public int compareTo(final N o) {
-		return this.path.compareTo(AbstractNode.class.cast(o).path);
+		return this.path.compareTo(o.path());
 	}
 
 	@Override
@@ -369,8 +369,7 @@ public abstract class AbstractNode<S extends AbstractFileSystem<S, N>, N extends
 		if (obj == null || !AbstractNode.class.isInstance(obj)) {
 			return false;
 		}
-		final AbstractNode o = AbstractNode.class.cast(obj);
-		return this.path.equals(o.path);
+		return this.path.equals(AbstractNode.class.cast(obj).path);
 	}
 
 	@Override

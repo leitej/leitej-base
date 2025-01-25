@@ -52,7 +52,7 @@ public final class HostFileSystem extends AbstractFileSystem<HostFileSystem, Hos
 		}
 		final File baseNameFile = new File(Constant.DEFAULT_DATA_FILE_DIR, name);
 		this.baseNameDir = baseNameFile.getAbsolutePath();
-		this.rootNode = node(Path.ROOT);
+		this.rootNode = node(new Path<>(this));
 		this.rootNode.create();
 	}
 
@@ -77,11 +77,11 @@ public final class HostFileSystem extends AbstractFileSystem<HostFileSystem, Hos
 	}
 
 	@Override
-	public HostFileSystemNode node(final Path path) throws IllegalArgumentLtRtException {
+	public HostFileSystemNode node(final Path<HostFileSystem> path) throws IllegalArgumentLtRtException {
 		return node(path, null);
 	}
 
-	HostFileSystemNode node(final Path path, final File hostFile) throws IllegalArgumentLtRtException {
+	HostFileSystemNode node(final Path<HostFileSystem> path, final File hostFile) throws IllegalArgumentLtRtException {
 		if (path == null) {
 			throw new IllegalArgumentLtRtException();
 		}

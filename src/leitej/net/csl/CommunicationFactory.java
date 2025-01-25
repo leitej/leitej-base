@@ -20,10 +20,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 
 import leitej.exception.ConnectionLtException;
 import leitej.exception.IllegalArgumentLtRtException;
-import leitej.net.ConstantNet;
 
 /**
  *
@@ -36,24 +36,22 @@ public final class CommunicationFactory extends
 	 *
 	 */
 	public CommunicationFactory() {
-		super(ConstantNet.DEFAULT_VELOCITY, ConstantNet.DEFAULT_SIZE_PER_SENTENCE, ConstantNet.DEFAULT_TIMEOUT_MS);
+		super(AbstractCommunicationFactory.DEFAULT_CONFIG);
 	}
 
 	/**
 	 *
-	 * @param velocity        byte per second (0 infinite)
-	 * @param sizePerSentence number of bytes per read step (0 infinite)
-	 * @param msTimeOut       the specified timeout, in milliseconds (0 infinite)
+	 * @param config
 	 */
-	public CommunicationFactory(final int velocity, final int sizePerSentence, final int msTimeOut) {
-		super(velocity, sizePerSentence, msTimeOut);
+	public CommunicationFactory(final Config config) {
+		super(config);
 	}
 
 	@Override
-	public CommunicationGuest clientInstanciation(final SocketAddress endpoint, final String charsetName)
+	public CommunicationGuest clientInstanciation(final SocketAddress endpoint, final Charset charset)
 			throws ConnectionLtException {
 		try {
-			return new CommunicationGuest(this, endpoint, charsetName);
+			return new CommunicationGuest(this, endpoint, charset);
 		} catch (final IllegalArgumentLtRtException e) {
 			throw new ConnectionLtException(e);
 		} catch (final SocketException e) {

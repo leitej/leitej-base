@@ -21,36 +21,25 @@ import java.util.Stack;
 import java.util.StringTokenizer;
 
 import leitej.exception.PathLtException;
-import leitej.log.Logger;
+import leitej.util.StringUtil;
 
 /**
  *
  * @author Julio Leite
  */
-public final class Path implements Comparable<Path>, Serializable {
+public final class Path<S extends AbstractFileSystem<S, ?>> implements Comparable<Path<S>>, Serializable {
 
 	private static final long serialVersionUID = 2382425828263190884L;
 
-	private static final Logger LOG = Logger.getInstance();
-
 	public static final String SEPARATOR = "/";
-	public static final Path ROOT = new Path();
 
-//	private static String build(boolean representGroup, String... pathNames) throws PathLtException{
-//		StringBuilder pathBuf = new StringBuilder();
-//		if(pathNames != null && pathNames.length > 0){
-//			for(String name : pathNames){
-//				if(name.indexOf(SEPARATOR) != -1) throw new PathLtException();
-//				pathBuf.append(SEPARATOR);
-//				pathBuf.append(name);
-//			}
-//			if(representGroup) pathBuf.append(SEPARATOR);
-//		}else{
-//			pathBuf.append(SEPARATOR);
-//		}
-//		return pathBuf.toString();
-//	}
-
+	/**
+	 *
+	 * @param absolutePath
+	 * @return
+	 * @throws PathLtException if absolutePath is null or empty or doesn't start
+	 *                         with separator character
+	 */
 	private static String[] parse(final String absolutePath) throws PathLtException {
 		if (absolutePath == null || absolutePath.length() == 0 || absolutePath.charAt(0) != SEPARATOR.charAt(0)) {
 			throw new PathLtException();
@@ -90,6 +79,7 @@ public final class Path implements Comparable<Path>, Serializable {
 		return pathBuf.toString();
 	}
 
+	private final S fileSystem;
 	private final String[] pathSegments;
 	private final String path;
 	private final String name;
@@ -97,7 +87,11 @@ public final class Path implements Comparable<Path>, Serializable {
 	private final String leafName;
 	private final boolean representGroup;
 
-	private Path() {
+	/**
+	 * Root Path
+	 */
+	public Path(final S fileSystem) {
+		this.fileSystem = fileSystem;
 		this.pathSegments = new String[] { SEPARATOR };
 		this.path = SEPARATOR;
 		this.name = SEPARATOR;
@@ -106,11 +100,19 @@ public final class Path implements Comparable<Path>, Serializable {
 		this.representGroup = true;
 	}
 
-	public Path(final String absolutePath) throws PathLtException {
-		this(parse(absolutePath));
+	/**
+	 *
+	 * @param fileSystem
+	 * @param absolutePath
+	 * @throws PathLtException if absolutePath is null or empty or doesn't start
+	 *                         with separator character
+	 */
+	public Path(final S fileSystem, final String absolutePath) throws PathLtException {
+		this(fileSystem, parse(absolutePath));
 	}
 
-	private Path(final String[] pathSegments) {
+	private Path(final S fileSystem, final String[] pathSegments) {
+		this.fileSystem = fileSystem;
 		this.pathSegments = pathSegments;
 		final String completePath = resolve(pathSegments);
 		this.representGroup = completePath.charAt(completePath.length() - 1) == SEPARATOR.charAt(0);
@@ -129,109 +131,129 @@ public final class Path implements Comparable<Path>, Serializable {
 		}
 		this.name = completePath;
 	}
-//	public Path(boolean representGroup, String... pathNames) throws PathLtException{
-//		this(build(representGroup, pathNames));
-//	}
 
-	public Path parent() {
-		Path result = null;
-		try {
-			if (this.representGroup) {
-				if (this.pathSegments.length == 1) {
-					result = this;
-				} else {
-					final String[] parentPathSegments = new String[this.pathSegments.length - 1];
-					System.arraycopy(this.pathSegments, 0, parentPathSegments, 0, this.pathSegments.length - 2);
-					parentPathSegments[parentPathSegments.length - 1] = SEPARATOR;
-					result = new Path(parentPathSegments);
-				}
+	/**
+	 *
+	 * @return path representing the immediate parent group
+	 */
+	public Path<S> parent() {
+		Path<S> result = null;
+		if (this.representGroup) {
+			if (this.pathSegments.length == 1) {
+				result = this;
 			} else {
-				final String[] parentPathSegments = new String[this.pathSegments.length];
-				System.arraycopy(this.pathSegments, 0, parentPathSegments, 0, this.pathSegments.length - 1);
+				final String[] parentPathSegments = new String[this.pathSegments.length - 1];
+				System.arraycopy(this.pathSegments, 0, parentPathSegments, 0, this.pathSegments.length - 2);
 				parentPathSegments[parentPathSegments.length - 1] = SEPARATOR;
-				result = new Path(this.path);
+				result = new Path<>(this.fileSystem, parentPathSegments);
 			}
-		} catch (final PathLtException e) {
-			LOG.debug("#0", e);
+		} else {
+			final String[] parentPathSegments = new String[this.pathSegments.length];
+			System.arraycopy(this.pathSegments, 0, parentPathSegments, 0, this.pathSegments.length - 1);
+			parentPathSegments[parentPathSegments.length - 1] = SEPARATOR;
+			result = new Path<>(this.fileSystem, parentPathSegments);
 		}
 		return result;
 	}
 
-	public Path subGroup(final String name) throws PathLtException {
-		if (name.indexOf(SEPARATOR) != -1) {
+	/**
+	 *
+	 * @param name of the sub group
+	 * @return path representing a immediate sub group, or null if this path is not
+	 *         a group
+	 * @throws PathLtException if name has the separator, or null or empty
+	 */
+	public Path<S> subGroup(final String name) throws PathLtException {
+		if (StringUtil.isNullOrEmpty(name) || name.indexOf(SEPARATOR) != -1) {
 			throw new PathLtException();
 		}
-		Path result = null;
+		Path<S> result = null;
 		if (this.representGroup) {
 			final String[] subPathSegments = new String[this.pathSegments.length + 1];
 			System.arraycopy(this.pathSegments, 0, subPathSegments, 0, this.pathSegments.length - 1);
 			subPathSegments[subPathSegments.length - 2] = name;
 			subPathSegments[subPathSegments.length - 1] = SEPARATOR;
-			result = new Path(subPathSegments);
+			result = new Path<>(this.fileSystem, subPathSegments);
 		}
 		return result;
 	}
 
-	public Path subLeaf(final String name) throws PathLtException {
-		if (name.indexOf(SEPARATOR) != -1) {
+	/**
+	 *
+	 * @param name of the sub leaf
+	 * @return path representing a immediate sub leaf, or null if this path is not a
+	 *         group
+	 * @throws PathLtException if name has the separator, or null or empty
+	 */
+	public Path<S> subLeaf(final String name) throws PathLtException {
+		if (StringUtil.isNullOrEmpty(name) || name.indexOf(SEPARATOR) != -1) {
 			throw new PathLtException();
 		}
-		Path result = null;
+		Path<S> result = null;
 		if (this.representGroup) {
 			final String[] subPathSegments = new String[this.pathSegments.length];
 			System.arraycopy(this.pathSegments, 0, subPathSegments, 0, this.pathSegments.length - 1);
 			subPathSegments[subPathSegments.length - 1] = name;
-			result = new Path(subPathSegments);
+			result = new Path<>(this.fileSystem, subPathSegments);
 		}
 		return result;
 	}
 
+	/**
+	 *
+	 * @return if this path represents a group
+	 */
 	public boolean representGroup() {
 		return this.representGroup;
 	}
 
+	/**
+	 *
+	 * @return if this path represents a leaf
+	 */
 	public boolean representLeaf() {
 		return !this.representGroup;
 	}
 
 	/**
-	 * Nome do ficheiro
 	 *
-	 * @return
+	 * @return the leaf name, or null if is not a leaf
 	 */
 	public String getLeafName() {
 		return this.leafName;
 	}
 
 	/**
-	 * Caminho completo
 	 *
-	 * @return
+	 * @return the absolute path which represents this group, if this is a leaf then
+	 *         is the absolute path of parent group.
 	 */
-	public String getPath() {
+	public String getAbsolutePath() {
 		return this.path;
 	}
 
 	/**
-	 * Caminho completo com o nome da directoria ou ficheiro
 	 *
-	 * @return
+	 * @return the absolute name of this path
 	 */
 	public String getName() {
 		return this.name;
 	}
 
 	/**
-	 * Nome da directoria ou ficheiro
 	 *
-	 * @return
+	 * @return the name of this group or leaf
 	 */
 	public String getSimpleName() {
 		return this.simpleName;
 	}
 
+	/**
+	 *
+	 * @return if this path represents the root path
+	 */
 	public boolean isRoot() {
-		return this.equals(ROOT);
+		return this.path.equals(SEPARATOR);
 	}
 
 	/**
@@ -240,7 +262,7 @@ public final class Path implements Comparable<Path>, Serializable {
 	 * @param potencialSub
 	 * @return true only if is parent node
 	 */
-	public boolean isParent(final Path potencialSub) {
+	public boolean isParent(final Path<S> potencialSub) {
 		if (potencialSub == null || !this.representGroup) {
 			return false;
 		}
@@ -268,7 +290,7 @@ public final class Path implements Comparable<Path>, Serializable {
 	 * @param potencialParent
 	 * @return true only if is sub node
 	 */
-	public boolean isSub(final Path potencialParent) {
+	public boolean isSub(final Path<S> potencialParent) {
 		if (potencialParent == null) {
 			return false;
 		}
@@ -276,19 +298,8 @@ public final class Path implements Comparable<Path>, Serializable {
 	}
 
 	@Override
-	public int compareTo(final Path o) {
-		int result = this.path.compareTo(o.path);
-		if (result == 0 && this.representGroup != o.representGroup) {
-			if (this.representGroup) {
-				result = -1;
-			} else {
-				result = 1;
-			}
-		}
-		if (result == 0 && !this.representGroup) {
-			this.simpleName.compareTo(o.simpleName);
-		}
-		return result;
+	public int compareTo(final Path<S> o) {
+		return this.name.compareTo(o.name);
 	}
 
 	@Override
@@ -296,9 +307,8 @@ public final class Path implements Comparable<Path>, Serializable {
 		if (obj == null || !Path.class.isInstance(obj)) {
 			return false;
 		}
-		final Path o = Path.class.cast(obj);
-		return this.path.equals(o.path) && this.representGroup == o.representGroup
-				&& this.simpleName.equals(o.simpleName);
+		final Path<?> o = Path.class.cast(obj);
+		return this.name.equals(o.name);
 	}
 
 }

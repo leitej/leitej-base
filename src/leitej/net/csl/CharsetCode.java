@@ -42,13 +42,13 @@ final class CharsetCode {
 	/**
 	 *
 	 * @param csc byte code
-	 * @return charset name for the byte code
+	 * @return charset for the byte code
 	 * @throws IllegalArgumentLtRtException if byte code is not defined
 	 */
-	private static String getCharsetName(final byte csc) throws IllegalArgumentLtRtException {
+	private static Charset getCharsetName(final byte csc) throws IllegalArgumentLtRtException {
 		switch (csc) {
 		case UTF8:
-			return Constant.UTF8_CHARSET_NAME;
+			return Constant.UTF8_CHARSET;
 		default:
 			throw new IllegalArgumentLtRtException("Charset code '#0' not defined", csc);
 		}
@@ -56,41 +56,38 @@ final class CharsetCode {
 
 	/**
 	 *
-	 * @param charsetName the name of the requested charset; may be either a
-	 *                    canonical name or an alias
-	 * @return byte code for the charsetName
-	 * @throws IllegalArgumentLtRtException if the charset name is not defined
+	 * @param charset
+	 * @return byte code for the charset
+	 * @throws IllegalArgumentLtRtException if the charset is not defined
 	 */
-	private static byte getCharsetCode(final String charsetName) throws IllegalArgumentLtRtException {
-		final Charset cs = Charset.forName(charsetName);
-		if (cs.toString().equals(Constant.UTF8_CHARSET_NAME)) {
+	private static byte getCharsetCode(final Charset charset) throws IllegalArgumentLtRtException {
+		if (Constant.UTF8_CHARSET.equals(charset)) {
 			return UTF8;
 		}
-		throw new IllegalArgumentLtRtException("Charset name '#0' not defined", charsetName);
+		throw new IllegalArgumentLtRtException("Charset name '#0' not defined", charset);
 	}
 
 	/**
 	 *
-	 * @param os          OutputStream to be written
-	 * @param charsetName the name of the requested charset; may be either a
-	 *                    canonical name or an alias
+	 * @param os      OutputStream to be written
+	 * @param charset
 	 * @throws IOException                  if an I/O error occurs
-	 * @throws IllegalArgumentLtRtException if the charset name is not defined
+	 * @throws IllegalArgumentLtRtException if the charset is not defined
 	 */
-	static void writeCharsetCode(final OutputStream os, final String charsetName)
+	static void writeCharsetCode(final OutputStream os, final Charset charset)
 			throws IllegalArgumentLtRtException, IOException {
-		os.write(CharsetCode.getCharsetCode(charsetName));
+		os.write(CharsetCode.getCharsetCode(charset));
 		os.flush();
 	}
 
 	/**
 	 *
 	 * @param is InputStream to be read
-	 * @return charset name
+	 * @return charset
 	 * @throws IOException                  if an I/O error occurs
 	 * @throws IllegalArgumentLtRtException if byte code read is not defined
 	 */
-	static String readCharsetCode(final InputStream is) throws IllegalArgumentLtRtException, IOException {
+	static Charset readCharsetCode(final InputStream is) throws IllegalArgumentLtRtException, IOException {
 		final int csc = is.read();
 		if (csc == -1) {
 			throw new IOException(new ClosedLtRtException("Unexpected end of stream"));

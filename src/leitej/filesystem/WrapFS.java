@@ -14,42 +14,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package leitej.xml.om;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+package leitej.filesystem;
 
 /**
- * ArrayElement
- *
  * @author Julio Leite
+ *
  */
-final class ArrayElement {
+public abstract class WrapFS {
+	// TODO:
 
-	// ATENCION: to add more array here, has to implement in :
-	// Parser.readArrayObject(...)
-	// Producer.printArrayElement(...)
-	private static final Class<?>[] ARRAY_CLASS = {
-			// class array
-			Set.class, Map.class, List.class };
+	// https://github.com/java-native-access/jna/blob/master/www/GettingStarted.md
+	// https://stackoverflow.com/questions/8872821/using-fuse-library-with-java-trying-to-replicate-hello-c-example
 
-	private ArrayElement() {
-	}
-
-	static boolean has(final Class<?> clazz) {
-		if (clazz == null) {
-			return false;
-		}
-		if (clazz.isArray()) {
-			return true;
-		}
-		for (final Class<?> c : ARRAY_CLASS) {
-			if (c.isAssignableFrom(clazz)) {
-				return true;
-			}
-		}
-		return false;
-	}
+	// ~/workspace/git.repository/fuse-jna/src/main/java/net/fusejna (master) $ cat
+	// LibFuse.java
 
 }

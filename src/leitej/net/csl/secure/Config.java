@@ -14,42 +14,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package leitej.xml.om;
+package leitej.net.csl.secure;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import leitej.crypto.symmetric.CipherEnum;
+import leitej.xml.om.XmlObjectModelling;
 
 /**
- * ArrayElement
- *
  * @author Julio Leite
+ *
  */
-final class ArrayElement {
+public abstract interface Config extends XmlObjectModelling {
 
-	// ATENCION: to add more array here, has to implement in :
-	// Parser.readArrayObject(...)
-	// Producer.printArrayElement(...)
-	private static final Class<?>[] ARRAY_CLASS = {
-			// class array
-			Set.class, Map.class, List.class };
+	abstract leitej.net.csl.Config getCSL();
 
-	private ArrayElement() {
-	}
+	abstract void setCSL(leitej.net.csl.Config csl);
 
-	static boolean has(final Class<?> clazz) {
-		if (clazz == null) {
-			return false;
-		}
-		if (clazz.isArray()) {
-			return true;
-		}
-		for (final Class<?> c : ARRAY_CLASS) {
-			if (c.isAssignableFrom(clazz)) {
-				return true;
-			}
-		}
-		return false;
-	}
+	abstract CipherEnum getSymmetricCipher();
+
+	abstract void setSymmetricCipher(CipherEnum symmetricCipher);
+
+	abstract int getSymmetricKeyBitSize();
+
+	abstract void setSymmetricKeyBitSize(int symmetricKeyBitSize);
+
+	abstract int getSymmetricIvBitSize();
+
+	abstract void setSymmetricIvBitSize(int symmetricIvBitSize);
 
 }

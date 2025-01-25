@@ -18,8 +18,11 @@ package leitej.net.csl;
 
 import java.net.InetAddress;
 import java.net.SocketAddress;
+import java.nio.charset.Charset;
 
 import leitej.exception.ConnectionLtException;
+import leitej.net.ConstantNet;
+import leitej.xml.om.Xmlom;
 
 /**
  * Factory - Communication Session Layer
@@ -28,20 +31,24 @@ import leitej.exception.ConnectionLtException;
  */
 public abstract class AbstractCommunicationFactory<F extends AbstractCommunicationFactory<F, L, H, G>, L extends AbstractCommunicationListener<F, L, H, G>, H extends AbstractCommunicationSession<F, L, H, G>, G extends AbstractCommunicationSession<F, L, H, G>> {
 
-	private final int velocity;
-	private final int sizePerSentence;
-	private final int msTimeOut;
+	public static final Config DEFAULT_CONFIG;
+
+	static {
+		DEFAULT_CONFIG = Xmlom.newInstance(Config.class);
+		DEFAULT_CONFIG.setVelocity(ConstantNet.DEFAULT_VELOCITY);
+		DEFAULT_CONFIG.setSizePerSentence(ConstantNet.DEFAULT_SIZE_PER_SENTENCE);
+		DEFAULT_CONFIG.setTimeOutMs(ConstantNet.DEFAULT_TIMEOUT_MS);
+		DEFAULT_CONFIG.setInitCommTimeOutMs(ConstantNet.DEFAULT_INITIATE_COMMUNICATION_TIMEOUT_MS);
+	}
+
+	private final Config config;
 
 	/**
 	 *
-	 * @param velocity        byte per second (0 infinite)
-	 * @param sizePerSentence number of bytes per read step (0 infinite)
-	 * @param msTimeOut       the specified timeout, in milliseconds (0 infinite)
+	 * @param config
 	 */
-	public AbstractCommunicationFactory(final int velocity, final int sizePerSentence, final int msTimeOut) {
-		this.velocity = velocity;
-		this.sizePerSentence = sizePerSentence;
-		this.msTimeOut = msTimeOut;
+	public AbstractCommunicationFactory(final Config config) {
+		this.config = config;
 	}
 
 	/**
@@ -94,44 +101,27 @@ public abstract class AbstractCommunicationFactory<F extends AbstractCommunicati
 	 *                               ConnectionLtException
 	 */
 	public final G clientInstanciation(final SocketAddress endpoint) throws ConnectionLtException {
-		return clientInstanciation(endpoint, (String) null);
+		return clientInstanciation(endpoint, (Charset) null);
 	}
 
 	/**
 	 *
-	 * @param endpoint    the SocketAddress
-	 * @param charsetName the name of a supported {@link java.nio.charset.Charset
-	 *                    charset}
+	 * @param endpoint the SocketAddress
+	 * @param charset  supported
 	 * @return new client instance
 	 * @throws ConnectionLtException if an exception was raised and is related with
 	 *                               the connection of the client, that exception
 	 *                               should be put in the cause of the
 	 *                               ConnectionLtException
 	 */
-	public abstract G clientInstanciation(SocketAddress endpoint, String charsetName) throws ConnectionLtException;
+	public abstract G clientInstanciation(SocketAddress endpoint, Charset charset) throws ConnectionLtException;
 
 	/**
 	 *
-	 * @return byte per second (0 infinite)
+	 * @return configuration
 	 */
-	final int getVelocity() {
-		return this.velocity;
-	}
-
-	/**
-	 *
-	 * @return number of bytes per read step (0 infinite)
-	 */
-	final int getSizePerSentence() {
-		return this.sizePerSentence;
-	}
-
-	/**
-	 *
-	 * @return the specified timeout, in milliseconds (0 infinite)
-	 */
-	final int getMsTimeOut() {
-		return this.msTimeOut;
+	final Config getConfig() {
+		return this.config;
 	}
 
 }

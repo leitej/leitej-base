@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 
 import leitej.exception.FileSystemLtRtException;
 import leitej.exception.IllegalArgumentLtRtException;
@@ -55,7 +56,7 @@ public final class HostFileSystemNode extends AbstractNode<HostFileSystem, HostF
 	private HostFileSystemNode[] subNodes;
 	private final AutoRecall refreshList;
 
-	HostFileSystemNode(final HostFileSystem hfs, final Path path, final File hostFile)
+	HostFileSystemNode(final HostFileSystem hfs, final Path<HostFileSystem> path, final File hostFile)
 			throws IllegalArgumentLtRtException {
 		super(hfs, path);
 		this.hfs = hfs;
@@ -80,7 +81,7 @@ public final class HostFileSystemNode extends AbstractNode<HostFileSystem, HostF
 				final File[] listFiles = this.hostFile.listFiles();
 				this.subNodes = new HostFileSystemNode[listFiles.length];
 				File file;
-				Path path;
+				Path<HostFileSystem> path;
 				for (int i = 0; i < listFiles.length; i++) {
 					file = listFiles[i];
 					if (file.isDirectory()) {
@@ -149,19 +150,19 @@ public final class HostFileSystemNode extends AbstractNode<HostFileSystem, HostF
 	}
 
 	@Override
-	public synchronized long createTime() throws FileSystemLtRtException {
+	public synchronized Date createTime() throws FileSystemLtRtException {
 		if (!exists()) {
 			throw new FileSystemLtRtException(this.toString());
 		}
-		return this.hostFile.lastModified();
+		return new Date(this.hostFile.lastModified());
 	}
 
 	@Override
-	public synchronized long changeTime() throws FileSystemLtRtException {
+	public synchronized Date changeTime() throws FileSystemLtRtException {
 		if (!exists()) {
 			throw new FileSystemLtRtException(this.toString());
 		}
-		return this.hostFile.lastModified();
+		return new Date(this.hostFile.lastModified());
 	}
 
 	@Override
@@ -267,7 +268,7 @@ public final class HostFileSystemNode extends AbstractNode<HostFileSystem, HostF
 	}
 
 	@Override
-	public synchronized HostFileSystemNode moveTo(final Path dest) throws FileSystemLtRtException {
+	public synchronized HostFileSystemNode moveTo(final Path<HostFileSystem> dest) throws FileSystemLtRtException {
 		// TODO: optimisation
 		// fileutil.renameTo
 //		hostFile.renameTo(dest);

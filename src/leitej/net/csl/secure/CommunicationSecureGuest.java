@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -64,7 +65,7 @@ public final class CommunicationSecureGuest extends AbstractCommunicationSecureS
 	 *                                      during the connection
 	 */
 	protected CommunicationSecureGuest(final CommunicationSecureFactory factory, final SocketAddress endpoint,
-			final String charsetName)
+			final Charset charsetName)
 			throws SocketException, IllegalArgumentLtRtException, IllegalArgumentException, ConnectionLtException {
 		super(factory, endpoint, charsetName);
 	}

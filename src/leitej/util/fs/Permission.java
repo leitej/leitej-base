@@ -14,42 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package leitej.xml.om;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+package leitej.util.fs;
 
 /**
- * ArrayElement
- *
  * @author Julio Leite
+ *
  */
-final class ArrayElement {
-
-	// ATENCION: to add more array here, has to implement in :
-	// Parser.readArrayObject(...)
-	// Producer.printArrayElement(...)
-	private static final Class<?>[] ARRAY_CLASS = {
-			// class array
-			Set.class, Map.class, List.class };
-
-	private ArrayElement() {
-	}
-
-	static boolean has(final Class<?> clazz) {
-		if (clazz == null) {
-			return false;
-		}
-		if (clazz.isArray()) {
-			return true;
-		}
-		for (final Class<?> c : ARRAY_CLASS) {
-			if (c.isAssignableFrom(clazz)) {
-				return true;
-			}
-		}
-		return false;
-	}
+public final class Permission {
+	// TODO:
 
 }

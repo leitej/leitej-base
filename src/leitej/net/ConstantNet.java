@@ -17,6 +17,7 @@
 package leitej.net;
 
 import java.net.InetAddress;
+import java.nio.charset.Charset;
 
 import leitej.Constant;
 import leitej.util.DateUtil;
@@ -34,8 +35,7 @@ public final class ConstantNet {
 	public static final int DEFAULT_VELOCITY = 0; // No control
 	public static final int DEFAULT_SIZE_PER_SENTENCE = 32 * Constant.MEGA;
 	public static final int DEFAULT_TIMEOUT_MS = (int) (4 * DateUtil.ONE_HOUR_IN_MS);
-
-	public static final int INITIATE_COMMUNICATION_TIMEOUT_MS = (int) (15 * DateUtil.ONE_SECOND_IN_MS);
+	public static final int DEFAULT_INITIATE_COMMUNICATION_TIMEOUT_MS = (int) (15 * DateUtil.ONE_SECOND_IN_MS);
 
 	public static final int DEFAULT_DTP_PORT = 2626;
 	public static final int DEFAULT_DTP_BACKLOG = 0;
@@ -46,6 +46,7 @@ public final class ConstantNet {
 	public static final String DTP_HANDLER_THREAD_NAME = "Dtp-Handler-";
 
 	public static final String DEFAULT_DTP_CHARSET_NAME = Constant.UTF8_CHARSET_NAME;
+	public static final Charset DEFAULT_DTP_CHARSET = Charset.forName(DEFAULT_DTP_CHARSET_NAME);
 
 	public static final int RAW_DATA_MAX_LISTENERS_PER_BIND_ADDR = 16;
 	public static final int RAW_DATA_MAX_LISTENER_THREADS = RAW_DATA_MAX_LISTENERS_PER_BIND_ADDR * 2;

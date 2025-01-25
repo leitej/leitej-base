@@ -19,6 +19,7 @@ package leitej.net.dtp;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.charset.Charset;
 
 import leitej.exception.ConnectionLtException;
 import leitej.net.ConstantNet;
@@ -117,7 +118,7 @@ public final class DtpFactory<H extends AbstractDtpHandler> {
 	public final DtpClient clientInstanciation(final String host)
 			throws ConnectionLtException, IllegalArgumentException, SecurityException {
 		return clientInstanciation(new InetSocketAddress(host, ConstantNet.DEFAULT_DTP_PORT),
-				ConstantNet.DEFAULT_DTP_CHARSET_NAME);
+				ConstantNet.DEFAULT_DTP_CHARSET);
 	}
 
 	/**
@@ -138,7 +139,7 @@ public final class DtpFactory<H extends AbstractDtpHandler> {
 	 */
 	public final DtpClient clientInstanciation(final String host, final int port)
 			throws ConnectionLtException, IllegalArgumentException, SecurityException {
-		return clientInstanciation(new InetSocketAddress(host, port), ConstantNet.DEFAULT_DTP_CHARSET_NAME);
+		return clientInstanciation(new InetSocketAddress(host, port), ConstantNet.DEFAULT_DTP_CHARSET);
 	}
 
 	/**
@@ -151,23 +152,22 @@ public final class DtpFactory<H extends AbstractDtpHandler> {
 	 *                               ConnectionLtException
 	 */
 	public final DtpClient clientInstanciation(final SocketAddress endpoint) throws ConnectionLtException {
-		return clientInstanciation(endpoint, ConstantNet.DEFAULT_DTP_CHARSET_NAME);
+		return clientInstanciation(endpoint, ConstantNet.DEFAULT_DTP_CHARSET);
 	}
 
 	/**
 	 *
 	 * @param endpoint    the SocketAddress
-	 * @param charsetName the name of a supported {@link java.nio.charset.Charset
-	 *                    charset}
+	 * @param charsetName the charset
 	 * @return new client instance
 	 * @throws ConnectionLtException if an exception was raised and is related with
 	 *                               the connection of the client, that exception
 	 *                               should be in the cause of the
 	 *                               ConnectionLtException
 	 */
-	public DtpClient clientInstanciation(final SocketAddress endpoint, final String charsetName)
+	public DtpClient clientInstanciation(final SocketAddress endpoint, final Charset charset)
 			throws ConnectionLtException {
-		return new DtpClient(this.comFactory.clientInstanciation(endpoint, charsetName), this.rawDataThreadPool);
+		return new DtpClient(this.comFactory.clientInstanciation(endpoint, charset), this.rawDataThreadPool);
 	}
 
 	// TODO: close to shutdown hook close rawDataListenerMap rawDataThreadPool
